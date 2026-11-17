@@ -29,7 +29,7 @@ def ffmpeg():
 def to_wav(src):
     fd, wav = tempfile.mkstemp(suffix=".wav", prefix="kurgu-stt-")
     os.close(fd)
-    r = subprocess.run([ffmpeg(), "-v", "error", "-y", "-i", src, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav], capture_output=True, text=True)
+    r = subprocess.run([ffmpeg(), "-v", "error", "-y", "-i", src, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav], capture_output=True, text=True, creationflags=0x08000000 if os.name == "nt" else 0)
     if r.returncode != 0 or os.path.getsize(wav) < 2000:
         os.remove(wav)
         sys.exit("ses okunamadı: " + (r.stderr.strip().splitlines() or ["ffmpeg hata"])[-1])
@@ -50,7 +50,10 @@ def main():
     ap.add_argument("--srt", action="store_true")
     ap.add_argument("--duzeltme", help="JSON: {yanlış: doğru} bul-değiştir")
     ap.add_argument("--cpu", action="store_true")
+    ap.add_argument("--local-only", action="store_true", help="Yalnızca indirilmiş model; ağdan indirme yapma")
     a = ap.parse_args()
+    import yol
+    yol.hazirla()
     from faster_whisper import WhisperModel
     device, ctype = "cpu", "int8"
     if not a.cpu:
@@ -73,14 +76,14 @@ def main():
         audio = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype("float32") / 32768.0
     try:
         try:
-            model = WhisperModel(a.model, device=device, compute_type=ctype)
+            model = WhisperModel(a.model, device=device, compute_type=ctype, download_root=os.environ["HF_HUB_CACHE"], local_files_only=a.local_only)
             segs, info = model.transcribe(audio, language=None if a.dil == "auto" else a.dil, word_timestamps=True, condition_on_previous_text=False, vad_filter=True)
             segs = list(segs)                                           # CUDA hatası burada patlar
         except Exception as e:
             if device == "cuda":
                 print(f"uyarı: GPU çalışmadı ({type(e).__name__}); CPU int8'e geçiliyor", file=sys.stderr)
                 device, ctype = "cpu", "int8"
-                model = WhisperModel(a.model, device=device, compute_type=ctype)
+                model = WhisperModel(a.model, device=device, compute_type=ctype, download_root=os.environ["HF_HUB_CACHE"], local_files_only=a.local_only)
                 segs, info = model.transcribe(audio, language=None if a.dil == "auto" else a.dil, word_timestamps=True, condition_on_previous_text=False, vad_filter=True)
                 segs = list(segs)
             else:

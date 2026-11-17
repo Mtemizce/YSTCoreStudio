@@ -155,12 +155,19 @@ def gorsel_durum() -> dict:
             "adet_en_cok": k.EN_COK_ADET, "sayim": {d: len(k.liste(d)) for d in ("taslak", "onayli", "reddedildi")}}
 
 
+def yerel_video_m():
+    import yerel_video
+    return yerel_video
+
+
 def yerel_gorsel_m():
-    return modul("yst_yerel_gorsel", "araclar/yerel_gorsel.py")
+    import yerel_gorsel
+    return yerel_gorsel
 
 
 def guncelleme_m():
-    return modul("yst_guncelleme", "araclar/guncelleme.py")
+    import guncelleme
+    return guncelleme
 
 
 def bulut_disk_m():
@@ -478,7 +485,7 @@ def kapak(proje: str) -> Path | None:
         eski.unlink(missing_ok=True)
     sure = 0.0
     if shutil.which("ffprobe"):
-        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(v)], capture_output=True, text=True, timeout=20)
+        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(v)], capture_output=True, text=True, timeout=20, creationflags=ses_temizle_m().NW)
         try:
             sure = float(r.stdout.strip())
         except ValueError:
@@ -537,7 +544,19 @@ def orkestratorler() -> dict:
     d = json.loads((ROOT / "sistem" / "baglayici" / "calisma_ortamlari.json").read_text(encoding="utf-8"))
     sec = (ayar().coz().get("orkestrator") or {}).get("calisma_ortami", "claude-code")
     liste = [{"id": k, "ad": v["ad"], "durum": v.get("durum"), "not": v.get("not", ""), "kurulu": bool(shutil.which(v["komut"])), "komut": v["komut"]} for k, v in d.items() if not k.startswith("_")]
-    return {"secili": sec, "liste": liste}
+    import orkestrator
+    cfg = ayar().coz().get("orkestrator", {})
+    for o in liste:
+        if o["id"] in orkestrator.LOCAL:
+            try:
+                o["modeller"] = orkestrator.models(o["id"])
+                o["kurulu"] = True
+            except (OSError, ValueError) as e:
+                o.update(kurulu=False, modeller=[], hata=str(e))
+            o["adres"] = orkestrator.endpoint(o["id"], cfg)
+        else:
+            o["modeller"] = ayar().ortam_modelleri(o["id"])
+    return {"secili": sec, "liste": liste, "model": cfg.get("model", "")}
 
 
 def model_kontrol(sid: str, yetenek: str | None, model: str) -> None:
@@ -640,6 +659,10 @@ def uretim_durumu(proje: str) -> dict:
 
 # ------------------------------------------------------------------ GET
 def get(yol: str, q: dict):
+    if yol == "/api/yerelvideo":
+        return yerel_video_m().durum()
+    if yol == "/api/dikte/durum":
+        return dikte_durum()
     if yol == "/api/ayar":
         return ayar_ozeti(q.get("proje") or None)
     if yol == "/api/baglayici":
@@ -793,6 +816,12 @@ def sistem_ozeti(ag: bool) -> dict:
 
 # ------------------------------------------------------------------ POST
 def post(yol: str, q: dict, b: dict):
+    if yol == "/api/yerelvideo/kur":
+        return yerel_video_m().kur()
+    if yol == "/api/yerelvideo/uret":
+        return yerel_video_m().baslat(b.get("proje", ""), b.get("istem", ""), b.get("kare", 49))
+    if yol == "/api/yerelvideo/iptal":
+        return yerel_video_m().iptal(b.get("proje"))
     if yol == "/api/ayar":
         proje = b.get("proje") or None
         if proje:
@@ -860,7 +889,7 @@ def post(yol: str, q: dict, b: dict):
     if yol == "/api/baglayici/test":
         sid = b.get("saglayici", "")
         r = subprocess.run([str(VENV_PY), str(SISTEM / "baglayici" / "uret.py"), "test", sid], capture_output=True, text=True, encoding="utf-8",
-                           errors="replace", cwd=str(ROOT), timeout=90)
+                           errors="replace", cwd=str(ROOT), timeout=90, creationflags=ses_temizle_m().NW)
         return {"ok": r.returncode == 0, "cikti": ortak().maskele((r.stdout + r.stderr).strip())[-300:]}
     if yol == "/api/mcp/kaydet":
         k = mcp().kaydet(str(b.get("ad", "")), str(b.get("tur", "")), str(b.get("komut", "")), str(b.get("url", "")), str(b.get("anahtar_adi", "")), bool(b.get("etkin", True)))
@@ -1148,7 +1177,7 @@ def uret_hazirla(b: dict) -> dict:
         sag = gor.get("saglayici") or cz["uretim"]["gorsel_uret"]["saglayici"]
         gor["saglayici"] = sag
         if sag == YEREL_GORSEL_ID:   # yerel model: bulut izni/anahtar gerekmez, kurulu olmalı
-            if not gorsel_durum()["kurulu"]:
+            if not b.get("taslak") and not gorsel_durum()["kurulu"]:
                 raise ValueError("Yerel Z-Image-Turbo kurulu değil: Ayarlar → Servisler ve modeller → Yerel görsel üretim → Kur")
             gor["yerel"] = True
         else:
@@ -1235,6 +1264,14 @@ def claude_ek(proje: str | None, gorev: str | None) -> tuple[str, list[str]]:
 DIKTE_EN_COK = 25_000_000  # bayt (~10 dk opus)
 
 
+def dikte_durum():
+    b = bilesen_m()
+    installed = [k for k in ("small", "base", "tiny", "medium", "large-v3-turbo", "large-v3") if b._repo_kurulu(b.WHISPER[k][0])]
+    ready = bool(installed and b._paketler().get("faster_whisper"))
+    return {"hazir": ready, "model": installed[0] if installed else None,
+            "mesaj": "Hazır" if ready else "Konuşma tanıma hazır değil. Ayarlar → Sistem → Konuşma tanıma modelini kurun."}
+
+
 def dikte_coz(veri: bytes) -> dict:
     """Tarayıcıdan gelen ses kaydını YEREL faster-whisper ile yazıya çevirir. Ses hiçbir yere gönderilmez ve iş bitince silinir."""
     import os
@@ -1243,16 +1280,19 @@ def dikte_coz(veri: bytes) -> dict:
 
     if not (2_000 <= len(veri) <= DIKTE_EN_COK):
         raise ValueError("ses kaydı çok kısa ya da çok uzun (en çok ~10 dakika)")
+    check = dikte_durum()
+    if not check["hazir"]:
+        raise ValueError(check["mesaj"])
     tmp = Path(tempfile.mkdtemp(prefix="dikte-", dir=str(ORTAM / "yerel") if (ORTAM / "yerel").is_dir() else None))
     try:
         ses, cikti = tmp / "kayit.webm", tmp / "yazi.json"
         ses.write_bytes(veri)
-        cmd = [str(VENV_PY), str(SISTEM / "araclar" / "yazi_cikar.py"), str(ses), "-o", str(cikti), "--dil", "tr", "--model", "small"]
+        cmd = [str(VENV_PY), str(SISTEM / "araclar" / "yazi_cikar.py"), str(ses), "-o", str(cikti), "--dil", "tr", "--model", check["model"], "--cpu", "--local-only"]
         duz = ROOT / "kimlik" / "duzeltme.json"
         if duz.is_file():
             cmd += ["--duzeltme", str(duz)]  # özel adlar (Örnekoğlu…) için bul-değiştir
-        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), timeout=420,
-                           env={**os.environ, "PYTHONUTF8": "1", "HF_HUB_DISABLE_TELEMETRY": "1", "DO_NOT_TRACK": "1"})
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=str(ROOT), timeout=420, creationflags=ses_temizle_m().NW,
+                           env={**os.environ, **__import__("yol").kapsama()})
         if r.returncode != 0 or not cikti.is_file():
             raise RuntimeError("yazıya çevrilemedi: " + ((r.stderr or r.stdout).strip().splitlines() or ["bilinmeyen hata"])[-1][:200])
         j = json.loads(cikti.read_text(encoding="utf-8"))

@@ -99,7 +99,7 @@ Panel → **Ayarlar**: (1) her ajan için **model ve effort** (genel varsayılan
 - Henüz yok: ncnn-Vulkan büyütme, ajan başına farklı abonelik.
 
 ## Panel
-Sol kenar çubuğunda **Pano**, **Yeni proje** ve **Ayarlar** var. Pano: üretilen, şu an üretilen ve senden bekleyen projeler; istatistikler; bağlı modeller; ücretli kullanım. **Yeni proje** → *Tek video* (prompt, kaynak, model, ses, görsel) ya da *Seri / Dizi*. Üretime başlayınca Kurgu editörü panelin içinde canlı açılır; Pano'ya dönebilirsin, üretim arka planda sürer. Açık/koyu tema üst çubuktaki düğmeyle. Ayarlar → *Sistem ve güncelleme*'de GitHub deposu + jeton girersen saatte bir güncelleme kontrolü yapılır ve tek tıkla (yedek alarak) güncellenir.
+Sol kenar çubuğunda **Pano**, **Yeni proje** ve **Ayarlar** var. Pano: üretilen, şu an üretilen ve senden bekleyen projeler; istatistikler; bağlı modeller; ücretli kullanım. **Yeni proje** → *Tek video* (prompt, kaynak, model, ses, görsel) ya da *Seri / Dizi*. Üretime başlayınca Kurgu editörü panelin içinde canlı açılır; Pano'ya dönebilirsin, üretim arka planda sürer. Açık/koyu tema üst çubuktaki düğmeyle. Ayarlar → *Sistem ve güncelleme*'de Public GitHub deposu varsayılan olarak jetonsız, saatte bir kontrol edilir; bildirim işini kesmez. Kurulum yalnızca Güncelle düğmesiyle başlar.
 Düşük donanım için isteğe bağlı: *Servisler → Yerel görsel üretim* (Z-Image-Turbo; ~7 GB, varsayılan kurulu gelmez).
 
 ## Bulut disk arşivi ve ajan başına ortam
@@ -151,3 +151,25 @@ Kurgu kendi deposundan çekilir; bu düğmeler ona kurulumda otomatik uygulanan 
 
 ## Marka kiti
 Ayarlar → Marka ve üretim. Bir kit şunları içerir: kimlik ve iletişim, **birden çok logo** (ana, simge, yatay, koyu/açık zemin), **metinler** (slogan, çağrı, yasal uyarı…), ana renkler ve rolleriyle ek renkler, yazı tipleri, intro/outro/filigran ayarları ve **kullanım kuralları**. Bir kural bir öğe (logo, metin, renk, intro, outro, filigran, kapak ya da genel) için *nerede*, *ne zaman*, *nasıl* ve *yasak* alanlarını serbest cümlelerle taşır. Projeye kit uygulanınca `projeler/<ad>/marka_kullanimi.md` kılavuzu yazılır (kitin kimliği, logo dosyaları, o projedeki intro/outro/iletişim seçimleri ve senin kuralların); sahne yapımcısı ve diğer ajanlar bunu aynen uygular. Eski biçimli kitler olduğu gibi çalışır.
+
+
+## Panel orkestratörü, taslak ve yerel video
+
+Proje üretimi ve devam mesajları **Canlı üretim → Orkestratör** sohbetinde yürür. Klasör güvenini ve araç izinlerini burada yanıtla. Kurgu'nun **Gönder** düğmesi mevcut notları aynı oturuma sıraya alır. Notlar zaman kodu, kare ve işaret bilgilerini korur. Panel yeniden açıldığında sohbet geçmişi korunur; yarım kalan oturum kesildi olarak görünür.
+
+**Ayarlar → Yapay zekâ** bölümünden Claude Code veya doğrudan Ollama / LM Studio / llama.cpp seçilebilir. Yerel sunucuyu başlat, adresini kaydet ve modelleri yenile; araç çağırma destekli modeli seçip kaydet. Yerel modeli çalıştıran sunucunun kurulumunu stüdyo yapmaz. Sağlayıcı hesabı gerektiren bağlantılarda ilk hesap girişi sağlayıcının kendi akışıdır; klasör güveni panelden yönetilir.
+
+**Taslak olarak kaydet** üretimi başlatmadan brief ve kaynakları saklar. **Üretimi iptal et** işlem ağacını durdurur ve dosyaları korur. **İptal et ve sil** projeyi `sistem/ortam/cop/` altına taşır; arşiv orijinallerine dokunmaz. Daha sonra üretmek için taslağı açıp orkestratörle devam et.
+
+**Kurgu → Arşivden ekle** ile dosya veya klasör adı ara. Kaynağı seçince bir kopyası projeye alınır; görsel, video ve ses doğrudan zaman çizelgesine eklenir. Sonuç yoksa arşiv yolunu ve ilk taramanın tamamlandığını kontrol et.
+
+**Ayarlar → Servisler ve modeller → Yerel video: Wan 2.2** isteğe bağlı yaklaşık 12 GB indirmedir. Kurulunca proje sohbetinin altındaki **Yerel video üret** bölümünü aç. İstemi ve kare sayısını seç; biten MP4 `kaynak/video/` altında bulunur, **Kurguya ekle** düğmesiyle zaman çizelgesine alınabilir. Üretim sürerken aynı bölümdeki durdur düğmesi veya proje iptali çalışır. Pascal için hazırlanan NVIDIA paketidir; gerçek donanım uyumluluğunu kısa denemeyle kontrol et. Ayrıntılar ve atıflar README'dedir.
+
+Sağlık raporundaki “isteğe bağlı, kurulu değil” bilgi mesajı başarılı indirme anlamına gelmez. Model kartındaki **Kurulu** bilgisi gerekli dosyalara dayanır; hata veya yarım indirme varsa yeniden dene. Diktede mikrofon izninden sonra konuşup **Durdur** düğmesine bas; indirilen Whisper modeli kullanılır, eksikse kayıt başlamadan bildirilir.
+
+
+### Public depodan güvenli güncelleme
+
+Varsayılan depo `Mtemizce/YSTCoreStudio`; jeton yalnızca özel depo veya API kotası için isteğe bağlıdır. Arka plan kontrolü dosya kurmaz. Güncelle düğmesi üretim/indirme sürerken çalışmaz; açık Kurgu editörünü kaydedip stüdyoyu kapatıp yeniden açmak gerekir. Kurulum sırasında yeni işler bekletilir.
+
+Sürüm ZIP dosyası SHA256 ile doğrulanır. Release yoksa varsayılan dalın belirli commit paketi GitHub dosya ağacındaki Git blob özetleriyle doğrulanır. Git klonunda yerel değişiklikler varsa işlem durur; yalnızca seçili deponun kontrol edilen commitine ileri sarma yapılır. ZIP değişiklikleri ve kullanıcı verileri `sistem/ortam/yedek/guncelleme-*` altında saklanır. ZIP yerleştirme hatasında kod geri alınır; bağımlılık/veritabanı hatası başarı sayılmaz ve onarım gerektiği raporlanır. Pip/npm ve veritabanı değişiklikleri otomatik geri alınmaz. Güncelleme bitince **Paneli yeniden başlat** düğmesine kullanıcı basar.

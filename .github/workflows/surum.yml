@@ -1,0 +1,32 @@
+name: Sürüm yayımla
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  testler:
+    uses: ./.github/workflows/test.yml
+  yayin:
+    needs: testler
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Etiket sürümünü doğrula
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python -c "import json,os; v=json.load(open('sistem/surum.json'))['uygulama']; assert os.environ['TAG']=='v'+v, 'Etiket ve sürüm uyuşmuyor'"
+      - name: Paket ve SHA256 oluştur
+        run: python sistem/kurulum/surum_yap.py
+      - name: GitHub Release oluştur
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" sistem/ortam/surum/*.zip sistem/ortam/surum/*.sha256 --verify-tag --title "YSTCoreStudio $GITHUB_REF_NAME" --generate-notes

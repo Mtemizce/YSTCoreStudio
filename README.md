@@ -23,7 +23,29 @@
 
 YSTCoreStudio, fotoğraf, video, DWG, PDF, Word ve Excel dosyalarını verip serbestçe "şunu anlatan 40 saniyelik bir video yap" dediğin bir **video post-prodüksiyon stüdyosudur**. Tarayıcıda açılan bir panelden proje başlatırsın; Claude Code orkestratörü senarist, redaktör, ses yönetmeni ve eleştirmen gibi uzman ajanlara iş dağıtır. Seslendirme (kendi sesini klonlayarak bile), altyazı, müzik, geçişler, fotoğraf iyileştirme ve kalemle çizilen ara sahneler yerelde üretilir; sonucu [Kurgu](https://github.com/leodavincs/kurgu) zaman çizelgesinde izler, saniye saniye not yazar, beğenince YouTube, Reels, TikTok ve Shorts sürümlerini alırsın. Ücretli bulut servisleri (ElevenLabs, Gemini, OpenAI görsel) **isteğe bağlıdır ve varsayılan kapalıdır**.
 
-> **Önemli: bu depo tek başına video üretmez.** Stüdyo; render, ses, çizim, arşiv ve editör araçlarını ve ajanlara talimatlarını (`.claude/`) bir araya getirir, **işi yöneten bir yapay zekâ ajanı (orkestratör) gerekir**. Varsayılan ve en iyi desteklenen orkestratör **Claude Code'dur ve bir Claude aboneliği ister**. Codex CLI, Gemini CLI ve OpenCode da seçilebilir (deneysel; her biri kendi aboneliğiyle). Abonelik istemiyorsan OpenCode'u yerel bir model sunucusuna (Ollama, LM Studio) bağlayabilirsin; bu yol da deneysel: yerel modellerin bu çok adımlı iş akışını ne kadar iyi yürüteceği modele ve donanımına bağlıdır.
+> **Orkestratör gerekir.** Claude Code, Ollama, LM Studio ve llama.cpp panelden seçilebilir. Claude bağlantısı mevcut sağlayıcı oturumunu kullanır; hesap girişi klasör güveninden ayrıdır. Yerel modellerde abonelik gerekmez, ancak sunucu açık ve araç çağırmayı destekleyen bir model yüklü olmalıdır. Codex CLI, Gemini CLI ve OpenCode başsız adaptörleri deneyseldir; araç bazında panel izin akışı Claude SDK ve doğrudan yerel model bağlantılarında desteklenir.
+
+## Panel içinden çalışma
+
+- **Canlı üretim → Orkestratör sohbeti:** mesajlar, yanıtlar, klasör güveni, araç izinleri ve sorular paneldedir. Ajan için terminal penceresi açılmaz. Kurgu'nun mevcut **Gönder** düğmesi zaman kodu/kare/işaret içeren notları aynı orkestratörün kalıcı kuyruğuna verir; meşgul ajan bitince devam eder.
+- **Ayarlar → Yapay zekâ:** Ollama (`http://127.0.0.1:11434`), LM Studio (`http://127.0.0.1:1234/v1`) veya llama.cpp (`http://127.0.0.1:8080/v1`) seç; adresi kaydet, modelleri yenile, modeli seçip kaydet. Sunucu ve model kurulumu bu sağlayıcıların kendi uygulamasında yapılır. Yerel orkestratör alt ajanlara `delegate` aracıyla iş dağıtır. Yerel modele devredilen CLI alt görevleri proje dosyalarıyla sınırlıdır; program çalıştırma orkestratörde kalır.
+- **İptal / taslak / sil:** çalışan üretim ve alt süreçleri durdurulur. Taslak, brief ve kaynakları korur; daha sonra orkestratörle devam edilir. Silme projeyi `sistem/ortam/cop/` altına taşır; dış arşivdeki orijinalleri silmez. Geri alma için panel kapalıyken bu klasörü eski proje adıyla `projeler/` altına taşıyabilirsin.
+- **Arşiv:** yerel yol kaydedilince ilk tarama başlar. Dosya ve klasör adında parça araması, Türkçe karakterler ve boşluklar desteklenir. Kurgu içindeki **Arşivden ekle** görsel, video ve sesi zaman çizelgesine kopyalar; belgeleri proje kaynaklarına ekler. Harici disk bağlı ve arşiv taraması tamamlanmış olmalıdır.
+- **Dikte:** mikrofona izin ver, konuş, kaydı durdur. İndirilen Whisper modeli ortak stüdyo önbelleğinden CPU ile yüklenir; eksik model kayıt başlamadan bildirilir. Dikte sırasında yeni model indirilmez.
+
+### Yeni Windows bilgisayar ve mevcut kurulumu güncelleme
+
+`Başlat.cmd` ile aç. Python yoksa ilk kurulum penceresindeki **Python kur** düğmesi resmi, imzalı yükleyiciyi çalıştırır. Ardından kurulum panelindeki **Eksikleri kur ve devam et**, eksik Git/Node.js ve seçili önkoşulları sırayla kurar, her araç için yeniden kontrol yapar. Komutlar elle kurulum alternatifi olarak kalır. Yönetici gerektiren sistem kurulumları için Başlat.cmd'yi yönetici olarak aç. Bu önkoşullar Windows'a kurulur; stüdyo modelleri ve paket önbellekleri stüdyo içinde kalır.
+
+Mevcut kurulumda paneli kapatıp yeniden aç. Yeni `claude-agent-sdk` bağımlılığı arka plan bileşen kuyruğundadır. Kurgu eklentisi editör yeniden açılınca güncellenir. İndirme kuyruğunda başarısız kalan öğeyi yeniden dene: model dosyaları boyut ve mevcut SHA256 bilgisiyle doğrulanır, yarım indirme tamamlanmış sayılmaz. Sağlık raporu zorunlu eksikleri ve kurulmamış isteğe bağlı modelleri ayrı gösterir.
+
+### İsteğe bağlı yerel video: Wan 2.2
+
+**Ayarlar → Servisler ve modeller → Yerel video: Wan 2.2 → İndir ve kur.** [alexturkey/wan22-pascal-4gb](https://github.com/alexturkey/wan22-pascal-4gb) v0.1.0 tarifini kullanır. Paketler ve üç model dosyası SHA256 ile doğrulanır; kesilen indirme yeniden denemede devam eder. Kendiliğinden indirilmez.
+
+Windows x64, CUDA 12.8 uyumlu NVIDIA sürücüsü, en az 4 GB VRAM, yaklaşık 12 GB indirme alanı ve en az 8 GB boş RAM gerekir. Hazır paket Pascal için hazırlanmıştır; diğer kartlarda uyumluluk ayrıca denenmelidir. Kurgu sayfasındaki **Yerel video üret** bölümünden 17, 49 veya 121 kare seçilir; çıktı proje kaynaklarına ve yanında atıf dosyasına yazılır. Üretim aynı bölümden iptal edilebilir. Bu entegrasyon metinden video akışını sunar.
+
+Kaynak projenin GTX 1050 Ti ölçümü: 49 kare yaklaşık 26 dakika, 121 kare yaklaşık 158 dakika; kendi kartındaki süre farklı olabilir. Motor/modellerin lisansları ayrıdır: [atıflar](.claude/skills/THIRD_PARTY_NOTICES.md#yerel-video-uretim).
 
 ## Nasıl çalışır?
 
@@ -153,14 +175,15 @@ Boyutlar diskte kaplanan yerdir. Kurulum sihirbazı toplamı ve bu bilgisayarda 
 
 | Bileşen | Boyut | Ne işe yarar |
 |---|---|---|
-| GPU hızlandırma (PyTorch CUDA) | ~2,7 GB | NVIDIA ekran kartında foto iyileştirme ve modeller çok daha hızlı çalışır. NVIDIA kartı olanlara panel önerir; kurmasan da her şey işlemcide çalışır. |
+| GPU hızlandırma (PyTorch CUDA) | ~2,7 GB | NVIDIA ekran kartında foto iyileştirme ve modeller çok daha hızlı çalışır. NVIDIA kartı olanlara panel önerir; CPU destekli bileşenler işlemcide çalışır; Wan hazır paketi NVIDIA gerektirir. |
 | Müzik ve ses efektleri (atıfsız: CC0 / kamu malı) | ~0,13 GB | Videolara müzik ve ses efekti eklemek için. Kaynaklar: GitHub, Internet Archive (Musopen, CC0), Wikimedia Commons. Kendi müzik arşivini de Arşiv'den ekleyebilirsin. |
 | Z-Image-Turbo (yerel görsel üretim) | ~6-8 GB | Metinden görsel üretir. |
+| Wan 2.2 TI2V-5B (isteğe bağlı) | ~12 GB | Pascal/CUDA tarifiyle kısa video üretir; yalnızca kullanıcı isteğiyle indirilir. |
 | Daha büyük konuşma tanıma modelleri | 1,5-3 GB | Daha doğru yazıya çevirme. |
 
 Panel → Ayarlar → Sistem'den bileşen bazında kurulur ve kaldırılır; her biri için disk, RAM ve ekran kartı gereksinimi bu bilgisayara göre "yeterli / sınırda / yetersiz" diye gösterilir.
 
-**Her şey stüdyo klasörünün içinde kalır** (modeller, önbellekler, Python ve Node paketleri); bilgisayarın başka bir yerine yazılmaz. Kaldırmak için paneli kapatıp klasörü silmen yeter ([ayrıntı](docs/KULLANIM.md#tek-klasör-kuralı-ve-kaldırma)).
+**Stüdyo modelleri, önbellekleri, Python ve Node paketleri stüdyo klasöründe kalır.** Python, Node.js, Git ve Visual C++ gibi sistem önkoşulları kendi Windows kurulum konumlarına yüklenir; sağlayıcıların hesap oturumları da kendi konumlarındadır. Kaldırmak için paneli kapatıp klasörü silmen yeter ([ayrıntı](docs/KULLANIM.md#tek-klasör-kuralı-ve-kaldırma)).
 
 ## Teknik detaylar
 
@@ -233,3 +256,10 @@ Henüz kimse yok: ilk katkıyı sen yap! ([CONTRIBUTING.md](CONTRIBUTING.md))
 <!-- sponsorlar:basla -->
 Henüz sponsor yok. Sponsor olursan profil resmin burada görünür ([GitHub Sponsors](https://github.com/sponsors/Mtemizce)).
 <!-- sponsorlar:bitis -->
+
+
+### Public depodan güvenli güncelleme
+
+Varsayılan depo `Mtemizce/YSTCoreStudio`; jeton yalnızca özel depo veya API kotası için isteğe bağlıdır. Arka plan kontrolü dosya kurmaz. Güncelle düğmesi üretim/indirme sürerken çalışmaz; açık Kurgu editörünü kaydedip stüdyoyu kapatıp yeniden açmak gerekir. Kurulum sırasında yeni işler bekletilir.
+
+Sürüm ZIP dosyası SHA256 ile doğrulanır. Release yoksa varsayılan dalın belirli commit paketi GitHub dosya ağacındaki Git blob özetleriyle doğrulanır. Git klonunda yerel değişiklikler varsa işlem durur; yalnızca seçili deponun kontrol edilen commitine ileri sarma yapılır. ZIP değişiklikleri ve kullanıcı verileri `sistem/ortam/yedek/guncelleme-*` altında saklanır. ZIP yerleştirme hatasında kod geri alınır; bağımlılık/veritabanı hatası başarı sayılmaz ve onarım gerektiği raporlanır. Pip/npm ve veritabanı değişiklikleri otomatik geri alınmaz. Güncelleme bitince **Paneli yeniden başlat** düğmesine kullanıcı basar.

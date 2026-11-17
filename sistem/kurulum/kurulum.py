@@ -206,7 +206,7 @@ def a_config() -> None:
             "hyperframes": ["node", f"{node_mod}/hyperframes/dist/cli.js", "render", ".", "--composition", "{unit}.html",
                             "--output", "{out}", "--fps", "{fps}", "--quality", "delivery", "--quiet"],
         },
-        "on_send": [kurgu_exe, "wake", "claude", "{dir}", "{seq}"],
+        "on_send": [str(VENV / ("Scripts/pythonw.exe" if os.name == "nt" else "bin/python")), str(SISTEM / "araclar/orkestrator.py"), "enqueue", "{dir}", "{seq}"],
     }
     d = ORTAM / "kurgu-ayar"
     d.mkdir(exist_ok=True)

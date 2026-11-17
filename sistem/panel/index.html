@@ -505,7 +505,7 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
       <div class="opt"><input type="checkbox" id="bulutIzin"> <span id="bulutMetin"></span></div>
     </div>
 
-    <div class="row" style="margin-top:14px"><button id="uret" class="main" type="button">Üret</button><span class="meta">Üretimi Claude (orkestratör) devralır; ajanlara dağıtır, taslağı hazırlar, sen önizlersin.</span></div>
+    <div class="row" style="margin-top:14px"><button id="uret" class="main" type="button">Üret</button><button id="taslakOlustur" type="button">Taslak olarak kaydet</button><span class="meta">Üretimi Claude (orkestratör) devralır; ajanlara dağıtır, taslağı hazırlar, sen önizlersin.</span></div>
     <div class="log" id="log"></div>
   </section>
       </section>
@@ -561,7 +561,7 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
           <span class="ad" id="pAd"></span><span class="chip" id="pAsama">…</span>
           <div class="ilerleme"><div class="bar"><i id="pYuzde" style="width:0"></i></div></div>
           <span class="sp"></span>
-          <button type="button" id="pAjan" title="Üretimi yürüten ajan oturumunu (terminal penceresi) aç"><svg class="ik k"><use href="#i-spark"/></svg>Ajan penceresini aç</button>
+          <button type="button" id="pAjan" title="Panel içindeki orkestratör sohbetini aç"><svg class="ik k"><use href="#i-spark"/></svg>Orkestratör sohbetini aç</button>
           <a class="btn" id="pYeni" href="#" target="_blank" rel="noopener"><svg class="ik k"><use href="#i-ext"/></svg>Yeni sekmede aç</a>
         </div>
         <div class="proje-bilgi" id="pBilgi"></div>
@@ -585,7 +585,7 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
           <div class="ayar-icerik">
             <div class="ayar-panel" data-t="ai"><section id="orkKart">
     <h2>Orkestratör: işleri kim yönetsin?</h2>
-    <div class="meta">Varsayılan <b>Claude Code</b>'dur (kendi Claude aboneliğinle; alt ajanlar da onun içinde çalışır). İstersen başka bir abonelikli ajan ortamı seçebilirsin; ayar kaydedilince "Üret" / "Onaylıyorum" ve "Claude ile devam" düğmeleri o ortamı açar. Diğer ortamlar <b>deneysel</b>: yönergeler markdown dosyalarında durduğu için okuyup uygularlar, ama alt ajan, slash komut ve MCP davranışı ortama göre değişir. Hiçbirinde API anahtarı gerekmez (abonelik/hesap girişi o programın kendi içindedir).</div>
+    <div class="meta">Orkestratör panel içinde çalışır. Claude Code veya Ollama, LM Studio, llama.cpp yerel sunucularından birini seçin. İşlem izinleri sohbet alanında sorulur. Yerel model araç çağırmayı desteklemelidir. Diğer CLI ortamları deneyseldir.</div>
     <div id="orkListe" style="margin-top:8px"></div>
     <div class="row" style="margin-top:8px"><button id="orkKaydet" class="main" type="button">Kaydet</button><span class="meta" id="orkSonuc"></span></div>
     <div class="meta" style="margin-top:6px">Aşağıdaki Ajanlar tablosunda model listesi, seçtiğin ortamın KENDİ listesinden gelir (örn. Codex için hesabındaki modeller). İstersen her ajana ayrıca farklı bir çalışma ortamı verebilirsin: orkestratör o rolü seçtiğin CLI'a devreder.</div>
@@ -831,20 +831,20 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
               </section>
               <section id="sistemKart">
     <h2>Sistem</h2>
-    <div class="meta">Stüdyonun ihtiyaç duyduğu programlar. Eksik varsa kopyalanabilir komutu ve indirme adresi görünür; kurduktan sonra <b>Yeniden tara</b>. (Hiçbir komut kendiliğinden çalıştırılmaz.)</div>
+    <div class="meta">Stüdyonun ihtiyaç duyduğu programlar. Eksik varsa kopyalanabilir komutu ve indirme adresi görünür; kurduktan sonra <b>Yeniden tara</b>. (İlk kurulumda eksikler sihirbazdan otomatik kurulabilir.)</div>
     <div id="sistemListe" style="margin-top:8px"></div>
     <div class="row" style="margin-top:10px"><button id="sistemTara" type="button">Yeniden tara</button><button id="agirKur" type="button" title="Derinlik modeli (Depth Anything V2 Small) artık kurulumla gelir; bozulduysa paketini yeniden kurar.">Derinlik modelini onar</button><button id="stKapat" type="button" class="danger" title="Arka planda çalışan paneli durdurur; yeniden açmak için Başlat.cmd">Stüdyoyu kapat</button><span class="meta" id="sistemSon"></span></div>
     <pre id="onarimLog" hidden></pre>
   </section>
               <section id="gunKart">
                 <h2>Güncelleme</h2>
-                <div class="meta">GitHub'daki değişiklikleri bu stüdyoya alır. Depo adını ve erişim jetonunu bir kez girersin; panel açıkken <b>saatte bir</b> otomatik kontrol eder ve güncelleme varsa uyarır.</div>
+                <div class="meta">GitHub'daki değişiklikleri bu stüdyoya alır. Public depo için jeton gerekmez. Panel açıkken <b>saatte bir</b> kontrol eder ve işini kesmeden bildirim gösterir. Yalnızca <b>Güncelle</b> düğmesine bastığında kurar. Önce açık işleri kaydet ve üretimleri bitir. Dosyalar yedeklenir; yeniden başlatmayı sen seçersin.</div>
                 <div id="gunDurum" style="margin-top:12px"></div>
                 <div class="grid2">
                   <div><label for="gunRepo">GitHub deposu (sahip/ad)</label><input type="text" id="gunRepo" placeholder="Mtemizce/YSTCoreStudio" autocomplete="off"></div>
-                  <div><label for="gunJeton">Erişim jetonu (token)</label><input type="password" id="gunJeton" placeholder="github_pat_…" autocomplete="new-password"></div>
+                  <div><label for="gunJeton">Erişim jetonu (isteğe bağlı)</label><input type="password" id="gunJeton" placeholder="github_pat_…" autocomplete="new-password"></div>
                 </div>
-                <details><summary>Jetonu nasıl üretirim?</summary>
+                <details><summary>Özel depo / API kotası için isteğe bağlı jeton</summary>
                   <div class="meta" style="line-height:1.7">GitHub → sağ üst profil → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens → Fine-grained tokens</b> → <b>Generate new token</b>.<br>
                   <b>Repository access:</b> "Only select repositories" ve bu depoyu seç. <b>Permissions → Repository permissions → Contents:</b> <code>Read-only</code> (Metadata kendiliğinden eklenir). Üret, kopyala ve yukarıya yapıştır. Jeton yalnızca bu bilgisayarda durur, ekrana geri gösterilmez, yalnızca bu depoyu okur.</div>
                 </details>
@@ -852,7 +852,8 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
                   <button id="gunKaydet" type="button" class="main">Kaydet</button>
                   <button id="gunKontrol" type="button"><svg class="ik k"><use href="#i-refresh"/></svg>Şimdi kontrol et</button>
                   <button id="gunGuncelle" type="button" class="main" hidden><svg class="ik k"><use href="#i-download"/></svg>Güncelle</button>
-                  <button id="gunJetonSil" type="button" class="danger" hidden>Jetonu sil</button>
+                  <button id="gunRestart" type="button" hidden>Paneli yeniden başlat</button>
+                   <button id="gunJetonSil" type="button" class="danger" hidden>Jetonu sil</button>
                   <span class="meta" id="gunSon"></span>
                 </div>
                 <pre id="gunLog" hidden></pre>
@@ -902,7 +903,11 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const H = {'X-Panel':'1'};
 const post = (u, b) => fetch(u, {method:'POST', headers:{...H,'Content-Type':'application/json'}, body:JSON.stringify(b||{})}).then(async r => {
-  const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText); return j; });
+  const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText);
+  if (j.guven_gerekli) { if (!await YST.confirmPanel('Orkestratör bu stüdyo klasöründeki yönergeleri ve araçları kullanacak:\n' + j.kok + '\nBu klasöre güveniyor musunuz?')) throw new Error('Klasör güveni onaylanmadı'); return post(u, {...b,guven:true}); }
+  if (u === '/api/claude' || u === '/api/ajan/mesaj') { if (j.ok) { const name=b.proje||'_profil'; if(name!=='_profil') location.hash='#/proje/'+encodeURIComponent(name); YST.show(name); } }
+  if (j.ok === false && (u.startsWith('/api/ajan/') || u === '/api/claude')) throw new Error(j.mesaj || j.hata || 'İşlem tamamlanamadı');
+  return j; });
 const get = u => fetch(u).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText); return j; });
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const boyut = n => n>1e9 ? (n/1e9).toFixed(1)+' GB' : n>1e6 ? (n/1e6).toFixed(1)+' MB' : Math.max(1,Math.round(n/1e3))+' KB';
@@ -959,19 +964,24 @@ function dikteDurum(h, t, bad){ const e = document.querySelector(`[data-durum="$
 async function dikteBasla(btn){
   const h = btn.dataset.hedef;
   if (!navigator.mediaDevices || !window.MediaRecorder) return dikteDurum(h, 'Bu tarayıcı mikrofon kaydını desteklemiyor (Chrome/Edge kullan).', true);
+  if (dikte.busy) return;
+  if (h !== 'klon') { try { const d=await get('/api/dikte/durum'); if(!d.hazir) return dikteDurum(h,d.mesaj,true); } catch(e) { return dikteDurum(h,e.message,true); } }
   try { dikte.akis = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1, echoCancellation:true, noiseSuppression:true}}); }
   catch(e){ return dikteDurum(h, 'Mikrofon izni verilmedi ya da mikrofon yok. Adres çubuğundaki kilitten izin ver.', true); }
-  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported(m));
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'].find(m => MediaRecorder.isTypeSupported(m));
   dikte.parcalar = []; dikte.hedef = h; dikte.rec = new MediaRecorder(dikte.akis, mime ? {mimeType:mime} : undefined);
   dikte.rec.ondataavailable = e => { if (e.data.size) dikte.parcalar.push(e.data); };
   dikte.rec.onstop = () => dikteBitir(btn);
-  dikte.rec.start(); dikte.t0 = Date.now();
+  dikte.rec.onerror = e => { dikteDurdur(); dikteDurum(h,'Mikrofon kaydı başarısız: '+(e.error?.message||'bilinmeyen hata'),true); };
+  dikte.rec.start(250); dikte.t0 = Date.now();
+  dikteDurum(h, 'Dinliyorum. Yazıya çevirmek için Bitir düğmesine bas.');
   btn.dataset.etiket = btn.dataset.etiket || btn.textContent;
   btn.textContent = '⏹ Bitir'; btn.classList.add('main');
   dikte.zaman = setInterval(() => { const s = Math.round((Date.now() - dikte.t0) / 1000); dikteDurum(h, `● Dinliyorum… ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}  (bitirmek için tekrar bas)`); if (s >= 540) dikteDurdur(); }, 500);
 }
 function dikteDurdur(){ if (dikte.rec && dikte.rec.state !== 'inactive') dikte.rec.stop(); clearInterval(dikte.zaman); if (dikte.akis) dikte.akis.getTracks().forEach(t => t.stop()); }
 async function dikteBitir(btn){
+  dikte.busy = true;
   const h = dikte.hedef; btn.textContent = btn.dataset.etiket || '🎤 Konuşarak yaz'; btn.classList.remove('main'); btn.disabled = true;
   const mime = (dikte.rec && dikte.rec.mimeType) || 'audio/webm';
   const blob = new Blob(dikte.parcalar, {type: mime});
@@ -984,15 +994,15 @@ async function dikteBitir(btn){
       klonNot = `Sesin klon için kaydedildi (${j.sure} sn).` + (j.uyari ? ' ' + j.uyari : ''); await klonYukle();
     } catch(e){ klonNot = 'Ses örneği kaydedilemedi: ' + e.message; klonHata = true; }
   }
-  if (h === 'klon'){ dikteDurum(h, klonNot, klonHata); btn.disabled = false; return; }
+  if (h === 'klon'){ dikteDurum(h, klonNot, klonHata); btn.disabled = false; dikte.busy=false; return; }
   dikteDurum(h, 'Yazıya çevriliyor (bu bilgisayarda, ilk seferde model yüklenirken biraz sürer)…');
   try {
     const r = await fetch('/api/dikte', {method:'POST', headers:H, body:blob}); const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText);
     const ta = document.getElementById(h);
-    if (j.metin){ ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, '') + ' ' : '') + j.metin; ta.focus(); taslakKaydet(); }
+    if (j.metin){ ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, '') + ' ' : '') + j.metin; ta.dispatchEvent(new Event("input", {bubbles:true})); ta.focus(); taslakKaydet(); }
     dikteDurum(h, (j.metin ? `Eklendi: ${j.kelime} kelime, ${Math.round(j.sure)} sn` + (j.kelime_dk ? ` · tempo ~${j.kelime_dk} kelime/dk` : '') + (j.uzun_duraklama ? ` · ${j.uzun_duraklama} uzun duraklama` : '') + '. Metni gözden geçir.' : 'Konuşma algılanmadı; mikrofona biraz daha yakın dene.') + (klonNot ? ' · ' + klonNot : ''), klonHata);
   } catch(e){ dikteDurum(h, 'Hata: ' + e.message + (klonNot ? ' · ' + klonNot : ''), true); }
-  btn.disabled = false;
+  btn.disabled = false; dikte.busy = false;
 }
 document.addEventListener('click', e => { const b = e.target.closest('button.mic'); if (!b) return; if (dikte.rec && dikte.rec.state === 'recording') dikteDurdur(); else dikteBasla(b); });
 
@@ -1193,6 +1203,7 @@ $('#araBtn').onclick = async () => {
 };
 
 /* Üret */
+$('#taslakOlustur').onclick = () => { $('#uret').dataset.taslak='1'; $('#uret').click(); };
 $('#uret').onclick = async () => {
   const btn = $('#uret'); btn.disabled = true;
   try {
@@ -1212,6 +1223,7 @@ $('#uret').onclick = async () => {
       arsiv: Object.keys(arsivSecim).length ? {gruplar:Object.keys(arsivSecim), en_cok:Number($('#encok').value)||60,
         filtre:{yil: $('#y0').value ? ($('#y0').value + '-' + ($('#y1').value||$('#y0').value)) : '', tur:$$('.atur:checked').map(i=>i.value).join(','), kelime:$('#akel').value, kok:kokSecili()}} : null
     };
+    const isDraft = btn.dataset.taslak === '1'; delete btn.dataset.taslak; govde.taslak=isDraft;
     const p = await post('/api/uret', govde);
     let n = 0;
     for (const f of bekleyen){ n++; log(`Kaynaklar yükleniyor ${n}/${bekleyen.length}: ${f.name}`);
@@ -1219,8 +1231,8 @@ $('#uret').onclick = async () => {
     if (bekleyen.length || p.arsiv){ log('Kaynaklar hazırlanıyor (envanter, DWG/PDF/Word/Excel dönüşümleri)…'); await post('/api/hazirla', {proje:p.proje}); }
     for (const gid of KUT_SECIM){ log('Üretilen görsel ekleniyor…'); await post('/api/gorsel/projeye', {id:gid, proje:p.proje, format:'ana'}); }
     KUT_SECIM = [];
-    await post('/api/claude', {proje:p.proje});
-    log(`Tamam: "${p.proje}" kuruldu. Claude penceresi açıldı ve görevi devraldı. Taslak hazır olunca burada "taslak hazır" görünür.`);
+    if (!isDraft) await post('/api/claude', {proje:p.proje});
+    log(`Tamam: "${p.proje}" kuruldu. İletişim ve üretim durumu paneldeki orkestratör sohbetinden takip edilir. Taslak hazır olunca burada "taslak hazır" görünür.`);
     bekleyen = []; arsivSecim = {}; listeCiz(); $('#prompt').value=''; $('#notlar').value=''; taslakSil();
     await projeYukle(); location.hash = '#/proje/' + encodeURIComponent(p.proje);
   } catch(e){ log('Hata: '+e.message, true); }
@@ -1246,8 +1258,8 @@ async function projeYukle(){
       <div class="meta">${plat?esc(plat)+' · ':''}son değişiklik ${p.degisti}${d && d.bulut_cagri?` · bulut çağrısı: ${d.bulut_cagri}`:''}${d && d.durum && d.durum.not?` · ${esc(d.durum.not)}`:''}</div>
       <div class="tags">${kay}${vid}</div>
       <div class="row" style="margin-top:10px">${onay}${final}${ed}
-        <button data-a="claude" data-p="${p.ad}" data-seri="${d && d.uretim && d.uretim.seri ? 1 : ''}">Claude ile devam</button>
-        <button data-a="ekle" data-p="${p.ad}" title="Bu projeye foto, video, ses, metin, belge ekle">Kaynak ekle</button>
+        <button data-a="claude" data-p="${p.ad}" data-seri="${d && d.uretim && d.uretim.seri ? 1 : ''}">Orkestratörle devam</button>
+        <button data-a="arsiv" data-p="${p.ad}">Arşivden ekle</button><button data-a="iptal" data-p="${p.ad}">İptal et</button><button data-a="taslak" data-p="${p.ad}">Taslak olarak sakla</button><button data-a="sil" data-p="${p.ad}">İptal et ve sil</button><button data-a="ekle" data-p="${p.ad}" title="Bu projeye foto, video, ses, metin, belge ekle">Kaynak ekle</button>
         <button data-a="ses" data-p="${p.ad}">Seslendirme metni</button>
         <button data-a="bplan" data-p="${p.ad}" title="Kişi çekime gidemedi: dijital sunucu + gerçek mekân görüntüleri">B planı</button>
         <button data-a="arasahne" data-p="${p.ad}" title="Bir çizimi, resmi ya da videonun ilk karesini kalemle çizilen bir ara sahneye çevir; istersen çizim bitince gerçeğe dönüşsün">🎞 Ara sahne ekle</button>
@@ -1265,6 +1277,15 @@ $('#liste').onclick = async e => {
     else if (b.dataset.a==='klasor'){ await post('/api/klasor', {proje:p, alt:b.dataset.f}); }
     else if (b.dataset.a==='onay'){ await post('/api/onay', {proje:p}); await post('/api/claude', {proje:p, gorev:'final'}); await projeYukle(); }
     else if (b.dataset.a==='final'){ await post('/api/claude', {proje:p, gorev:'final'}); }
+    else if (['iptal','taslak','sil'].includes(b.dataset.a)) {
+      if(b.dataset.a==='sil' && !await YST.confirmPanel('Üretim durdurulsun ve proje listeden kaldırılsın mı? Arşiv orijinalleri korunur.')) return;
+      await post('/api/proje/'+b.dataset.a,{proje:p}); await projeYukle();
+    }
+    else if (b.dataset.a==='arsiv') {
+      ek.innerHTML='<input class="arsAra" placeholder="Dosya veya klasör adı"><button class="arsBul">Ara</button><div class="arsList"></div>';
+      const search=async()=>{const d=await get('/api/arsiv/kutuphane?kelime='+encodeURIComponent(ek.querySelector('.arsAra').value)); const list=ek.querySelector('.arsList'); list.replaceChildren(); for(const f of d.sonuc||[]) {const row=document.createElement('button'); row.textContent=f.ad+' · '+(f.klasor||''); row.onclick=async()=>{await post('/api/arsiv/projeye',{proje:p,id:f.id});row.textContent='Eklendi: '+f.ad;row.disabled=true;};list.append(row);} if(!list.children.length)list.textContent='Sonuç bulunamadı. Arşiv taramasının tamamlandığını kontrol edin.';};
+      ek.querySelector('.arsBul').onclick=()=>search().catch(e=>ek.querySelector('.arsList').textContent=e.message); await search();
+    }
     else if (b.dataset.a==='ekle'){
       const inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true;
       inp.onchange = async () => {
@@ -1273,7 +1294,7 @@ $('#liste').onclick = async e => {
           for (const f of fl){ n++; ek.innerHTML = `<div class="meta">Yükleniyor ${n}/${fl.length}: ${esc(f.name)}</div>`;
             const r = await fetch(`/api/yukle?proje=${encodeURIComponent(p)}&ad=${encodeURIComponent(f.name)}`, {method:'POST', headers:H, body:f}); if (!r.ok) throw new Error((await r.json()).hata); }
           if (fl.length){ ek.innerHTML = '<div class="meta">Hazırlanıyor (envanter, belge dönüşümleri)…</div>'; await post('/api/hazirla', {proje:p}); }
-          ek.innerHTML = `<div class="meta ok">${fl.length} dosya eklendi. Claude'a "yeni kaynakları kullan" de ya da Claude ile devam et.</div>`; await projeYukle();
+          ek.innerHTML = `<div class="meta ok">${fl.length} dosya eklendi. Claude'a "yeni kaynakları kullan" de ya da Orkestratörle devam et.</div>`; await projeYukle();
         } catch(er){ ek.innerHTML = `<div class="log bad">${esc(er.message)}</div>`; }
       };
       inp.click();
@@ -1299,7 +1320,7 @@ async function bplanAc(p, ek){
     <div class="row" style="margin-top:8px"><label class="pill"><input type="checkbox" id="bpe_${p}"> "Dijital sunum" etiketi</label><label class="pill"><input type="checkbox" id="bpu_${p}"> üretken (bulut) ikiz de dene</label></div>
     <div class="row" style="margin-top:10px"><button class="main" id="bpb_${p}">B planını başlat</button><span class="meta" id="bps_${p}"></span></div></div>`;
   $('#bpb_' + p).onclick = async () => {
-    try { await post('/api/b-plani', {proje:p, karakter:$('#bpk_' + p).value, etiket:$('#bpe_' + p).checked, uretken:$('#bpu_' + p).checked}); await post('/api/claude', {proje:p, gorev:'b-plani'}); $('#bps_' + p).textContent = 'B planı başladı: Claude penceresi açıldı.'; await projeYukle(); }
+    try { await post('/api/b-plani', {proje:p, karakter:$('#bpk_' + p).value, etiket:$('#bpe_' + p).checked, uretken:$('#bpu_' + p).checked}); await post('/api/claude', {proje:p, gorev:'b-plani'}); $('#bps_' + p).textContent = 'B planı başladı: Orkestratör panelde başlatıldı.'; await projeYukle(); }
     catch(e){ $('#bps_' + p).textContent = e.message; }
   };
 }
@@ -1308,7 +1329,7 @@ async function sesKayit(p, btn, ek){
   if (sesK.rec && sesK.rec.state === 'recording'){ sesK.rec.stop(); return; }
   if (!navigator.mediaDevices || !window.MediaRecorder){ ek.innerHTML = '<div class="log bad">Bu tarayıcı mikrofon kaydını desteklemiyor (Chrome/Edge).</div>'; return; }
   try { sesK.akis = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1, echoCancellation:false, noiseSuppression:false}}); } catch(e){ ek.innerHTML = '<div class="log bad">Mikrofon izni verilmedi.</div>'; return; }
-  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported(m));
+  const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'].find(m => MediaRecorder.isTypeSupported(m));
   sesK.parcalar = []; sesK.rec = new MediaRecorder(sesK.akis, mime ? {mimeType:mime} : undefined);
   sesK.rec.ondataavailable = e => { if (e.data.size) sesK.parcalar.push(e.data); };
   sesK.rec.onstop = async () => {
@@ -1654,13 +1675,20 @@ $('#bagList').onclick = async e => {
 $('#bagList').onchange = async e => { const c = e.target; if (c.dataset.bag === 'etkin'){ try { await post('/api/baglayici/etkin', {saglayici:c.dataset.s, etkin:c.checked}); } catch(er){ c.checked = !c.checked; } } };
 
 /* orkestratör */
+let ORK_DATA;
 async function orkYukle(){
-  const d = await get('/api/orkestrator');
-  $('#orkListe').innerHTML = d.liste.map(o => `<label class="opt" style="margin:4px 0;color:var(--text)"><input type="radio" name="ork" value="${o.id}" ${o.id === d.secili ? 'checked' : ''}>
-    <span><b>${esc(o.ad)}</b> <span class="chip ${o.durum === 'tam' ? 'ok' : 'warn'}">${o.durum === 'tam' ? 'tam destek' : 'deneysel'}</span> <span class="chip ${o.kurulu ? 'ok' : 'bad'}">${o.kurulu ? 'kurulu' : esc(o.komut) + ' bulunamadı'}</span><br><span class="meta">${esc(o.not)}</span></span></label>`).join('');
+  const d = ORK_DATA = await get('/api/orkestrator');
+  $('#orkListe').innerHTML = d.liste.map(o => `<label class="opt"><input type="radio" name="ork" value="${o.id}" ${o.id===d.secili?'checked':''}><span><b>${esc(o.ad)}</b> · ${o.kurulu?'hazır':'bağlantı yok'}<br><span class="meta">${esc(o.not)}</span></span></label>`).join('') + '<label>Orkestratör modeli</label><select id="orkModel"></select><label id="orkAdresLabel">Yerel sunucu adresi</label><input id="orkAdres"><button id="orkYenile" type="button">Bağlantıyı kaydet ve modelleri yenile</button>';
+  orkFields(d.secili,d.model);
+  $('#orkYenile').onclick=async()=>{try{await orkSave(); await orkYukle();}catch(e){$('#orkSonuc').textContent=e.message;}};
 }
-$('#orkListe').addEventListener('change', e => { if (e.target.name === 'ork' && AYAR){ AYAR.orkestrator_ortami = e.target.value; ajanTablo('#ajanGenel', AYAR.ajanlar, 'genel'); } });
-$('#orkKaydet').onclick = async () => { const v = document.querySelector('input[name=ork]:checked'); try { await post('/api/ayar', {yama:{orkestrator:{calisma_ortami: v ? v.value : 'claude-code'}}}); $('#orkSonuc').textContent = 'Kaydedildi.'; await veriYukle(); ajanTablo('#ajanGenel', AYAR.ajanlar, 'genel'); panoYukle(); } catch(e){ $('#orkSonuc').textContent = e.message; } };
+function orkFields(kind,model=''){
+  const o=ORK_DATA.liste.find(x=>x.id===kind); $('#orkModel').innerHTML='<option value="">Varsayılan / model seç</option>'+(o.modeller||[]).filter(m=>m.id!=='inherit').map(m=>`<option value="${esc(m.id)}" ${m.id===model?'selected':''}>${esc(m.ad)}</option>`).join('');
+  $('#orkAdres').value=o.adres||''; $('#orkAdres').hidden=$('#orkAdresLabel').hidden=!o.adres;
+}
+$('#orkListe').addEventListener('change',e=>{if(e.target.name==='ork'){orkFields(e.target.value);if(AYAR){AYAR.orkestrator_ortami=e.target.value;ajanTablo('#ajanGenel',AYAR.ajanlar,'genel');}}});
+async function orkSave(){const kind=document.querySelector('input[name=ork]:checked')?.value||'claude-code';const o={calisma_ortami:kind,model:$('#orkModel').value};if(!$('#orkAdres').hidden)o.yerel_adresler={[kind]:$('#orkAdres').value};await post('/api/ayar',{yama:{orkestrator:o}});$('#orkSonuc').textContent='Kaydedildi.';}
+$('#orkKaydet').onclick=async()=>{try{await orkSave();await veriYukle();ajanTablo('#ajanGenel',AYAR.ajanlar,'genel');}catch(e){$('#orkSonuc').textContent=e.message;}};
 
 /* hazır servis (ön ayar) ekleme */
 let ON_AYARLAR = [];
@@ -1979,7 +2007,7 @@ function srBolumHtml(){
   const k = SR.d.seri, bl = SR.d.bolumler, d = SR.duzenle, son = Math.max(1, ...bl.map(x => x.sezon));
   const ad = id => (k.model_seti.find(m => m.id === id) || {ad:id}).ad;
   const tablo = bl.length ? `<table class="tablo" style="width:100%;border-collapse:collapse"><tr><th align="left">Bölüm</th><th align="left">Ad</th><th align="left">Durum</th><th align="left">Görünenler</th><th></th></tr>${bl.map(x => `<tr style="border-top:1px solid var(--cizgi)"><td>S${SR_SAYI(x.sezon)}B${SR_SAYI(x.no)}</td><td>${esc(x.ad)}${x.senaryo ? ' <span class="chip" title="Senaryo yazılı">senaryo</span>' : ''}</td><td><span class="chip ${x.durum === 'bitti' ? 'ok' : ''}">${esc(x.durum)}</span></td><td>${x.gorunenler.map(g => `<span class="chip">${esc(ad(g))}</span>`).join(' ') || '<span class="meta">-</span>'}</td>
-      <td style="text-align:right;white-space:nowrap"><button type="button" data-sr-duz="${x.sezon}-${x.no}">Düzenle</button> <a class="btn" href="#/proje/${encodeURIComponent(x.proje)}">Kurgu</a> <button type="button" data-sr-cl="${x.proje}" title="Seçili orkestratörü bu bölüm için açar: bölümü sana sunar, onayını alır, sonra üretir">Claude ile yap</button></td></tr>`).join('')}</table>` : '<div class="meta">Henüz bölüm yok.</div>';
+      <td style="text-align:right;white-space:nowrap"><button type="button" data-sr-duz="${x.sezon}-${x.no}">Düzenle</button> <a class="btn" href="#/proje/${encodeURIComponent(x.proje)}">Kurgu</a> <button type="button" data-sr-cl="${x.proje}" title="Seçili orkestratörü bu bölüm için açar: bölümü sana sunar, onayını alır, sonra üretir">Orkestratör ile yap</button></td></tr>`).join('')}</table>` : '<div class="meta">Henüz bölüm yok.</div>';
   const form = d ? `<h4 style="margin:14px 0 4px">Bölümü düzenle: S${SR_SAYI(d.sezon)}B${SR_SAYI(d.no)}</h4>
       <label style="margin-top:0">Ad</label><input type="text" id="bdAd" value="${esc(d.ad)}"><label>Özet (plan)</label><textarea id="bdOzet" style="min-height:56px">${esc(d.ozet_plan)}</textarea>
       <label>Senaryo / kurgu <span class="meta">(yazarak ya da dosyadan; ajan bunu temel alır)</span></label><textarea id="bdSen" style="min-height:120px">${esc(d.senaryo)}</textarea><div class="row"><label class="pill" style="cursor:pointer">Dosyadan yükle (.txt .md)<input type="file" accept=".txt,.md,.srt" data-sr-dosya="bdSen" hidden></label></div>
@@ -2021,7 +2049,7 @@ $('#srDetay').addEventListener('click', async e => {
     if (bt.dataset.sek){ SR.sekme = bt.dataset.sek; srDetayCiz(); return; }
     if (bt.dataset.srDuz){ const [sz, no] = bt.dataset.srDuz.split('-').map(Number); SR.duzenle = SR.d.bolumler.find(x => x.sezon === sz && x.no === no); srDetayCiz(); $('#bdAd').scrollIntoView({block:'center'}); return; }
     if (bt.id === 'bdIptal'){ SR.duzenle = null; srDetayCiz(); return; }
-    if (bt.dataset.srCl){ await post('/api/claude', {proje:bt.dataset.srCl, gorev:'seri'}); bt.textContent = 'Pencere açıldı'; return; }
+    if (bt.dataset.srCl){ await post('/api/claude', {proje:bt.dataset.srCl, gorev:'seri'}); bt.textContent = 'Panelde başlatıldı'; return; }
     if (bt.id === 'bdKaydet'){ const d = SR.duzenle;
       await post('/api/seri/bolum/guncelle', {seri:k.id, sezon:d.sezon, bolum:d.no, ad:$('#bdAd').value, ozet:$('#bdOzet').value, senaryo:$('#bdSen').value, durum:$('#bdDurum').value, gorunenler:$$('#bdGor .srGor:checked').map(i => i.value)});
       SR.duzenle = null; await yenile(); return; }
@@ -2044,14 +2072,14 @@ $('#srDetay').addEventListener('change', e => { const i = e.target.closest('[dat
 /* ------------------------------------------------------------ yardım: her kartta "?" ile ne işe yaradığı */
 const YARDIM = {
   'Yeni video': {ne:'Ne istediğini serbestçe yazarak bir video projesi başlatırsın.', yapar:'<code>projeler/&lt;ad&gt;/</code> klasörünü açar, isteğini <code>brief.md</code> ve <code>uretim.json</code> dosyalarına yazar, sonra seçili orkestratörü (varsayılan Claude Code) yeni bir terminal penceresinde açar. Videoyu o yürütür: metin, ses, görsel, kurgu. "Konuşarak yaz" mikrofonla dikte eder (ses bu bilgisayarda yazıya çevrilir, dışarı çıkmaz).', dikkat:'Ses ve görsel kutularında bulut servis seçersen o proje için ayrıca bulut izni sorulur. Yerel seçenekler (EMA, kodla çizim) hiçbir şeyi dışarı göndermez.'},
-  'Projeler': {ne:'Açtığın videoların listesi ve her birinin durumu.', yapar:'Her projenin aşamasını (planlama, taslak hazır, onay, final) gösterir. Buradan Kurgu editörünü açar, Claude ile devam eder, kaynak dosya ekler, ses kaydı alır ve çıktıları görürsün.', dikkat:'Projeler yalnızca bu bilgisayardaki <code>projeler/</code> klasöründedir; silmek için klasörü sil.'},
+  'Projeler': {ne:'Açtığın videoların listesi ve her birinin durumu.', yapar:'Her projenin aşamasını (planlama, taslak hazır, onay, final) gösterir. Buradan Kurgu editörünü açar, Orkestratörle devam eder, kaynak dosya ekler, ses kaydı alır ve çıktıları görürsün.', dikkat:'Projeler yalnızca bu bilgisayardaki <code>projeler/</code> klasöründedir; silmek için klasörü sil.'},
   'Arşiv': {ne:'Eski iş fotoğraf ve videolarından yeni videoya malzeme bulursun.', yapar:'Arşiv klasörünü (harici disk, ağ, Drive eşitleme klasörü ya da bulut disk) tarar, dosyaları yıl, proje ve türe göre dizine alır; her fotoğrafı çözünürlük, keskinlik ve ışık yönünden puanlar. İsteyince seçtiklerini projeye KOPYALAR. Arşivdeki hiçbir dosya değiştirilmez ya da silinmez.', dikkat:'Birden fazla arşiv ekleyebilirsin. Dizin ve puanlar bu stüdyonun veritabanında durur; disk takılı değilken de aranabilir.'},
   'Arşiv ekle': {ne:'Bir klasörü arşiv olarak tanıtırsın.', yapar:'Yol her bilgisayar için ayrı hatırlanır; disk harfi değişirse seri numarasından yeniden bulunur. Aynı adlı arşivin kayıtlı dosyalarına benzemeyen bir klasör gösterirsen uyarır (yanlış diski göstermek dizini bozmasın).', dikkat:'Google Drive için Drive masaüstü uygulamasının klasörünü ya da aşağıdaki "Bulut disk" bölümünü kullanabilirsin.'},
   'Bulut disk': {ne:'Google Drive, OneDrive ya da Dropbox hesabındaki bir klasörü arşiv olarak kullanırsın.', yapar:'rclone (açık kaynak) ile hesabına tarayıcıda bir kez izin verirsin; Drive için yalnızca okuma izni istenir. Tarama sadece dosya listesini alır. Fotoğraflar analiz, önizleme ya da projeye kopyalama sırasında tek tek geçici önbelleğe iner (üst sınırı var, en eskiler silinir). 300 MB üstü videolar analiz için indirilmez.', dikkat:'Jetonlar bu klasördeki <code>rclone.conf</code> dosyasında durur, git\'e girmez; profil dışa aktarmaya jetonlarla birlikte eklenir. Hesabı "kaldır" dersen arşiv kayıtları silinmez, sadece "bağlı değil" görünür.'},
   'Düşük puanlı': {ne:'Bulanık ya da düşük çözünürlüklü fotoğrafları iyileştirirsin.', yapar:'Puanı düşük fotoğrafları listeler; sen seçersin. Yöntem: yerel Real-ESRGAN (yapay zekâ, ekran kartı ya da işlemci), klasik büyütme (yapay zekâ olmadan, hızlı) ya da bulut model. Sonuç <code>sistem/ortam/arsiv/iyilestirilmis/</code> altına yazılır, orijinal değişmez; önce/sonra karşılaştırırsın, beğenirsen projeye o kopyalanır.', dikkat:'Bulut modeller fotoğrafı o servise gönderir: her işlemde onay ister ve kayda geçer.'},
   'Kimlik': {ne:'Videoların "senin gibi" konuşması için seni tanıyan dosyalar.', yapar:'Bir cümlede sen kimsin, ses profilin, zevkin, kullanmadığın kelimeler, gerçek örnek metinlerin. Claude bunları her projede okuyup metni ve tonu buna göre yazar. Doluluk yüzdesi eksikleri gösterir.', dikkat:'Bunlar kişisel veri içerir: <code>kimlik/</code> klasörü git\'e girmez, sürüm zip\'ine de girmez; profil dışa aktarmaya girer.'},
   'Seriler': {ne:'Dizi, kısa film ya da kurumsal seri için ortak "seri kitabı".', yapar:'Karakterler, stil, sezonlar ve bölümleri tek yerde tutar. Her bölüm normal bir proje olarak açılır; senarist önceki bölümlerin özetini bağlam olarak okuyup süreklilik kurar.', dikkat:'Bölüm bittiğinde özetini yazman (ya da Claude\'a yazdırman) sonraki bölümler içindir.'},
-  'Orkestratör': {ne:'Üretimi kimin yönettiğini seçersin.', yapar:'Varsayılan Claude Code (kendi aboneliğin). Codex, Gemini CLI, OpenCode gibi başka abonelikli ajanlar da seçilebilir: aynı yönergeleri markdown dosyalarından okuyup uygularlar. Üret / Onaylıyorum / Claude ile devam düğmeleri seçtiğin ortamı açar. Claude Code, istenen rolü başka bir ajana (örn. Codex) devredebilir (aşağıdaki Ajanlar tablosunda "çalışma ortamı").', dikkat:'Claude dışındaki ortamlar deneysel; kurulu değilse uyarır. API anahtarı değil, o ajanın kendi aboneliği kullanılır.'},
+  'Orkestratör': {ne:'Üretimi kimin yönettiğini seçersin.', yapar:'Varsayılan Claude Code (kendi aboneliğin). Codex, Gemini CLI, OpenCode gibi başka abonelikli ajanlar da seçilebilir: aynı yönergeleri markdown dosyalarından okuyup uygularlar. Üret / Onaylıyorum / Orkestratörle devam düğmeleri seçtiğin ortamı açar. Claude Code, istenen rolü başka bir ajana (örn. Codex) devredebilir (aşağıdaki Ajanlar tablosunda "çalışma ortamı").', dikkat:'Claude dışındaki ortamlar deneysel; kurulu değilse uyarır. API anahtarı değil, o ajanın kendi aboneliği kullanılır.'},
   'Ajanlar': {ne:'Her uzman ajanın modelini, düşünme derinliğini (effort) ve çalışma ortamını seçersin.', yapar:'Senarist, redaktör, ses yönetmeni, eleştirmen gibi ajanların her biri için model (hız/kalite/maliyet dengesi) ve effort ayarlanır. "Çalışma ortamı"nı Claude dışında bir şeye (Codex, Gemini CLI) çevirirsen o rol, orkestratör tarafından o CLI ile çalıştırılır. Bir projede ayrıca değiştirilebilir.', dikkat:'Model adları listeden gelir, elle yazılmaz. Ücretli/kota tüketen modeller yüksek effort ile hızlı biter.'},
   'Varsayılan üretim': {ne:'Yeni video ekranının başlangıç seçimlerini belirler.', yapar:'Seslendirme, görsel üretimi, platformlar, marka kiti ve arşivden bulma kutularının varsayılan durumunu kaydeder; her projede yine değiştirebilirsin.', dikkat:''},
   'Bağlayıcılar': {ne:'Ücretli bulut servislere (ElevenLabs, Gemini, OpenAI görsel, MCP sunucuları) bağlantı anahtarları.', yapar:'Hepsi kapalı başlar. Servisi açıp anahtarını girersin; anahtar yalnızca bu bilgisayarda <code>sistem/ortam/baglayici/</code> altında durur. Bir projede kullanılması için ayrıca o projede bulut izni verilir ve her çağrı projenin <code>bulut_gunlugu.md</code> dosyasına yazılır.', dikkat:'Anahtar ekrana geri gösterilmez. Bulut servis içeriğini (ses metni, fotoğraf) o şirkete gönderir.'},
@@ -2443,7 +2471,7 @@ function uretimSatiri(p){
     ${p.not ? `<div class="meta">${esc(p.not)}</div>` : (ASAMA_IPUCU[p.asama] ? `<div class="meta">${ASAMA_IPUCU[p.asama]}</div>` : '')}
     <div class="alt">${modelChip(p)}${p.platformlar.length ? `<span class="chip">${esc(p.platformlar.join(', '))}</span>` : ''}${p.seri ? `<span class="chip bilgi" title="Dizi bölümü">${esc((p.seri.ad || p.seri.id) + (p.seri.sezon ? ' · S' + String(p.seri.sezon).padStart(2, '0') + 'B' + String(p.seri.bolum).padStart(2, '0') : ''))}</span>` : ''}${p.b_plani ? '<span class="chip">B planı</span>' : ''}</div>
     <div class="yol"><a class="btn main" href="#/proje/${encodeURIComponent(p.ad)}">${ik('play', 1)}${calisan ? 'Canlı izle' : 'Aç'}</a>
-      <button type="button" data-pano="ajan" data-p="${esc(p.ad)}">${ik('spark', 1)}Ajan penceresi</button></div></div>`;
+      <button type="button" data-pano="ajan" data-p="${esc(p.ad)}">${ik('spark', 1)}Orkestratör sohbeti</button></div></div>`;
 }
 function panoCiz(d){
   const c = d.sayim, h = d.harcama;
@@ -2545,13 +2573,14 @@ async function panoYukle(){
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-pano]'); if (!b) return;
-  try { if (b.dataset.pano === 'ajan') await post('/api/claude', {proje:b.dataset.p}); else if (b.dataset.pano === 'klasor') await post('/api/klasor', {proje:b.dataset.p, alt:'cikti'}); }
+  try { if (b.dataset.pano === 'ajan') { location.hash='#/proje/'+encodeURIComponent(b.dataset.p); YST.show(b.dataset.p); } else if (b.dataset.pano === 'klasor') await post('/api/klasor', {proje:b.dataset.p, alt:'cikti'}); }
   catch(err){ alert(err.message); }
 });
 
 /* ---------- canlı üretim: Kurgu editörü sayfanın içinde ---------- */
 const PROJE = {ad:null, fmt:'ana', zamanlayici:null};
 async function projeGoster(ad, fmt){
+  window.YST?.show(ad);
   const frame = $('#kurguFrame');
   $('#pAd').textContent = ad;
   if (PROJE.ad !== ad || PROJE.fmt !== fmt){
@@ -2566,7 +2595,7 @@ async function projeGoster(ad, fmt){
 }
 /* Kurgu'ya eklenen stüdyo özellikleri (Görsel/Ses/Ara sahne düğmeleri) yüklenemediyse çalışmayı ENGELLEMEZ: Kurgu düz haliyle açılır, burada bilgi verilir */
 const EK = {zaman:null, hazir:false};
-const EK_ARACLAR = '<b>Bu işleri panelden yapabilirsin:</b> <b>Görsel</b> → kenar çubuğunda <a href="#/gorsel">Görsel üret</a> (üretip projeye ekle) · <b>Ara sahne</b> → <a href="#/pano">Pano</a>\'daki proje kartında <i>Ara sahne</i> · <b>Seslendirme</b> → üstteki <i>Ajan penceresini aç</i> ile ajandan iste.';
+const EK_ARACLAR = '<b>Bu işleri panelden yapabilirsin:</b> <b>Görsel</b> → kenar çubuğunda <a href="#/gorsel">Görsel üret</a> (üretip projeye ekle) · <b>Ara sahne</b> → <a href="#/pano">Pano</a>\'daki proje kartında <i>Ara sahne</i> · <b>Seslendirme</b> → üstteki <i>Orkestratör sohbetini aç</i> ile ajandan iste.';
 function eklentiUyari(durum, neden){
   const k = $('#pEklenti'); clearTimeout(EK.zaman);
   if (!durum){ k.hidden = true; k.innerHTML = ''; return; }
@@ -2597,7 +2626,7 @@ function projeDurumGuncelle(){
   const m = Object.entries(p.ajanlar || {}).slice(0, 5).map(([ad, a]) => `${ad}: ${ortKisa(a.ortam)} · ${a.model}`).join('   ·   ');
   $('#pBilgi').innerHTML = `<span>${p.grup === 'calisan' ? '<span class="dot nabiz"></span>çalışıyor' : 'bekliyor'} · ${gecen(p.guncelleme)}</span>${p.not ? `<span>${esc(p.not)}</span>` : ''}<span>${esc(m)}</span>`;
 }
-$('#pAjan').onclick = async () => { try { await post('/api/claude', {proje:PROJE.ad}); } catch(e){ alert(e.message); } };
+$('#pAjan').onclick = () => YST.show(PROJE.ad);
 
 /* ---------- güncelleme ---------- */
 let gunZaman = null;
@@ -2607,21 +2636,25 @@ async function gunYukle(){
   $('#gunJeton').placeholder = d.jeton_var ? '•••••••• (kayıtlı; değiştirmek için yeni jeton yaz)' : 'github_pat_…';
   $('#gunJetonSil').hidden = !d.jeton_var;
   $('#gunDurum').innerHTML = `<div class="row"><span class="chip">${ik('box', 1)}Kurulu sürüm ${esc(d.surum)}</span><span class="chip">${d.tur === 'klon' ? 'geliştirici klonu (git)' : 'sürüm paketi'}</span>`
-    + (d.etkin ? (k.var ? `<span class="chip bilgi">${ik('refresh', 1)}Yeni: ${esc(k.yeni)}</span>` : k.hata ? `<span class="chip bad">${esc(k.hata)}</span>` : k.son_kontrol ? `<span class="chip ok">${ik('check', 1)}güncel</span>` : '<span class="chip">henüz kontrol edilmedi</span>') : '<span class="chip warn">depo ve jeton girilmedi</span>')
+    + (d.etkin ? (k.var ? `<span class="chip bilgi">${ik('refresh', 1)}Yeni: ${esc(k.yeni)}</span>` : k.hata ? `<span class="chip bad">${esc(k.hata)}</span>` : k.son_kontrol ? `<span class="chip ok">${ik('check', 1)}güncel</span>` : '<span class="chip">henüz kontrol edilmedi</span>') : '<span class="chip warn">güncelleme kontrolü kapalı</span>')
     + (k.son_kontrol ? `<span class="meta">son kontrol ${esc(k.son_kontrol)}</span>` : '') + '</div>' + (k.var && k.notlar ? `<pre style="max-height:140px">${esc(k.notlar)}</pre>` : '');
   $('#gunGuncelle').hidden = !(d.etkin && k.var) || d.calisiyor.var;
+  $('#gunRestart').hidden = !d.calisiyor.yeniden_baslat;
+  $('#gunGuncelle').disabled = !!d.engeller?.length || !!d.calisiyor.yeniden_baslat;
+  if (d.engeller?.length) $('#gunDurum').append(Object.assign(document.createElement('p'), {className:'meta', textContent:'Güncellemeden önce tamamla/kapat: ' + d.engeller.join(', ')}));
   const c = d.calisiyor; $('#gunLog').hidden = !(c.var || c.log.length); $('#gunLog').textContent = c.log.join('\n');
   const r = d.rapor;
   $('#gunRapor').innerHTML = r && (c.bitti || !c.var) && r.zaman ? `<div class="blk"><b>${r.ok ? `<span class="ok">Son güncelleme tamam</span>: ${esc(r.onceki)} → ${esc(r.yeni_surum || r.yeni)}` : `<span class="bad">Son güncelleme başarısız</span>`}</b>
     <div class="meta">${esc(r.zaman)}${r.yedek ? ` · yedek: <code>${esc(r.yedek)}</code>` : ''}${r.hata ? ` · ${esc(r.hata)}` : ''}</div>${(r.adimlar || []).map(a => `<div class="meta">• ${esc(a)}</div>`).join('')}</div>` : '';
   if (c.var && !gunZaman) gunZaman = setInterval(() => gunYukle().catch(() => {}), 1500);
-  if (!c.var && gunZaman){ clearInterval(gunZaman); gunZaman = null; if (c.bitti && r && r.ok && !c.hata) gunBitti(); }
+  if (!c.var && gunZaman){ clearInterval(gunZaman); gunZaman = null; if (c.bitti && r && r.ok && !c.hata) $('#gunSon').textContent = 'Güncelleme hazır. Devam etmek için Paneli yeniden başlat düğmesine bas.'; }
 }
 async function gunBitti(){
   $('#gunSon').textContent = 'Güncelleme bitti: panel temiz başlatılıyor…';
-  try { await post('/api/guncelleme/yeniden-baslat', {}); } catch(e){ /* panel kapanırken bağlantı kopar */ }
+  try { const r = await post('/api/guncelleme/yeniden-baslat', {}); if (r.ok === false) throw new Error(r.mesaj); } catch(e){ $('#gunSon').textContent=e.message; return; }
   setTimeout(function bekle(){ fetch('/api/ping').then(r => r.ok ? location.reload() : setTimeout(bekle, 1500)).catch(() => setTimeout(bekle, 1500)); }, 5000);
 }
+$('#gunRestart').onclick = gunBitti;
 $('#gunKaydet').onclick = async () => {
   const s = $('#gunSon');
   try { await post('/api/guncelleme/ayar', {repo:$('#gunRepo').value, jeton:$('#gunJeton').value}); $('#gunJeton').value = ''; s.innerHTML = '<span class="ok">Kaydedildi.</span> Şimdi kontrol ediliyor…'; await post('/api/guncelleme/kontrol', {}); s.textContent = ''; await gunYukle(); panoYukle(); }
@@ -2629,9 +2662,8 @@ $('#gunKaydet').onclick = async () => {
 };
 $('#gunKontrol').onclick = async () => { const s = $('#gunSon'); s.textContent = 'kontrol ediliyor…'; try { await post('/api/guncelleme/kontrol', {}); s.textContent = ''; await gunYukle(); panoYukle(); } catch(e){ s.innerHTML = `<span class="bad">${esc(e.message)}</span>`; } };
 $('#gunGuncelle').onclick = async () => {
-  const b = $('#gunGuncelle'); if (b.dataset.onay !== '1'){ b.dataset.onay = '1'; b.lastChild.textContent = 'Emin misin? Veritabanı yedeklenir; tekrar bas'; return; }
-  b.dataset.onay = ''; b.lastChild.textContent = 'Güncelle';
-  try { await post('/api/guncelleme/baslat', {}); gunYukle(); } catch(e){ $('#gunSon').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  const b = $('#gunGuncelle'); b.disabled = true;
+  try { const r = await post('/api/guncelleme/baslat', {}); if (r.ok === false) throw new Error(r.mesaj); await gunYukle(); } catch(e){ $('#gunSon').innerHTML = `<span class="bad">${esc(e.message)}</span>`; b.disabled = false; }
 };
 $('#gunJetonSil').onclick = async () => { await post('/api/guncelleme/jeton-sil', {}); await gunYukle(); };
 
@@ -2664,5 +2696,6 @@ $('#ygSil').onclick = async () => { const b = $('#ygSil'); if (b.dataset.onay !=
   setInterval(() => { if (!$('#vPano').hidden && !document.hidden) { if (!document.querySelector('#liste [id^="ek_"]:not(:empty)')) projeYukle(); panoYukle(); } }, 6000);
 })();
 </script>
+<script src="/panel-extra.js"></script>
 </body>
 </html>

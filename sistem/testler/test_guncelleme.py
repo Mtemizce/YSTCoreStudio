@@ -1,176 +1,89 @@
-import hashlib, http.server, importlib.util, io, json, os, shutil, sqlite3, subprocess, sys, tempfile, threading, zipfile
+"""Hermetic update tests: no network, installs or real user data."""
+import sys, unittest, tempfile, io, json, zipfile, hashlib
 from pathlib import Path
+from unittest.mock import patch, Mock
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'araclar'))
+import guncelleme as G
 
-R = Path(__file__).resolve().parents[2]
-TMP = Path(tempfile.mkdtemp(prefix="yst_gunc_"))
-S = [0, 0]
-TOKEN = "github_pat_TESTTOKEN0123456789abcdef"
+class UpdateTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name)
+        for name,rel in [('ROOT','.'),('SISTEM','sistem'),('ORTAM','sistem/ortam'),('CONF','sistem/ortam/config.json'),('DURUM','sistem/ortam/durum.json'),('RAPOR','sistem/ortam/rapor.json'),('YEDEK','sistem/ortam/yedek'),('REVIZYON','sistem/ortam/rev.json')]:
+            p=patch.object(G,name,self.root/rel);p.start();self.addCleanup(p.stop)
+        for name,value in [('MESGUL',lambda:[]),('CALISIYOR',dict(var=False,bitti=False,log=[],hata='',adim=''))]:
+            p=patch.object(G,name,value);p.start();self.addCleanup(p.stop)
+    def package(self,extra=None):
+        p=self.root/'update.zip'
+        with zipfile.ZipFile(p,'w') as z:
+            for n,b in {'sistem/surum.json':'{"uygulama":"2.0.0"}','sistem/panel/panel.py':'new',**(extra or {})}.items():
+                info=zipfile.ZipInfo();info.filename='release/'+n;z.writestr(info,b)
+        return p
+    def test_public_default(self):
+        self.assertTrue(G.ayar_oku()['etkin']);self.assertFalse(G.ayar_oku()['jeton_var'])
+    def test_tokenless_check(self):
+        with patch.object(G,'_api_json',return_value={'id':7,'tag_name':'v2.0.0'}) as api:
+            self.assertTrue(G.kontrol()['var']);self.assertEqual(api.call_args.args[1],'')
+    def test_check_does_not_install(self):
+        with patch.object(G,'_api_json',return_value={'id':7,'tag_name':'v2.0.0'}),patch.object(G,'_yerlestir') as put:
+            G.kontrol();put.assert_not_called()
+    def test_repo_change_drops_token(self):
+        G.ayar_yaz('owner/one','a'*30);G.ayar_yaz('owner/two');self.assertFalse(G.ayar_oku()['jeton_var'])
+    def test_disabled(self):
+        G.ayar_yaz('');self.assertFalse(G.ayar_oku()['etkin'])
+    def test_no_auth_to_assets(self):
+        with patch.object(G.urllib.request,'build_opener') as op:
+            G._istek('https://assets.example/file','secret');self.assertIsNone(op.return_value.open.call_args.args[0].get_header('Authorization'))
+    def test_anonymous_headers(self):
+        with patch.object(G.urllib.request,'build_opener') as op:
+            G._istek('/repos/a/b','');self.assertIsNone(op.return_value.open.call_args.args[0].get_header('Authorization'))
+    def test_missing_checksum(self):
+        with patch.object(G,'_api_json',return_value={'assets':[{'name':'YSTCoreStudio-2.0.0.zip','url':'/asset'}]}):
+            with self.assertRaises(ValueError):G._surum_paketi(G.config(),{'release_id':7})
+    def test_checksum_mismatch(self):
+        with patch.object(G,'_istek',return_value=io.BytesIO(b'bad')):
+            with self.assertRaises(ValueError):G._indir('/file','',self.root/'file.zip','0'*64)
+        self.assertFalse((self.root/'file.zip').exists())
+    def test_protected_case(self):
+        G._yerlestir(self.package({'KIMLIK/secret':'replace','PROJELER/a/file':'replace','sistem/ayar/kullanici.json':'replace'}))
+        self.assertFalse((self.root/'KIMLIK').exists());self.assertFalse((self.root/'PROJELER').exists())
+    def test_traversal_rejected_before_write(self):
+        with self.assertRaises(ValueError):G._yerlestir(self.package({'../escape':'bad'}))
+        self.assertFalse((self.root/'sistem/panel/panel.py').exists())
+    def test_windows_backslash_rejected(self):
+        with self.assertRaises(ValueError):G._yerlestir(self.package({'dir'+chr(92)+'bad':'bad'}))
+    def test_case_collision(self):
+        with self.assertRaises(ValueError):G._yerlestir(self.package({'x':'a','X':'b'}))
+    def test_rollback(self):
+        old=self.root/'sistem/panel/panel.py';old.parent.mkdir(parents=True);old.write_text('old')
+        backup=G.yedekle();G._yerlestir(self.package(),backup);G._geri_al(backup)
+        self.assertEqual(old.read_text(),'old');self.assertFalse((self.root/'sistem/surum.json').exists())
+    def test_active_work_blocks(self):
+        with patch.object(G,'MESGUL',return_value=['render']),patch.object(G.threading,'Thread') as thread:
+            self.assertFalse(G.guncelle_baslat()['ok']);thread.assert_not_called()
+    def test_double_click(self):
+        with patch.object(G.threading,'Thread') as thread:
+            self.assertTrue(G.guncelle_baslat()['ok']);self.assertFalse(G.guncelle_baslat()['ok']);self.assertEqual(thread.call_count,1)
+    def test_dirty_clone(self):
+        with patch.object(G,'_git',return_value=Mock(returncode=0,stdout=' M file')) as git:
+            with self.assertRaises(ValueError):G._git_kur(G.config(),{'sha':'a'*40})
+            self.assertEqual(git.call_count,1)
+    def test_failed_dependencies_not_success(self):
+        pkg=self.package()
+        with patch.object(G,'kontrol',return_value={'var':True,'hata':'','yeni':'2','release_id':7}),patch.object(G,'_surum_paketi',return_value=pkg),patch.object(G,'_sonrasi',side_effect=RuntimeError('pip failed')):
+            G._is()
+        r=json.loads(G.RAPOR.read_text(encoding='utf-8'));self.assertFalse(r['ok']);self.assertTrue(r['onarim_gerekli']);self.assertFalse((self.root/'sistem/panel/panel.py').exists())
+    def test_success_requires_manual_restart(self):
+        pkg=self.package()
+        with patch.object(G,'kontrol',return_value={'var':True,'hata':'','yeni':'2','release_id':7}),patch.object(G,'_surum_paketi',return_value=pkg),patch.object(G,'_sonrasi',return_value=[]),patch.object(G,'yeniden_baslat') as restart:
+            G._is();restart.assert_not_called()
+        self.assertTrue(G.CALISIYOR['yeniden_baslat']);self.assertTrue(json.loads(G.RAPOR.read_text(encoding='utf-8'))['ok'])
+    def test_restart_blocked_during_work(self):
+        with patch.object(G,'MESGUL',return_value=['render']),patch.object(G.subprocess,'Popen') as spawn:
+            with self.assertRaises(ValueError):G.yeniden_baslat()
+            spawn.assert_not_called()
 
-
-def ok(c, m):
-    S[0 if c else 1] += 1
-    print(("OK   " if c else "FAIL ") + m)
-
-
-# ---------------------------------------------------------------- sahte GitHub
-def zip_olustur() -> bytes:
-    b = io.BytesIO()
-    with zipfile.ZipFile(b, "w") as z:
-        z.writestr("YSTCoreStudio/sistem/surum.json", json.dumps({"uygulama": "9.9.9"}))
-        z.writestr("YSTCoreStudio/README.md", "yeni readme")
-        z.writestr("YSTCoreStudio/sistem/araclar/yeni_dosya.txt", "merhaba")
-        z.writestr("YSTCoreStudio/kimlik/PROFIL.md", "SABLON: kullanıcının dosyasını ezmemeli")
-        z.writestr("YSTCoreStudio/kimlik/YENI_SABLON.md", "eksik olduğu için eklenmeli")
-        z.writestr("YSTCoreStudio/sistem/ayar/kullanici.json", '{"ajanlar": {"x": 1}}')
-        z.writestr("YSTCoreStudio/projeler/x/y.txt", "proje dosyasına dokunulmamalı")
-        z.writestr("YSTCoreStudio/sistem/ortam/yerel/z.txt", "ortam korunmalı")
-        z.writestr("YSTCoreStudio/../kacak.txt", "yol kaçışı")
-    return b.getvalue()
-
-
-ZIPB = zip_olustur()
-SHA = hashlib.sha256(ZIPB).hexdigest()
-ISTEKLER = []
-
-
-class H(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def _yetki(self):
-        ISTEKLER.append((self.path, self.headers.get("Authorization")))
-        if self.headers.get("Authorization") != "Bearer " + TOKEN:
-            self.send_response(401); self.end_headers(); self.wfile.write(b'{"message":"Bad credentials"}'); return False
-        return True
-
-    def _json(self, o):
-        b = json.dumps(o).encode(); self.send_response(200); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
-
-    def do_GET(self):
-        if self.path.startswith("/indir/"):  # gerçek GitHub'da varlık adresi başka bir sunucuya yönlenir: yetki başlığı gelmemeli
-            ISTEKLER.append((self.path, self.headers.get("Authorization")))
-            b = ZIPB if "zip" in self.path and "sha" not in self.path else (SHA + "  YSTCoreStudio-9.9.9.zip\n").encode()
-            self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b); return
-        if not self._yetki():
-            return
-        p = self.path
-        if p == "/repos/o/r/releases/latest":
-            self._json({"tag_name": "v9.9.9", "body": "Sürüm notları: yeni özellikler", "assets": [
-                {"name": "YSTCoreStudio-9.9.9.zip", "url": f"http://127.0.0.1:{PORT}/asset/zip"},
-                {"name": "YSTCoreStudio-9.9.9.zip.sha256", "url": f"http://127.0.0.1:{PORT}/asset/sha"}]})
-        elif p.startswith("/asset/"):
-            self.send_response(302); self.send_header("Location", f"http://localhost:{PORT}/indir/{p.split('/')[-1]}"); self.end_headers()  # farklı host adı: başlık silinmeli
-        elif p.startswith("/repos/o/r/commits/"):
-            self._json({"sha": SHA_UZAK[0], "commit": {"message": "yeni commit"}})
-        else:
-            self.send_response(404); self.end_headers()
-
-
-SHA_UZAK = ["0" * 40]
-srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), H)
-PORT = srv.server_address[1]
-threading.Thread(target=srv.serve_forever, daemon=True).start()
-os.environ["YST_GUNCELLEME_API"] = f"http://127.0.0.1:{PORT}"
-
-
-def yukle(kok: Path):
-    os.environ["YST_GUNCELLEME_KOK"] = str(kok)
-    sp = importlib.util.spec_from_file_location("gunc_t_" + kok.name, R / "sistem/araclar/guncelleme.py")
-    m = importlib.util.module_from_spec(sp)
-    sp.loader.exec_module(m)
-    return m
-
-
-try:
-    # ================================================================ ZIP kurulumu
-    kok = TMP / "zipkok"
-    (kok / "sistem" / "ayar").mkdir(parents=True)
-    (kok / "sistem" / "ortam" / "arsiv").mkdir(parents=True)
-    (kok / "sistem" / "ortam" / "yerel").mkdir(parents=True)
-    (kok / "kimlik").mkdir()
-    (kok / "projeler" / "x").mkdir(parents=True)
-    (kok / "sistem" / "surum.json").write_text(json.dumps({"uygulama": "0.6.0"}))
-    (kok / "README.md").write_text("eski readme")
-    (kok / "kimlik" / "PROFIL.md").write_text("KULLANICININ KENDİ PROFİLİ")
-    (kok / "sistem" / "ayar" / "kullanici.json").write_text('{"ajanlar": {}, "benim": true}')
-    (kok / "projeler" / "x" / "y.txt").write_text("benim projem")
-    db = sqlite3.connect(kok / "sistem/ortam/arsiv/arsiv.db"); db.execute("create table t(a)"); db.execute("insert into t values('veri')"); db.commit(); db.close()
-    G = yukle(kok)
-    ok(G.ayar_oku()["etkin"] is False, "ayar yokken etkin değil")
-    for kotu in ("kotu depo", "a/b/c", "../x", ""):
-        if kotu == "":
-            continue
-        try:
-            G.ayar_yaz(kotu, TOKEN); ok(False, f"geçersiz depo kabul edildi: {kotu}")
-        except ValueError:
-            ok(True, f"geçersiz depo reddedildi: {kotu!r}")
-    try:
-        G.ayar_yaz("o/r", "kısa"); ok(False, "geçersiz jeton kabul edildi")
-    except ValueError:
-        ok(True, "geçersiz jeton reddedildi")
-    a = G.ayar_yaz("o/r", TOKEN)
-    ok(a["etkin"] and a["jeton_var"] and "jeton" not in a and TOKEN not in json.dumps(G.durum()), "ayar kaydedildi; jeton arayüze geri verilmiyor")
-    ok(oct((kok / "sistem/ortam/baglayici/guncelleme.json").stat().st_mode & 0o777) in ("0o600", "0o666"), "jeton dosyası")
-    # yanlış jeton
-    G.ayar_yaz("o/r", "github_pat_YANLISYANLISYANLIS12345")
-    k = G.kontrol(); ok(not k["var"] and "jeton" in k["hata"], f"yanlış jeton: {k['hata']}")
-    G.ayar_yaz("o/r", TOKEN)
-    k = G.kontrol(); ok(k["var"] and k["yeni"] == "9.9.9" and "yeni özellikler" in k["notlar"], f"güncelleme var: {k['mevcut']} → {k['yeni']}")
-    ok(G.durum()["kontrol"]["var"], "durum dosyasına yazıldı")
-    G._is()
-    r = json.loads((kok / "sistem/ortam/yerel/guncelleme_rapor.json").read_text(encoding="utf-8"))
-    ok(r["ok"] and r["yeni_surum"] == "9.9.9", f"güncelleme tamam: {r.get('onceki')} → {r.get('yeni_surum')} {r.get('hata','')}")
-    ok(json.loads((kok / "sistem/surum.json").read_text())["uygulama"] == "9.9.9", "sürüm dosyası güncellendi")
-    ok((kok / "README.md").read_text() == "yeni readme" and (kok / "sistem/araclar/yeni_dosya.txt").read_text() == "merhaba", "dosyalar yerleşti")
-    ok((kok / "kimlik/PROFIL.md").read_text() == "KULLANICININ KENDİ PROFİLİ", "kimlik/PROFIL.md ezilmedi")
-    ok((kok / "kimlik/YENI_SABLON.md").exists(), "kimlikte eksik şablon eklendi")
-    ok(json.loads((kok / "sistem/ayar/kullanici.json").read_text()) == {"ajanlar": {}, "benim": True}, "kullanici.json ezilmedi")
-    ok((kok / "projeler/x/y.txt").read_text() == "benim projem", "projelere dokunulmadı")
-    ok(not (kok / "sistem/ortam/yerel/z.txt").exists(), "sistem/ortam korundu (zip'ten yazılmadı)")
-    ok(not (TMP / "kacak.txt").exists() and not (kok.parent / "kacak.txt").exists(), "yol kaçışı (..) engellendi")
-    yedek = list((kok / "sistem/ortam/yedek").glob("guncelleme-*"))
-    ok(len(yedek) == 1 and (yedek[0] / "arsiv.db").is_file(), "veritabanı yedeği alındı")
-    yd = sqlite3.connect(yedek[0] / "arsiv.db"); ok(yd.execute("select a from t").fetchone() == ("veri",), "yedek içeriği doğru"); yd.close()
-    ok((yedek[0] / "ayar" / "kullanici.json").is_file() and (yedek[0] / "kimlik" / "PROFIL.md").is_file(), "ayar ve kimlik yedeği")
-    # asset indirmede yetki başlığı başka sunucuya gönderilmedi
-    indir = [x for x in ISTEKLER if x[0].startswith("/indir/")]
-    ok(indir and all(h is None for _, h in indir), "yönlendirilen indirme adresine jeton gönderilmedi")
-    k2 = G.kontrol(); ok(not k2["var"], "güncellemeden sonra tekrar kontrol: güncel")
-    G._is()
-    ok("zaten güncel" in G.durum()["rapor"].get("hata", ""), "güncel iken güncelle: reddedildi")
-    # sağlama toplamı uyuşmazlığı
-    (kok / "sistem/surum.json").write_text(json.dumps({"uygulama": "0.6.0"}))
-    eski = ZIPB
-    ZIPB = b"bozuk" + ZIPB
-    G._is()
-    ok(not G.durum()["rapor"]["ok"] and "sağlama" in G.durum()["rapor"]["hata"], "bozuk paket: sağlama toplamı uyuşmadı, güncelleme iptal")
-    ok((kok / "README.md").read_text() == "yeni readme", "iptalde dosyalar değişmedi")
-    ZIPB = eski
-
-    # ================================================================ KLON (git)
-    ortam = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-    g = lambda cwd, *a: subprocess.run(["git", *a], cwd=str(cwd), capture_output=True, text=True, env=ortam)
-    bare = TMP / "uzak.git"; g(TMP, "init", "--bare", "-b", "main", str(bare))
-    a1 = TMP / "a1"; g(TMP, "clone", str(bare), str(a1))
-    (a1 / "sistem").mkdir(); (a1 / "sistem/surum.json").write_text(json.dumps({"uygulama": "1.0.0"})); (a1 / "x.txt").write_text("1")
-    g(a1, "add", "-A"); g(a1, "commit", "-m", "ilk"); g(a1, "push", "origin", "HEAD:main")
-    klon = TMP / "klon"; g(TMP, "clone", str(bare), str(klon)); g(klon, "checkout", "main")
-    (klon / "sistem/ortam/yerel").mkdir(parents=True); (klon / "sistem/ortam/yerel/panel.json").write_text("{}")
-    GK = yukle(klon)
-    GK.ayar_yaz("o/r", TOKEN)
-    SHA_UZAK[0] = g(klon, "rev-parse", "HEAD").stdout.strip()
-    k = GK.kontrol(); ok(k["tur"] == "klon" and not k["var"], "klon: yerel = uzak → güncel")
-    (a1 / "x.txt").write_text("2"); g(a1, "add", "-A"); g(a1, "commit", "-m", "ikinci"); g(a1, "push", "origin", "HEAD:main")
-    SHA_UZAK[0] = g(a1, "rev-parse", "HEAD").stdout.strip()
-    k = GK.kontrol(); ok(k["var"] and k["yeni"] == SHA_UZAK[0][:8], f"klon: uzakta yeni commit var ({k['yeni']})")
-    (klon / "x.txt").write_text("yerel değişiklik")
-    GK._is(); r = GK.durum()["rapor"]
-    ok(not r["ok"] and "kaydedilmemiş" in r["hata"] and (klon / "x.txt").read_text() == "yerel değişiklik", "klon: kirli çalışma ağacında güncelleme durdu, değişiklik korundu")
-    g(klon, "checkout", "--", "x.txt")
-    GK._is(); r = GK.durum()["rapor"]
-    ok(r["ok"] and (klon / "x.txt").read_text() == "2", f"klon: git pull uygulandı ({r.get('adimlar')})")
-    ok(any("git pull" in x for x in r["adimlar"]), "klon: rapor adımları")
-finally:
-    srv.shutdown()
-    shutil.rmtree(TMP, ignore_errors=True)
-print("SONUÇ: %d tamam, %d hata" % tuple(S))
+if __name__=='__main__':
+    r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]))
+    print(f'{r.testsRun-len(r.failures)-len(r.errors)} başarılı, {len(r.failures)+len(r.errors)} başarısız')
+    sys.exit(0 if r.wasSuccessful() else 1)

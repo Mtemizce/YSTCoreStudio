@@ -31,6 +31,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from pathlib import Path
 
 ROOT = Path(os.environ.get("YST_ARKA_KOK") or Path(__file__).resolve().parents[2])
@@ -54,6 +55,8 @@ ML_PAKETLER = ("ema_lightning", "spandrel", "transformers", "pocket_tts_turkish"
 
 # Kuyruk (sıra = indirme sırası). tur: varlik (varlik.py kayıtları) | pip-torch | pip-ml | hf (Hugging Face deposu). dep: ona bağlı (o inmediyse denenmez).
 KUYRUK = (
+    {"id": "ajan-sdk", "tur": "pip-sdk", "ad": "Panel ajan bağlantısı", "gb": 0.1,
+     "ne": "Claude oturumunu ve izin sorularını panel içinde çalıştırır.", "gerek": "panel içi Claude orkestratörü"},
     {"id": "temel", "tur": "varlik", "ad": "Temel dosyalar", "gb": 0.1,
      "ne": "Real-ESRGAN foto iyileştirme modeli, DWG çizim aracı (LibreDWG) ve ajan referans belgeleri.",
      "gerek": "fotoğraf iyileştirme, DWG çizimlerini içe aktarma"},
@@ -149,7 +152,7 @@ def _oku() -> dict:
 
 def _yaz(d: dict) -> None:
     YEREL.mkdir(parents=True, exist_ok=True)
-    gecici = DURUM.with_suffix(".tmp")
+    gecici = DURUM.with_suffix('.' + uuid.uuid4().hex + '.tmp')
     gecici.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
     os.replace(gecici, DURUM)
 
@@ -185,6 +188,24 @@ def repo_var(repo: str, ev: str | None) -> bool:
         return False
 
 
+_VARLIK_CACHE = {}
+
+
+def _varlik_hazir(r):
+    target = ROOT / r["hedef"]
+    try:
+        st = target.stat()
+        stamp = (st.st_mtime_ns, st.st_size, r["sha256"])
+        old = _VARLIK_CACHE.get(str(target))
+        if old and old[0] == stamp and time.time() - old[1] < 120:
+            return old[2]
+        value = _varlik().var_mi(r) == "ok"
+        _VARLIK_CACHE[str(target)] = (stamp, time.time(), value)
+        return value
+    except OSError:
+        return False
+
+
 def _varlik_eksik(turler: tuple) -> dict:
     """{tur: adet} eksik varlık (dosya var mı bakılır; sha256 doğrulaması indirme sırasında yapılır)."""
     sonuc: dict = {}
@@ -194,7 +215,7 @@ def _varlik_eksik(turler: tuple) -> dict:
             if r["tur"] not in turler or r["kaynak_tur"] == "yerel":
                 continue   # yerel: başka kaynaktan getirilemez
             hedef = ROOT / r["hedef"]
-            yok = not (hedef.is_dir() and any(hedef.iterdir())) if r["kaynak_tur"] in ("zip-url", "git") else not hedef.is_file()
+            yok = not _varlik_hazir(r)
             if yok:
                 sonuc[r["tur"]] = sonuc.get(r["tur"], 0) + 1
         c.close()
@@ -213,6 +234,8 @@ def kalem_eksik(k: dict) -> bool:
             return not _bulut().rclone()
         except Exception:  # noqa: BLE001
             return True
+    if t == "pip-sdk":
+        return not paket_var("claude_agent_sdk")
     if t == "pip-torch":
         return not torch_var()
     if t == "pip-ml":
@@ -248,7 +271,7 @@ def ses_ozeti() -> dict:
             if r["kaynak_tur"] == "yerel":
                 continue
             hedef = ROOT / r["hedef"]
-            yok = not (hedef.is_dir() and any(hedef.iterdir())) if r["kaynak_tur"] in ("zip-url", "git") else not hedef.is_file()
+            yok = not _varlik_hazir(r)
             if yok:
                 n += 1
                 mb += (r["boyut"] or 0) / 1e6
@@ -330,6 +353,8 @@ def kuyruk(d: dict, calisiyor: bool, ses: dict) -> list[dict]:
 def durum(taze: bool = False) -> dict:
     d = _oku()
     calisiyor = bool(d.get("calisiyor")) and _canli_mi(int(d.get("pid") or 0)) and time.time() - float(d.get("nabiz") or 0) < NABIZ_SN
+    if _PROCESS is not None and _PROCESS.poll() is None:
+        calisiyor = True
     atlandi = ATLA.exists()
     ek = {k: v for k, v in eksikler(taze).items() if k not in SES_TURLER}   # kendiliğinden inenler (ses/müzik ayrı: ses_ozeti)
     toplam_eksik = sum(ek.values())
@@ -370,9 +395,22 @@ def durum(taze: bool = False) -> dict:
 
 
 # ------------------------------------------------------------------ denetim (panel/komut satırı)
+_START_LOCK = threading.Lock()
+_PROCESS = None
+
+
 def baslat(zorla: bool = True, ses: bool = False) -> dict:
+    import guncelleme
+    with guncelleme.KILIT, _START_LOCK:
+        if guncelleme.engel():
+            return {'ok': False, 'mesaj': guncelleme.engel()}
+        return _baslat(zorla, ses)
+
+
+def _baslat(zorla: bool = True, ses: bool = False) -> dict:
     """Arka plan kurulumunu ayrı, konsolsuz bir süreçte başlatır. zorla=True: kullanıcının 'atla' kararını kaldırır. ses=True: müzik + ses efektlerini de indirir
     (kullanıcı isteğiyle; kendiliğinden hiç başlatılmaz)."""
+    global _PROCESS
     if zorla:
         ATLA.unlink(missing_ok=True)
     if ses:
@@ -390,8 +428,11 @@ def baslat(zorla: bool = True, ses: bool = False) -> dict:
     log = open(GUNLUK, "a", encoding="utf-8", buffering=1)
     log.write(f"\n=== {time.strftime('%Y-%m-%d %H:%M:%S')} başladı ===\n")
     ek = {"creationflags": DETACHED} if os.name == "nt" else {"start_new_session": True}
-    p = subprocess.Popen([str(py), str(Path(__file__).resolve()), "calis"] + (["ses"] if ses else []), cwd=str(ROOT), env=_ortam(), stdin=subprocess.DEVNULL, stdout=log, stderr=log, close_fds=True, **ek)
-    _yaz({"calisiyor": True, "pid": p.pid, "bas": time.time(), "nabiz": time.time(), "sira": 0, "toplam": 0, "simdiki": "", "sonuc": {}, "kalemler": {}, "ses": bool(ses)})
+    try:
+        _PROCESS = subprocess.Popen([str(py), str(Path(__file__).resolve()), "calis"] + (["ses"] if ses else []), cwd=str(ROOT), env=_ortam(), stdin=subprocess.DEVNULL, stdout=log, stderr=log, close_fds=True, **ek)
+    finally:
+        log.close()
+    # Only the worker writes its status; a late parent write must not overwrite completion.
     return {"ok": True, "mesaj": "başlatıldı", **durum()}
 
 
@@ -400,7 +441,7 @@ def atla() -> dict:
     YEREL.mkdir(parents=True, exist_ok=True)
     ATLA.write_text("kullanıcı atladı\n", encoding="utf-8")
     d = _oku()
-    pid = int(d.get("pid") or 0)
+    pid = _PROCESS.pid if _PROCESS is not None and _PROCESS.poll() is None else int(d.get("pid") or 0)
     if pid and _canli_mi(pid):
         try:
             if os.name == "nt":
@@ -484,6 +525,7 @@ def calis(ses: bool = False) -> int:
                 yaz()
             except OSError:
                 pass
+    yaz()
     threading.Thread(target=nabiz, daemon=True).start()
     sonuc: dict = {}
     kalemler: dict = durum_["kalemler"]
@@ -514,12 +556,16 @@ def calis(ses: bool = False) -> int:
                     hata = ""
                 except Exception as e:  # noqa: BLE001
                     hata = f"{type(e).__name__}: {str(e)[:120]}"
+            elif k["tur"] == "pip-sdk":
+                hata = _pip(["claude-agent-sdk>=0.1,<1"])
             elif k["tur"] == "pip-torch":
                 hata = _pip(["torch", "torchvision", "--index-url", CPU_INDEKS])
             elif k["tur"] == "pip-ml":
                 hata = _pip(["-r", SISTEM / "kurulum" / "gereksinim-ml.txt"])
             else:
                 hata = _hf(k["repo"], k.get("ev"))
+            if not hata and kalem_eksik(k):
+                hata = "Kurulum sonrası doğrulama başarısız: bileşen hâlâ eksik"
             if hata:
                 sonuc[k["id"]] = hata if hata.startswith(("ATLANDI", "HATA")) else "HATA: " + hata
                 kalemler[k["id"]].update(durum="atlandi" if hata.startswith("ATLANDI") else "hata", mesaj=sonuc[k["id"]].split(": ", 1)[-1][:160], bit=time.time())
@@ -548,7 +594,7 @@ def calis(ses: bool = False) -> int:
         durum_.update(calisiyor=False, bitis=time.time(), simdiki="", sonuc=sonuc)
         durum_["sira"] = durum_["toplam"]
         yaz()
-    return 0
+    return 1 if any(not str(v).startswith("indirildi") for v in sonuc.values()) else 0
 
 
 if __name__ == "__main__":

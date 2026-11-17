@@ -18,8 +18,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ASAMALAR = ["hazirlaniyor", "planlama", "plan-onayi-bekliyor", "uretiliyor", "taslak-hazir", "onaylandi", "final-render", "platform-surumleri", "teslim", "engel"]
-ETIKET = {"hazirlaniyor": "hazırlanıyor", "planlama": "planlanıyor", "plan-onayi-bekliyor": "plan onayı bekliyor", "uretiliyor": "üretiliyor",
+ASAMALAR = ["taslak", "iptal", "hazirlaniyor", "planlama", "plan-onayi-bekliyor", "uretiliyor", "taslak-hazir", "onaylandi", "final-render", "platform-surumleri", "teslim", "engel"]
+ETIKET = {"taslak": "taslak: daha sonra üret", "iptal": "üretim iptal edildi", "hazirlaniyor": "hazırlanıyor", "planlama": "planlanıyor", "plan-onayi-bekliyor": "plan onayı bekliyor", "uretiliyor": "üretiliyor",
           "taslak-hazir": "taslak hazır: önizle", "onaylandi": "onaylandı", "final-render": "final render", "platform-surumleri": "platform sürümleri",
           "teslim": "teslim edildi", "engel": "engel var"}
 AD_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,60}$")

@@ -72,6 +72,8 @@ def uret(kirli: bool = False) -> dict:
     if calistir("git", "status", "--porcelain").strip() and not kirli:
         raise SystemExit("commit edilmemiş değişiklik var: önce commit et (ya da deneme için --kirli)")
     dosyalar = [f for f in calistir("git", "-c", "core.quotepath=false", "ls-files").splitlines() if f]
+    if kirli:  # review packages must include newly created, non-ignored source files too
+        dosyalar = sorted(set(dosyalar + [f for f in calistir("git", "-c", "core.quotepath=false", "ls-files", "--others", "--exclude-standard").splitlines() if f]))
     CIKTI.mkdir(parents=True, exist_ok=True)
     zip_yol = CIKTI / f"YSTCoreStudio-{surum}.zip"
     kok = f"YSTCoreStudio-{surum}"

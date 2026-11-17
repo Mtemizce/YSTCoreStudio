@@ -2,10 +2,15 @@ name: Testler
 
 # Hızlı testler (ağ ve gerçek model gerekmez) Linux, macOS ve Windows'ta çalışır.
 # Tam kurulum denemesi için: kurulum-testi.yml
-# Kota koruması: yalnızca ELLE çalışır (GitHub → Actions → Testler → Run workflow). push/pull_request'te otomatik çalışmaz.
-# Public depoda Actions ücretsizdir; o zaman push ve pull_request tetikleyicileri geri eklenebilir.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   hizli:
@@ -33,7 +38,7 @@ jobs:
           else
             choco install ffmpeg -y --no-progress
           fi
-          ffmpeg -version | head -1
+          ffmpeg -version
 
       - name: Hafif bağımlılıklar
         run: python -m pip install numpy scipy Pillow fonttools cryptography pypdf pypdfium2
@@ -42,4 +47,15 @@ jobs:
         env:
           PYTHONUTF8: "1"
           YST_TARAYICI_YOK: "1"
-        run: python sistem/testler/calistir.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python sistem/testler/calistir.py 2>&1 | tee test-sonuclari.log
+
+      - name: Test günlüğü
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log-${{ matrix.os }}
+          path: test-sonuclari.log
+          if-no-files-found: ignore

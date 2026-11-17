@@ -63,7 +63,7 @@ h2{font-size:16px;margin:22px 0 4px}
     <pre id="kurLog"></pre>
     <div class="not" id="kurDosya"></div>
   </div>
-  <p class="not">Bu sayfa yalnızca bu bilgisayarda (127.0.0.1) çalışır. Hiçbir komut kendiliğinden çalıştırılmaz: kurulum komutlarını sen kopyalayıp çalıştırırsın.
+  <p class="not">Bu sayfa yalnızca bu bilgisayarda (127.0.0.1) çalışır. “Eksikleri kur ve devam et” ile Git, Node.js ve seçili önkoşullar sırayla kurulur. Komutlar yalnızca elle kurulum alternatifi olarak gösterilir.
   Yönetici izni gerektirmeyen her şeyi (Python paketleri, Remotion, modeller, ffmpeg) kurulum kendisi indirir.</p>
 </div>
 <script>
@@ -105,7 +105,7 @@ function ciz(d){
   const k=d.kurulum; const ge=t.engel.length;
   $('#bslOnk').textContent=ge?`Sistem analizi: ${ge} eksik`:'Sistem analizi: eksik yok';
   $('#devam').disabled=k.calisiyor||k.bitti;
-  $('#devam').textContent=k.calisiyor?'Kurulum sürüyor…':(ge?'Kurdum, yeniden tara ve devam et':(t.ilk_kurulum?'Kurulumu başlat':'Devam et'));
+  $('#devam').textContent=k.calisiyor?'Kurulum sürüyor…':(ge?'Eksikleri kur ve devam et':(t.ilk_kurulum?'Kurulumu başlat':'Devam et'));
   const kur=k.calisiyor||k.bitti||k.hata||(k.log&&k.log.length);
   $('#kurKart').hidden=!kur;
   if(kur){

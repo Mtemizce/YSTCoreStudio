@@ -49,7 +49,7 @@ Yerel (bu stüdyo için yazıldı): `video-yonetmen` · `kisilik-ve-ton` · `mar
 - **Ücretli bulut servisleri VARSAYILAN KAPALI, yalnızca isteğe bağlı** : bağlayıcı **etkin** + **API anahtarı** (yalnızca `sistem/ortam/baglayici/`, git'e girmez, panelde geri gösterilmez) + projede **bulut izni** (`ayar.json`) üçü birlikte gerekir; ağa yalnızca `python sistem/baglayici/uret.py …` ile çık, anahtara doğrudan dokunma. Her çağrı `projeler/<ad>/bulut_gunlugu.md`'ye yazılır. Kaynak fotoğraflar buluta gönderilmez (ayar açmadıkça). İzin ya da anahtar yoksa sessizce yerele düşme: eksiği söyle. Ses (konuşma/dikte) hiçbir zaman buluta gitmez: yerel faster-whisper.
 - Orijinal kaynaklara (`projeler/<ad>/kaynak/`) **dokunma**; kopya üzerinde çalış.
 - İndirilmiş çalıştırılabilir (.exe) dosyaları kullanıcı onayı olmadan çalıştırma. Kurgu kullanıcı config'inde (`sistem/ortam/kurgu-ayar/config.json`) güven/izin (`render_trusted_roots`, `render_adaptors`) değişikliği **kullanıcı kararıdır**: ajan yapmaz.
-- Headless "Gönder" uyanma modu yalnızca `kurgu notes|frame|strip|rerender|detect|probe` + `mcp__kurgu__*` kullanır (python/npm/ffmpeg yok): üretim işleri interaktif oturumda.
+- Panel oturumu üretim oturumudur. İletişim, AskUserQuestion ve araç izinleri panelde yürür; terminal/ayrı ajan penceresi açma. Kurgu Gönder notları panel kuyruğuna gelir. Notları uygula, `kurgu notes done` ile yanıtla ve dönüşünü tamamla; sonsuz `notes wait` döngüsü başlatma. Yerel orkestratörde alt ajan işleri `delegate` aracıyla verilir.
 - Atıf gerektiren lisanslı (CC-BY vb.) motoru yalnızca kullanıcı onayladıysa ekle (Pocket TTS Turkish onaylandı: atıf README + panel + ATIF.txt). Yeni TTS motoru = `sistem/tts/` adaptörü; lisansı kontrol et.
 
 ## Sert içerik kuralları

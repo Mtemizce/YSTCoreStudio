@@ -63,6 +63,30 @@ def kurulum_calistir() -> None:
     env = dict(os.environ, PYTHONUTF8="1", PYTHONUNBUFFERED="1", HYPERFRAMES_NO_TELEMETRY="1", DO_NOT_TRACK="1")
     log_ekle(f"=== kurulum başladı {time.strftime('%Y-%m-%d %H:%M:%S')} ({ROOT}) ===")
     try:
+        missing = onkosul.tara(ag=False)["engel"]
+        for item in ("python", "git", "node", "claude"):
+            if item not in missing:
+                continue
+            if os.name != "nt":
+                raise RuntimeError("Bu işletim sisteminde önkoşulu paket yöneticinizle kurun: " + item)
+            k["adim"] = item + " kuruluyor"
+            pre = subprocess.Popen(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(SISTEM / "kurulum/on_kur.ps1"), "-Bilesen", item],
+                                   cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, creationflags=NW)
+            for line in pre.stdout:
+                log_ekle(line.decode("utf-8", "replace"))
+            if pre.wait() != 0:
+                raise RuntimeError(item + " kurulamadı; günlükteki nedeni giderip yeniden deneyin.")
+            onkosul.yol_yenile()
+            for tool in ("git", "node", "npm", "claude"):
+                exe = onkosul.bul(tool)
+                if exe:
+                    os.environ["PATH"] = str(Path(exe).parent) + os.pathsep + os.environ.get("PATH", "")
+            check = tara_yenile()
+            if item in check["engel"]:
+                raise RuntimeError(item + " yükleyicisi bitti ancak araç doğrulanamadı.")
+        if not tara_yenile()["tamam"]:
+            raise RuntimeError("Eksikler: " + ", ".join(D["tarama"]["engel"]))
+        env.update(PATH=os.environ.get("PATH", ""))
         p = subprocess.Popen([python_exe(), "-u", str(SISTEM / "kurulum" / "kurulum.py")], cwd=str(ROOT), env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              stdin=subprocess.DEVNULL, creationflags=NW)
         for ham in iter(p.stdout.readline, b""):
@@ -109,16 +133,20 @@ def tara_yenile() -> dict:
 
 def devam() -> dict:
     """'Devam et': analizi yeniden çalıştır; sorun yoksa (ve kurulum gerekiyorsa) kurulumu başlat."""
-    t = tara_yenile()
-    if not t["tamam"]:
-        return {"ok": False, "mesaj": "Hâlâ eksik var: " + ", ".join(t["engel"])}
-    if D["kurulum"]["calisiyor"]:
-        return {"ok": True, "mesaj": "kurulum zaten sürüyor"}
-    if (YEREL / "kurulum.ok").exists():
-        D["kurulum"].update({"bitti": True, "adim": "tamam"})
-        return {"ok": True, "mesaj": "kurulu: panel açılıyor"}
-    threading.Thread(target=kurulum_calistir, daemon=True).start()
-    return {"ok": True, "mesaj": "kurulum başladı"}
+    with kilit:
+        if D["kurulum"]["calisiyor"]:
+            return {"ok": True, "mesaj": "kurulum zaten sürüyor"}
+        t = tara_yenile()
+        blockers = [x for x in t["engel"] if x not in ("python", "git", "node", "claude")]
+        if blockers:
+            return {"ok": False, "mesaj": "Önce giderilmesi gereken: " + ", ".join(blockers)}
+        if (YEREL / "kurulum.ok").exists() and t["tamam"]:
+            D["kurulum"].update({"bitti": True, "adim": "tamam"})
+            return {"ok": True, "mesaj": "kurulu: panel açılıyor"}
+        D["kurulum"]["calisiyor"] = True
+        threading.Thread(target=kurulum_calistir, daemon=True).start()
+        return {"ok": True, "mesaj": "Eksikler sırayla kuruluyor; ilerleme bu panelde gösterilir."}
+
 
 
 class Sunucu(ThreadingHTTPServer):

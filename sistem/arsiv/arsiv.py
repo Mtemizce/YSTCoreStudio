@@ -78,6 +78,7 @@ def baglan() -> sqlite3.Connection:
     DIR.mkdir(parents=True, exist_ok=True)
     c = sqlite3.connect(DB, timeout=30)
     c.row_factory = sqlite3.Row
+    c.create_function("yst_norm", 1, lambda x: norm(x or ""), deterministic=True)
     K.sema_kur(c, AYAR)
     try:
         c.execute("CREATE VIRTUAL TABLE IF NOT EXISTS dosya_fts USING fts5(etiket, tokenize='unicode61')")
@@ -437,13 +438,10 @@ def _kosul(yil=None, tur=None, kelime=None, klasor=None, c=None, klasor_on=None,
         p += [klasor_on, klasor_on + "/%"]
     if kelime:
         toks = [t for t in re.split(r"\s+", norm(kelime)) if t]
-        if c is not None and fts_var(c):
-            w.append("d.id IN (SELECT rowid FROM dosya_fts WHERE dosya_fts MATCH ?)")
-            p.append(" ".join('"%s"*' % t.replace('"', "") for t in toks))
-        else:
-            for t in toks:
-                w.append("d.etiket LIKE ?")
-                p.append("%" + t + "%")
+        # Folder names are substrings, not necessarily FTS token prefixes; cover old indexes too.
+        for t in toks:
+            w.append("yst_norm(d.etiket || ' ' || d.ad || ' ' || d.klasor) LIKE ? ESCAPE '\\'")
+            p.append("%" + t.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
     return (" WHERE " + " AND ".join(w)) if w else "", p
 
 
@@ -625,7 +623,7 @@ def ayarla(yol: str, ad: str = "arsiv", zorla: bool = False) -> dict:
     """Arşiv kökü ekle ya da bu bilgisayardaki yolunu güncelle. Aynı adlı arşivin kayıtlı dosyalarına BENZEMEYEN bir klasör verilirse
     reddedilir (yanlış diski göstermek dizini bozmasın); gerçekten başka içerikse zorla=True: eski dizin kayıtları silinir (dosyalara dokunulmaz)."""
     c = baglan()
-    p = Path(yol).expanduser()
+    p = Path(os.path.expandvars(yol.strip().strip('"'))).expanduser().absolute()
     if not K.klasor_var(p, 6):
         raise ValueError(f"klasör yok: {p} (harici disk takılı mı?)")
     kid = (c.execute("SELECT id FROM kok WHERE ad=?", (re.sub(r"[^a-z0-9_-]+", "-", ad.lower()).strip("-") or "arsiv",)).fetchone() or [None])[0]

@@ -101,6 +101,13 @@ def ortam_modelleri(ortam: str) -> list[dict]:
 
 
 def _ortam_modelleri_oku(ortam: str) -> list[dict]:
+    if ortam in ("ollama", "lmstudio", "llamacpp"):
+        sys.path.insert(0, str(ROOT / "sistem/araclar"))
+        import orkestrator
+        try:
+            return orkestrator.models(ortam)
+        except (OSError, ValueError):
+            return []
     if ortam == "codex":
         try:
             d = json.loads((Path.home() / ".codex" / "models_cache.json").read_text(encoding="utf-8"))
@@ -197,7 +204,7 @@ def _budama(d: dict, ust: bool = True) -> dict:
 YETENEK_ADLARI = {"gorsel-uret", "gorsel-duzenle", "gorsel-buyut", "video-uret", "avatar-video", "tts", "ses-klon", "stt", "muzik", "ses", "gorsel"}
 SAGLAYICI_TURLERI = ("http-is", "openai-uyumlu", "mock", "baglanti")
 ON_AYAR_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,30}$")
-ORKESTRATORLER = ("claude-code", "codex", "gemini-cli", "opencode")
+ORKESTRATORLER = ("claude-code", "codex", "gemini-cli", "opencode", "ollama", "lmstudio", "llamacpp")
 YERLESIK_SAGLAYICILAR = {"ema", "elevenlabs", "gemini", "openai-gorsel", "heygen"}
 ANAHTAR_AD_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,60}$")
 BASLIK_RE = re.compile(r"^[A-Za-z0-9-]{1,40}$")
@@ -296,6 +303,18 @@ def _dogrula_orkestrator(yama: dict) -> None:
         return
     if not isinstance(o, dict) or o.get("calisma_ortami", "claude-code") not in ORKESTRATORLER:
         raise ValueError(f"orkestrator.calisma_ortami {ORKESTRATORLER} olmalı")
+    if "model" in o and (not isinstance(o["model"], str) or len(o["model"]) > 200):
+        raise ValueError("Geçersiz orkestratör modeli")
+    if "yerel_adresler" in o:
+        sys.path.insert(0, str(ROOT / "sistem/araclar"))
+        import orkestrator
+        if not isinstance(o["yerel_adresler"], dict):
+            raise ValueError("Yerel adresler nesne olmalı")
+        for kind in o["yerel_adresler"]:
+            if kind not in orkestrator.LOCAL:
+                raise ValueError("Bilinmeyen yerel ortam")
+            orkestrator.endpoint(kind, o)
+    _MODEL_ONBELLEK.clear()
 
 
 def _dogrula_yetenekler_butce(yama: dict) -> None:

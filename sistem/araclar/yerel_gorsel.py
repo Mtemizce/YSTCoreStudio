@@ -36,7 +36,7 @@ GH = os.environ.get("YST_GH_ADRES") or "https://api.github.com"
 PARCALAR = {  # (depo, dosya deseni)
     "model": ("leejet/Z-Image-Turbo-GGUF", "z_image_turbo-{kalite}.gguf"),
     "llm": ("unsloth/Qwen3-4B-Instruct-2507-GGUF", "Qwen3-4B-Instruct-2507-Q4_K_M.gguf"),
-    "vae": ("black-forest-labs/FLUX.1-schnell", "ae.safetensors"),
+    "vae": ("Comfy-Org/Z-Image-Turbo", "split_files/vae/ae.safetensors"),
 }
 KALITELER = [("Q3_K", 4500), ("Q4_0", 7500), ("Q5_0", 11000), ("Q6_K", 10**9)]  # (kalite, bu VRAM (MB) sınırına kadar uygun)
 KALITE_RE = re.compile(r"^Q[2-8]_[0-9A-Z_]{1,4}$")
@@ -74,19 +74,33 @@ def _exe() -> Path | None:
 
 
 def _dosya(parca: str, kalite: str = "Q4_0") -> Path:
-    return DIZIN / "modeller" / PARCALAR[parca][1].format(kalite=kalite)
+    return DIZIN / "modeller" / Path(PARCALAR[parca][1].format(kalite=kalite)).name
 
 
 def kurulu_kalite() -> str | None:
     m = DIZIN / "modeller"
+    try:
+        manifest = json.loads((DIZIN / 'kurulum.json').read_text(encoding='utf-8'))
+        selected = manifest.get('_kalite')
+        if selected and KALITE_RE.fullmatch(selected):
+            return selected
+    except (OSError, ValueError):
+        pass
     for p in (m.glob("z_image_turbo-*.gguf") if m.is_dir() else []):
-        return p.stem.split("-", 1)[1]
+        if p.stat().st_size > 1_000_000:
+            return p.stem.split("-", 1)[1]
     return None
 
 
 def durum() -> dict:
     kk = kurulu_kalite()
-    kurulu = bool(_exe() and kk and _dosya("llm").is_file() and _dosya("vae").is_file())
+    files = [_dosya(k, kk or "Q4_0") for k in ("model", "llm", "vae")]
+    try:
+        manifest = json.loads((DIZIN / "kurulum.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        manifest = {}
+    kurulu = bool(_exe() and kk and all(p.is_file() and p.stat().st_size > 0 and
+                  (p.stat().st_size == manifest.get(p.name, {}).get("boyut") if p.name in manifest else p.stat().st_size > 1_000_000) for p in files))
     boyut = sum(f.stat().st_size for f in DIZIN.rglob("*") if f.is_file()) if DIZIN.is_dir() else 0
     return {"kurulu": kurulu, "kalite": kk, "disk_mb": round(boyut / 1e6), "oneri": oneri(), "is": dict(IS),
             "tahmini_indirme_gb": 7.2, "bos_disk_gb": round(shutil.disk_usage(ROOT).free / 1e9, 1)}
@@ -109,7 +123,8 @@ def _json(url: str):
 def _hf_dosya(depo: str, ad: str) -> dict:
     """Hugging Face ağaç listesinden dosyanın boyutu ve SHA256'sı (LFS oid)."""
     try:
-        agac = _json(f"{HF}/api/models/{depo}/tree/main")
+        folder = ad.rsplit("/", 1)[0] if "/" in ad else ""
+        agac = _json(f"{HF}/api/models/{depo}/tree/main" + ("/" + folder if folder else ""))
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"{depo} listelenemedi (HTTP {e.code})" + (": bu depo giriş istiyor olabilir" if e.code in (401, 403) else "")) from None
     d = next((x for x in agac if x.get("path") == ad), None)
@@ -119,29 +134,13 @@ def _hf_dosya(depo: str, ad: str) -> dict:
 
 
 def _indir(url: str, hedef: Path, beklenen_sha: str, boyut: int, etiket: str, taban: int, pay: int) -> None:
-    hedef.parent.mkdir(parents=True, exist_ok=True)
-    if hedef.is_file() and (not beklenen_sha or hashlib.sha256(hedef.read_bytes()).hexdigest() == beklenen_sha if hedef.stat().st_size < 400_000_000 else hedef.stat().st_size == boyut):
-        _log(f"{etiket}: zaten var", taban + pay)
-        return
-    parca = hedef.with_suffix(hedef.suffix + ".part")
-    h = hashlib.sha256()
-    n = 0
-    req = urllib.request.Request(url, headers={"User-Agent": "YSTCoreStudio"})
-    with urllib.request.urlopen(req, timeout=60) as r, open(parca, "wb") as f:
-        while True:
-            b = r.read(1 << 20)
-            if not b:
-                break
-            f.write(b)
-            h.update(b)
-            n += len(b)
-            if boyut:
-                IS["yuzde"] = taban + int(pay * n / boyut)
-    if beklenen_sha and h.hexdigest() != beklenen_sha:
-        parca.unlink(missing_ok=True)
-        raise RuntimeError(f"{etiket}: indirilen dosyanın SHA256'sı yayımlananla uyuşmadı")
-    parca.replace(hedef)
-    _log(f"{etiket}: indirildi ({n // 1_000_000} MB, doğrulandı)", taban + pay)
+    from indirme import download
+    _log(f"{etiket}: bağlantı kuruluyor…", taban)
+    def ilerle(n, total):
+        IS["adim"] = f"{etiket}: {n // 1_000_000} / {total // 1_000_000} MB"
+        IS["yuzde"] = min(taban + pay, taban + int(pay * n / total)) if total else taban
+    download(url, hedef, boyut, beklenen_sha, ilerle)
+    _log(f"{etiket}: doğrulandı", taban + pay)
 
 
 def _vulkan_var() -> bool:
@@ -208,12 +207,18 @@ def _kur_is(kalite: str) -> None:
         _sd_ikili()
         pay = {"model": 45, "llm": 30, "vae": 5}
         taban = 8
+        manifest = {}
         for parca in ("model", "llm", "vae"):
             depo, desen = PARCALAR[parca]
             ad = desen.format(kalite=kalite)
             bilgi = _hf_dosya(depo, ad)
-            _indir(f"{HF}/{depo}/resolve/main/{ad}", DIZIN / "modeller" / ad, bilgi["sha256"], bilgi["boyut"], ad, taban, pay[parca])
+            _indir(f"{HF}/{depo}/resolve/main/{ad}", _dosya(parca, kalite), bilgi["sha256"], bilgi["boyut"], ad, taban, pay[parca])
+            manifest[_dosya(parca, kalite).name] = bilgi
             taban += pay[parca]
+        manifest['_kalite'] = kalite
+        (DIZIN / "kurulum.json").write_text(json.dumps(manifest), encoding="utf-8")
+        if not durum()["kurulu"]:
+            raise RuntimeError("İndirme bitti ancak gerekli dosyalar doğrulanamadı")
         IS["yuzde"] = 100
         _log("kurulum tamam")
     except Exception as e:  # noqa: BLE001
@@ -229,11 +234,14 @@ def kur(kalite: str | None = None) -> dict:
     with KILIT:
         if IS["var"]:
             return {"ok": False, "mesaj": "kurulum zaten sürüyor"}
+        IS.update(var=True, bitti=False, hata="", adim="Bağlantı kuruluyor…", yuzde=0)
         threading.Thread(target=_kur_is, args=(kalite,), daemon=True, name="yerel-gorsel-kur").start()
     return {"ok": True, "kalite": kalite}
 
 
 def sil() -> int:
+    if IS["var"]:
+        raise ValueError("İndirme sürerken model silinemez")
     n = sum(f.stat().st_size for f in DIZIN.rglob("*") if f.is_file()) if DIZIN.is_dir() else 0
     shutil.rmtree(DIZIN, ignore_errors=True)
     return n

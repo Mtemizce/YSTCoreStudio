@@ -64,7 +64,7 @@ def _hub(ozel_ev: Path | None = None) -> Path:
         return ozel_ev / "hub"
     if os.environ.get("HF_HUB_CACHE"):
         return Path(os.environ["HF_HUB_CACHE"])
-    return Path(os.environ.get("HF_HOME") or Path.home() / ".cache" / "huggingface") / "hub"
+    return Path(os.environ.get("HF_HOME") or ORTAM / "modeller/hf") / "hub"
 
 
 DEPTH_EV = ORTAM / "modeller" / "hf"
@@ -95,9 +95,10 @@ def _repo_kurulu(repo: str, ev: Path | None = None) -> bool:
     d = _repo_dizin(repo, ev)
     if not d.is_dir():
         return False
-    if any(f.name.endswith(".incomplete") for f in d.rglob("*")):
-        return False
     snap = d / "snapshots"
+    if "faster-whisper" in repo:
+        return snap.is_dir() and any(all((rev / name).is_file() and (rev / name).stat().st_size > (1_000_000 if name == "model.bin" else 0)
+                                       for name in ("model.bin", "config.json", "tokenizer.json")) for rev in snap.iterdir() if rev.is_dir())
     return snap.is_dir() and any(f.suffix in (".bin", ".safetensors", ".pt") and f.is_file() and f.stat().st_size > 1_000_000 for f in snap.rglob("*"))
 
 
@@ -115,7 +116,7 @@ _PKG = {"t": 0.0, "v": {}}
 
 
 def _paketler(adlar=("ema_lightning", "pocket_tts_turkish", "transformers", "faster_whisper")) -> dict:
-    if time.time() - _PKG["t"] < 5 and _PKG["v"]:
+    if time.time() - _PKG["t"] < 5 and _PKG["v"] and set(adlar).issubset(_PKG["v"]):
         return _PKG["v"]
     kod = "import importlib.util as u,json;print(json.dumps({n: u.find_spec(n) is not None for n in %r}))" % (list(adlar),)
     try:
@@ -203,18 +204,26 @@ def _pip(*paketler: str, kaldir: bool = False) -> None:
 
 def _hf_indir(repo: str, beklenen_gb: float, ev: Path | None, baz: int, pay: int) -> None:
     """Hugging Face deposunu resmî kitaplıkla indirir; ilerleme önbellek boyutundan hesaplanır."""
-    env = dict(os.environ, PYTHONUTF8="1", HF_HUB_DISABLE_TELEMETRY="1")
-    if ev:
-        env["HF_HOME"] = str(ev)
-    kod = "import sys;from huggingface_hub import snapshot_download as s;s(sys.argv[1])"
-    p = subprocess.Popen([str(VENV_PY), "-c", kod, repo], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, creationflags=NW)
-    beklenen = max(1.0, beklenen_gb * 1e9)
-    while p.poll() is None:
-        time.sleep(1.0)
-        y = min(0.99, _repo_boyut(repo, ev) / beklenen)
-        _log(f"{repo.split('/')[-1]} iniyor: {round(_repo_boyut(repo, ev) / 1e6)} MB", baz + int(pay * y))
-    if p.returncode != 0:
-        raise RuntimeError(f"{repo} indirilemedi: " + (p.stderr.read() or "").strip()[-300:])
+    import tempfile
+    import yol
+    env = {**os.environ, **yol.kapsama()}
+    cache = _hub(ev)
+    kod = "import sys;from huggingface_hub import snapshot_download;snapshot_download(sys.argv[1], cache_dir=sys.argv[2])"
+    # Drain stderr into a file: pip/HF progress can fill a PIPE and deadlock the downloader.
+    with tempfile.TemporaryFile(mode="w+b") as log:
+        p = subprocess.Popen([str(VENV_PY), "-c", kod, repo, str(cache)], env=env, stdout=log, stderr=log, stdin=subprocess.DEVNULL, creationflags=NW)
+        started = time.monotonic()
+        while p.poll() is None:
+            if time.monotonic() - started > 14400:
+                p.kill(); p.wait(); raise RuntimeError("Model indirmesi zaman aşımına uğradı; yeniden deneyin")
+            time.sleep(1)
+            n = _repo_boyut(repo, ev)
+            _log(f"{repo.split('/')[-1]} iniyor: {round(n / 1e6)} MB", baz + int(pay * min(.99, n / max(1, beklenen_gb * 1e9))))
+        if p.returncode:
+            log.seek(max(0, log.tell() - 3000))
+            raise RuntimeError(f"{repo} indirilemedi: " + log.read().decode("utf-8", "replace")[-600:])
+    if not _repo_kurulu(repo, ev):
+        raise RuntimeError("Model indirildi fakat kullanılabilir ağırlık bulunamadı: " + repo)
 
 
 def _kur_is(bilesen: str, secenek: str) -> None:
@@ -254,6 +263,10 @@ def _kur_is(bilesen: str, secenek: str) -> None:
             _arac().kur()
         else:
             raise RuntimeError("bu bileşen buradan kurulmaz")
+        _PKG["t"] = 0
+        check = durum()["bilesenler"].get(bilesen, {}).get("secenekler", {}).get(secenek, {})
+        if not check.get("kurulu"):
+            raise RuntimeError("Kurulum sonrasında bileşen doğrulanamadı; günlükteki hatayı kontrol edin")
         _log("tamam", 100)
     except Exception as e:  # noqa: BLE001
         IS["hata"] = f"{type(e).__name__}: {e}"

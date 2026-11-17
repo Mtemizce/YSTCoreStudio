@@ -38,6 +38,7 @@ _yol.hazirla()
 # kurgu.exe başlatıcısı kurulum yerinin mutlak yolunu içerir; klasör taşınınca bozulabilir. Python üzerinden çağırmak yerden bağımsızdır.
 KURGU_CMD = [str(VENV_PY), "-c", "import sys, kurgu_cli; sys.argv[0] = 'kurgu'; sys.exit(kurgu_cli.main())"]
 PANEL_DOSYA = ORTAM / "yerel" / "panel.json"
+NW = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW: pythonw altında konsol alt süreçleri pencere açıp kapatmasın
 SUNUCU: dict = {}
 AD_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,60}$")
 FORMATLAR = ("ana", "reels", "tiktok", "shorts")
@@ -383,75 +384,42 @@ def baska_ortam_istemi(proje: str | None, gorev: str | None) -> str:
             "Alt ajan tanımları .claude/agents/*.md dosyalarındadır; ortamında alt ajan yoksa o rollerin görevlerini sırayla kendin yap.")
 
 
-def claude_baslat(proje: str | None = None, gorev: str | None = None) -> dict:
-    """Seçili orkestratörü (varsayılan Claude Code) yeni pencerede açar. Komut SABİTTİR: /video <proje> ya da /profil (kullanıcı metni komuta girmez)."""
-    yerel = ORTAM / "yerel"
-    yerel.mkdir(parents=True, exist_ok=True)
-    rid, prof = calisma_ortami()
-    mcp_arg, ek_satir = ek().claude_ek(proje, gorev)
+def ork():
+    import orkestrator
+    return orkestrator
+
+
+def guncelleme_engeller():
+    out = []
+    if any(j['p'].poll() is None or j['thread'].is_alive() for j in list(ork().JOBS.values())):
+        out.append('orkestratör üretimi')
+    if any(pr.poll() is None for pr, _ in list(editorler.values())):
+        out.append('açık Kurgu editörü (kaydet; Stüdyoyu kapatıp yeniden aç)')
+    if tarama['thread'] and tarama['thread'].is_alive():
+        out.append('arşiv taraması')
+    E = ek()
+    for label, state in [('bileşen kurulumu', E.bilesen_m().IS), ('görsel modeli', E.yerel_gorsel_m().IS),
+                         ('video kurulumu', E.yerel_video_m().IS), ('video üretimi', E.yerel_video_m().GEN),
+                         ('onarım', E.AGIR), ('ses denemesi', E.KLON_DENE), ('ara sahne', E.ARA_SAHNE),
+                         ('arşiv iyileştirme', E.IYI['durum'])]:
+        if state.get('var') or state.get('calisiyor'):
+            out.append(label)
+    A = E.arka_indirme_m()
+    d = A._oku()
+    if (A._PROCESS is not None and A._PROCESS.poll() is None) or (d.get('calisiyor') and A._canli_mi(int(d.get('pid') or 0))):
+        out.append('arka plan kurulumu')
+    return out
+
+
+def claude_baslat(proje=None, gorev=None, guven=False):
     if gorev == "profil":
-        komut, ad = f'claude{mcp_arg} "/profil"', "kimlik"
-    elif gorev == "b-plani":
-        d = proje_yolu(proje or "")
-        if not (d / "uretim.json").is_file() or "b_plani" not in json.loads((d / "uretim.json").read_text(encoding="utf-8")):
-            raise ValueError("önce B planını ayarla (karakter seç)")
-        komut = f'claude{mcp_arg} "/b-plani projeler/{proje}"'
-        ad = f"{proje}-bplani"
-    elif gorev == "seri":
-        d = proje_yolu(proje or "")
-        if not (d / "seri_baglami.md").is_file():
-            raise ValueError("bu proje bir dizi bölümü değil (seri_baglami.md yok): Seriler sayfasından bölüm aç")
-        komut = f'claude{mcp_arg} "/seri projeler/{proje}"'
-        ad = f"{proje}-seri"
-    elif gorev == "final":
-        d = proje_yolu(proje or "")
-        if not (d / "onay.json").is_file():
-            raise ValueError("önce Onaylıyorum de (onay.json yok)")
-        komut = f'claude{mcp_arg} "/final projeler/{proje}"'
-        ad = f"{proje}-final"
-    else:
-        d = proje_yolu(proje or "")
-        if not (d / "brief.md").is_file():
-            raise ValueError("proje bulunamadı")
-        komut = f'claude{mcp_arg} "/video projeler/{proje} (istek projeler/{proje}/brief.md ve uretim.json içinde, kaynaklar projeler/{proje}/kaynak/)"'
-        ad = proje
-    if rid != "claude-code":  # deneysel çalışma ortamı: aynı yönergeleri markdown dosyalarından okuyan sabit istem
-        import shutil
-        if not shutil.which(prof["komut"]):
-            raise ValueError(f"{prof['ad']} kurulu değil ({prof['komut']} komutu bulunamadı). Ayarlar → Orkestratör'den Claude Code'a dön ya da CLI'ı kur.")
-        istem = baska_ortam_istemi(proje, gorev)
-        arg = f'"{istem}"' if prof.get("istem") == "konum" else f'{prof["istem"]} "{istem}"'
-        komut, mcp_arg, ek_satir = f'{prof["komut"]} {arg}', "", []
-        ad = f"{ad}-{rid}"
-    if os.name != "nt":
-        return _terminalde_ac(ad, komut, ek_satir)
-    betik = yerel / f"claude_{ad}.cmd"
-    betik.write_text("\r\n".join([
-        "@echo off", "chcp 65001 >nul", f'cd /d "{ROOT}"',
-        *[f'set "{k}={v}"' for k, v in _yol.kapsama().items()],
-        f'set "PATH={ORTAM / "venv" / "Scripts"};%PATH%{(";" + ";".join(_yol.klasorler())) if _yol.klasorler() else ""}"',
-        *ek_satir, komut, ""]), encoding="utf-8")
-    subprocess.Popen(["cmd", "/c", "start", f"Claude - {ad}", "cmd", "/k", str(betik)], cwd=str(ROOT))
-    return {"ok": True}
-
-
-def _terminalde_ac(ad: str, komut: str, ek_satir: list) -> dict:
-    """Linux/macOS: ortamı kuran bir kabuk betiği yazar, uygun bir terminal penceresinde açar."""
-    import shlex
-    import shutil
-    betik = ORTAM / "yerel" / f"claude_{ad}.sh"
-    betik.write_text("\n".join([
-        "#!/bin/bash", f"cd {shlex.quote(str(ROOT))}", *[f"export {k}={shlex.quote(v)}" for k, v in _yol.kapsama().items()],
-        f"export PATH={shlex.quote(str(ORTAM / 'venv' / 'bin'))}:$PATH" + "".join(":" + shlex.quote(d) for d in _yol.klasorler()), f"export YST_KOK={shlex.quote(str(ROOT))}", komut, "echo; read -r -p 'Kapatmak için Enter...' _", ""]), encoding="utf-8")
-    betik.chmod(0o755)
-    if sys.platform == "darwin":
-        subprocess.Popen(["open", "-a", "Terminal", str(betik)])
-        return {"ok": True}
-    for t in (["x-terminal-emulator", "-e"], ["gnome-terminal", "--"], ["konsole", "-e"], ["xfce4-terminal", "-e"], ["kitty"], ["alacritty", "-e"], ["xterm", "-e"]):
-        if shutil.which(t[0]):
-            subprocess.Popen(t + ["bash", str(betik)], cwd=str(ROOT))
-            return {"ok": True}
-    raise ValueError(f"Terminal bulunamadı. Elle çalıştır:  bash {betik}")
+        return ork().start("_profil", baska_ortam_istemi(None, gorev), guven)
+    d = proje_yolu(proje or "")
+    if not (d / "brief.md").is_file():
+        raise ValueError("Proje bulunamadı")
+    if gorev == "final" and not (d / "onay.json").is_file():
+        raise ValueError("Önce taslağı onaylayın")
+    return ork().start(proje, baska_ortam_istemi(proje, gorev), guven)
 
 
 def klasor_ac(yol: Path) -> None:
@@ -779,6 +747,10 @@ class H(BaseHTTPRequestHandler):
                     return self._json({"hata": "yok"}, 404)
                 tur = {".ogg": "audio/ogg", ".opus": "audio/ogg", ".mp3": "audio/mpeg", ".flac": "audio/flac", ".wav": "audio/wav"}.get(p.suffix.lower(), "application/octet-stream")
                 return self._bayt(p.read_bytes(), tur)
+            if u.path == "/panel-extra.js":
+                return self._bayt((SISTEM / "panel/panel-extra.js").read_bytes(), "text/javascript; charset=utf-8")
+            if u.path == "/api/ajan/durum":
+                return self._json(ork().state(q.get("proje", "")))
             r = ek().get(u.path, q)
             if r is not None:
                 return self._json(r)
@@ -788,6 +760,16 @@ class H(BaseHTTPRequestHandler):
 
     # --- POST
     def do_POST(self):
+        G = ek().guncelleme_m()
+        with G.KILIT:
+            G.MESGUL = guncelleme_engeller
+            path = urlparse(self.path).path
+            allowed = ('/api/guncelleme/kontrol', '/api/guncelleme/yeniden-baslat', '/api/kapat')
+            if G.engel() and path not in allowed:
+                return self._json({'hata': G.engel()}, 409)
+            return self._post_impl()
+
+    def _post_impl(self):
         if not self._host_ok() or self.headers.get("X-Panel") != "1":
             return self._json({"hata": "yasak"}, 403)
         u = urlparse(self.path)
@@ -814,6 +796,41 @@ class H(BaseHTTPRequestHandler):
                 uz = "." + re.sub(r"[^a-z0-9]", "", (q.get("uz") or "webm").lower())[:4]
                 return self._json(ek().ses_kaydet(q.get("proje", ""), self.rfile.read(n), uz))
             b = self._govde_json()
+            if u.path == "/api/ajan/mesaj":
+                return self._json(ork().start(b.get("proje", ""), b.get("mesaj", ""), b.get("guven") is True))
+            if u.path == "/api/ajan/notlar":
+                return self._json(ork().drain(b.get("proje", ""), b.get("guven") is True))
+            if u.path == "/api/ajan/izin":
+                return self._json(ork().permission(b.get("proje", ""), b.get("id"), b.get("onay"), b.get("cevaplar")))
+            if u.path in ("/api/proje/iptal", "/api/proje/taslak", "/api/proje/sil"):
+                ad = b.get("proje", "")
+                d = ork().project(ad)
+                if ad == "_profil":
+                    raise ValueError("Kimlik silinemez")
+                ork().stop(ad)
+                ek().yerel_video_m().iptal(ad)
+                with kilit:
+                    for k in [k for k in editorler if k.startswith(ad + "/")]:
+                        pr, _ = editorler.pop(k)
+                        if os.name == "nt" and pr.poll() is None:
+                            subprocess.run(["taskkill", "/PID", str(pr.pid), "/T", "/F"], capture_output=True, creationflags=NW, timeout=30)
+                        elif pr.poll() is None:
+                            pr.terminate()
+                        pr.wait(timeout=15)
+                if u.path.endswith("/sil"):
+                    # Reversible delete, only an immediate child of projeler. Archive originals stay intact.
+                    trash = (ORTAM / "cop").resolve()
+                    if ORTAM.resolve() not in trash.parents:
+                        raise ValueError("Geçersiz silme hedefi")
+                    trash.mkdir(parents=True, exist_ok=True)
+                    import uuid
+                    d.rename(trash / (ad + "-" + uuid.uuid4().hex[:10]))
+                    (ork().STORE / (ad + ".json")).unlink(missing_ok=True)
+                else:
+                    ek().durum().yaz(ad, "taslak" if u.path.endswith("/taslak") else "iptal", "Kullanıcı panelden durdurdu; dosyalar korundu.")
+                return self._json({"ok": True})
+            if u.path == "/api/arsiv/projeye":
+                return self._json(arsiv().projeye_ekle(str(ork().project(b.get("proje", ""))), int(b["id"])))
             if u.path == "/api/kapat":
                 self._json({"ok": True})
                 threading.Thread(target=lambda: (time.sleep(0.3), SUNUCU["srv"].shutdown()), daemon=True).start()
@@ -823,14 +840,14 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/api/hazirla":
                 ad = proje_yolu(b.get("proje", "")).name
                 r = subprocess.run([str(VENV_PY), str(SISTEM / "araclar" / "yeni_proje.py"), ad, "--hazirla"], cwd=str(ROOT),
-                                   env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
+                                   env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800, creationflags=NW)
                 return self._json({"ok": r.returncode == 0, "cikti": (r.stdout + r.stderr)[-3000:]})
             if u.path == "/api/kurgu":
                 return self._json(kurgu_ac(b.get("proje", ""), b.get("format", "ana")))
             if u.path == "/api/kurgu/eklenti":
                 return self._json(eklenti_islem(str(b.get("islem") or "yeniden")))
             if u.path == "/api/claude":
-                return self._json(claude_baslat(b.get("proje"), b.get("gorev")))
+                return self._json(claude_baslat(b.get("proje"), b.get("gorev"), b.get("guven") is True))
             if u.path == "/api/klasor":
                 alt = b.get("alt", "")
                 if b.get("kok") == "kimlik":
@@ -843,10 +860,16 @@ class H(BaseHTTPRequestHandler):
                 return self._json({"ok": True})
             if u.path == "/api/saglik":
                 r = subprocess.run([str(VENV_PY), str(SISTEM / "araclar" / "saglik.py")], cwd=str(ROOT), env=ortam(),
-                                   capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
-                return self._json({"ok": r.returncode == 0, "cikti": (r.stdout + r.stderr)[-6000:]})
-            if u.path == "/api/arsiv/ayarla":
-                return self._json({"ok": True, "ayar": arsiv().ayarla(str(b.get("yol", "")).strip().strip('"'), str(b.get("ad") or "arsiv").strip() or "arsiv", bool(b.get("zorla")))})
+                                   capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600, creationflags=NW)
+                ind = ek().arka_indirme_m().durum(taze=True)
+                ops = {"Z-Image-Turbo": ek().yerel_gorsel_m().durum()["kurulu"], "Wan 2.2": ek().yerel_video_m().durum()["kurulu"]}
+                detail = "\n\nModel ve paketler: " + ind["ozet"] + "\n" + "\n".join(x["ad"] + ": " + x["durum"] for x in ind["kuyruk"])
+                detail += "\nİsteğe bağlı: " + ", ".join(k + (" hazır" if v else " kurulu değil") for k, v in ops.items())
+                return self._json({"ok": r.returncode == 0 and not ind["eksik_toplam"], "cikti": (r.stdout + r.stderr)[-6000:] + detail})
+            if u.path in ("/api/arsiv/ayarla", "/api/konum/arsiv"):
+                ayar = arsiv().ayarla(str(b.get("yol", "")).strip().strip('"'), str(b.get("ad") or "arsiv").strip() or "arsiv", bool(b.get("zorla")))
+                scan = arsiv_tara_baslat(False, False, ayar['id'])
+                return self._json({"ok": True, "ayar": ayar, "arsiv": ayar, "tarama": scan})
             if u.path == "/api/arsiv/ayarla-uzak":
                 return self._json({"ok": True, "ayar": arsiv().ayarla_uzak(str(b.get("uzak", "")).strip(), str(b.get("ad") or "bulut").strip() or "bulut", str(b.get("gorunen_ad") or "").strip() or None)})
             if u.path == "/api/arsiv/tara":
@@ -896,7 +919,7 @@ class H(BaseHTTPRequestHandler):
             sj = yerel / f"sihirbaz_{ad}.json"
             sj.write_text(json.dumps(siz, ensure_ascii=False), encoding="utf-8")
             cmd += ["--sihirbaz", str(sj)]
-        r = subprocess.run(cmd, cwd=str(ROOT), env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run(cmd, cwd=str(ROOT), env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300, creationflags=NW)
         if r.returncode != 0:
             raise RuntimeError((r.stdout + r.stderr)[-800:])
         arsiv_ozet = None
@@ -954,7 +977,7 @@ class H(BaseHTTPRequestHandler):
         sj = yerel / f"sihirbaz_{ad}.json"
         sj.write_text(json.dumps({k: v for k, v in h["sihirbaz"].items() if k in SIHIRBAZ_ALANLAR and v}, ensure_ascii=False), encoding="utf-8")
         cmd = [str(VENV_PY), str(SISTEM / "araclar" / "yeni_proje.py"), ad, "--tarif", h["prompt"], "--format", *h["formatlar"], "--sihirbaz", str(sj)]
-        r = subprocess.run(cmd, cwd=str(ROOT), env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run(cmd, cwd=str(ROOT), env=ortam(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300, creationflags=NW)
         if r.returncode != 0:
             raise RuntimeError((r.stdout + r.stderr)[-800:])
         pk = PROJELER / ad
@@ -963,7 +986,7 @@ class H(BaseHTTPRequestHandler):
         (pk / "uretim.json").write_text(json.dumps(h["uretim"], ensure_ascii=False, indent=2), encoding="utf-8")
         if (h["uretim"].get("seslendirme") or {}).get("klon"):
             e.klon_projeye(ad)  # kayıtlı örnek ses projenin klon/ornek.wav dosyası olur
-        e.durum().yaz(ad, "hazirlaniyor", "proje kuruldu; Claude devralınca planlama başlar")
+        e.durum().yaz(ad, "taslak" if b.get("taslak") else "hazirlaniyor", "Proje kaydedildi; orkestratör panelden başlatılır.")
         arsiv_ozet = None
         if b.get("arsiv") and b["arsiv"].get("gruplar"):
             arsiv_ozet = arsiv_sec(b["arsiv"], pk / "kaynak")
@@ -1007,6 +1030,8 @@ def main() -> int:
     ThreadingHTTPServer.allow_reuse_address = os.name != "nt"
     srv = ThreadingHTTPServer(("127.0.0.1", port), H)
     SUNUCU["srv"] = srv
+    ek().guncelleme_m().MESGUL = guncelleme_engeller
+    threading.Thread(target=ork().pump, daemon=True, name='kurgu-notlari').start()
     url = f"http://127.0.0.1:{port}"
     PANEL_DOSYA.parent.mkdir(parents=True, exist_ok=True)
     PANEL_DOSYA.write_text(json.dumps({"port": port, "pid": os.getpid(), "kok": str(ROOT), "baslangic": time.strftime("%Y-%m-%d %H:%M:%S")}), encoding="utf-8")
@@ -1018,7 +1043,7 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         pass
     try:
-        ek().modul("yst_guncelleme", "araclar/guncelleme.py").saatlik_baslat()  # GitHub'da güncelleme var mı: saatte bir (ayar girilmişse)
+        ek().guncelleme_m().saatlik_baslat()  # GitHub'da güncelleme var mı: saatte bir (ayar girilmişse)
     except Exception:  # noqa: BLE001
         pass
     try:   # müzik, ses efektleri, yardımcı modeller: kurulumda değil, panel açıkken arka planda iner (hız sınırında vazgeçer, saatte bir yeniden dener)
@@ -1033,6 +1058,11 @@ def main() -> int:
         pass
     finally:
         tarama["dur"] = True
+        for name in list(ork().JOBS):
+            try:
+                ork().stop(name)
+            except Exception:
+                pass
         try:
             PANEL_DOSYA.unlink()
         except OSError:

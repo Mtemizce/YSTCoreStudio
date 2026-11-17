@@ -56,6 +56,17 @@ def _kurulu_mu(komut: str) -> bool:
     e = _KURULU.get(komut)
     if e and time.time() - e[0] < 30:
         return e[1]
+    if komut in ("ollama", "lmstudio", "llamacpp"):
+        try:
+            import orkestrator
+            v = bool(orkestrator.models(komut))
+        except (OSError, ValueError):
+            v = False
+        _KURULU[komut] = (time.time(), v)
+        return v
+    e = _KURULU.get(komut)
+    if e and time.time() - e[0] < 30:
+        return e[1]
     v = bool(shutil.which(komut))
     _KURULU[komut] = (time.time(), v)
     return v
@@ -127,10 +138,29 @@ def calistir(ajan: str, gorev_yolu: str, proje: str | None = None, salt_okunur: 
         model = ma if (ma and ay.model_gecerli(ortam, ma) and (ortam != "claude-code" or ma != "inherit")) else ""
     except (KeyError, ValueError):
         model = ""
-    komut = komut_kur(ortam, istem, salt_okunur, cikti, model)
     t0 = time.time()
-    r = subprocess.run(komut, cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=zaman, creationflags=NW, stdin=subprocess.DEVNULL,
-                       env={**os.environ, "PYTHONUTF8": "1"})
+    if ortam in ('ollama', 'lmstudio', 'llamacpp'):
+        # Called as an approved tool by the parent agent. Keep subordinate tools scoped:
+        # generated project files only; execution/delegation remains the parent's job.
+        import contextlib
+        import io
+        import types
+        import orkestrator
+        cfg = {**ayar_m().coz(proje).get('orkestrator', {}), 'calisma_ortami': ortam}
+        cfg['model'] = model or cfg.get('model')
+        def approve(tool, args):
+            if tool != 'write' or salt_okunur or not proje:
+                return {'allow': False}
+            orkestrator.safe_path(args['path'], True, proje)
+            return {'allow': True}
+        with contextlib.redirect_stdout(io.StringIO()):
+            output = orkestrator.local({'proje': proje or '_profil', 'cfg': cfg, 'history': [{'rol':'user','metin':istem_dosyasi.read_text(encoding='utf-8')}]}, ajan, approval=approve)
+        cikti.write_text(output, encoding='utf-8')
+        r = types.SimpleNamespace(returncode=0, stdout=output, stderr='')
+    else:
+        komut = komut_kur(ortam, istem, salt_okunur, cikti, model)
+        r = subprocess.run(komut, cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=zaman, creationflags=NW, stdin=subprocess.DEVNULL,
+                           env={**os.environ, "PYTHONUTF8": "1"})
     yanit = cikti.read_text(encoding="utf-8", errors="replace").strip() if cikti.is_file() else (r.stdout or "").strip()
     sonuc = {"ok": r.returncode == 0, "ajan": ajan, "ortam": ortam, "sn": round(time.time() - t0, 1), "kod": r.returncode, "yanit": yanit[-6000:],
              "hata": (r.stderr or "")[-600:] if r.returncode != 0 else "", "gorev_dosyasi": rel}

@@ -1,6 +1,7 @@
 import hashlib, http.server, importlib.util, io, json, os, shutil, sys, tempfile, threading, time, zipfile
 from pathlib import Path
 R = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(R / "sistem/araclar"))
 TMP = Path(tempfile.mkdtemp(prefix="yst_yg_"))
 S = [0, 0]
 def ok(c, m):
@@ -8,7 +9,7 @@ def ok(c, m):
 DOSYA = {
     "leejet/Z-Image-Turbo-GGUF": {"z_image_turbo-Q4_0.gguf": b"M" * 300_000, "z_image_turbo-Q3_K.gguf": b"m" * 100_000},
     "unsloth/Qwen3-4B-Instruct-2507-GGUF": {"Qwen3-4B-Instruct-2507-Q4_K_M.gguf": b"L" * 200_000},
-    "black-forest-labs/FLUX.1-schnell": {"ae.safetensors": b"V" * 50_000},
+    "Comfy-Org/Z-Image-Turbo": {"split_files/vae/ae.safetensors": b"V" * 50_000},
 }
 KOTU = set()
 zb = io.BytesIO()
@@ -21,8 +22,8 @@ class H(http.server.BaseHTTPRequestHandler):
         b = json.dumps(o).encode(); self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
     def do_GET(self):
         p = self.path
-        if p.startswith("/api/models/") and p.endswith("/tree/main"):
-            depo = p[len("/api/models/"):-len("/tree/main")]
+        if p.startswith("/api/models/") and "/tree/main" in p:
+            depo = p[len("/api/models/"):].split("/tree/main", 1)[0]
             if depo not in DOSYA: self.send_response(401); self.end_headers(); return
             self._j([{"path": n, "size": len(b), "lfs": {"oid": ("0" * 64 if n in KOTU else hashlib.sha256(b).hexdigest()), "size": len(b)}} for n, b in DOSYA[depo].items()])
         elif "/resolve/main/" in p:

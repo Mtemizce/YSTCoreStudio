@@ -14,8 +14,8 @@ set "PYTHONUTF8=1"
 :bul
 call :pybul
 if defined PY goto :var
-rem Python yok: pencerede kopyalanabilir kurulum bilgisi goster; "Devam et" ile tekrar tara
-powershell -NoProfile -ExecutionPolicy Bypass -STA -File "%~dp0sistem\kurulum\python_yok.ps1"
+rem Python yok: ilk kurulum penceresinden resmi yukleyiciyi kur; sonra tekrar tara
+powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -STA -File "%~dp0sistem\kurulum\python_yok.ps1"
 if errorlevel 1 exit /b 1
 goto :bul
 
@@ -33,6 +33,11 @@ exit /b %KOD%
 :pybul
 set "PY="
 set "PYW="
+if exist "%LOCALAPPDATA%\Programs\Python\Python312\python.exe" (
+  set PY="%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
+  set PYW="%LOCALAPPDATA%\Programs\Python\Python312\pythonw.exe"
+)
+if defined PY exit /b 0
 for %%V in (3.12 3.13 3.11 3.10) do if not defined PY py -%%V -c "import sys" >nul 2>nul && set "PY=py -%%V" && set "PYW=pyw -%%V"
 if defined PY exit /b 0
 python -c "import sys;sys.exit(0 if sys.version_info>=(3,10) else 1)" >nul 2>nul && set "PY=python" && set "PYW=pythonw"

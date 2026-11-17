@@ -211,6 +211,8 @@ function kur() {
   const hedef = $('b-theme'); if (!hedef || $('yst-grup')) return;
   const g = document.createElement('div'); g.className = 'seg'; g.id = 'yst-grup'; g.setAttribute('role', 'group'); g.dataset.edit = '';
   g.innerHTML = `<button type="button" class="tb" id="yst-b-gorsel" title="${esc(L('gorselTip'))}"><span>${esc(L('gorsel'))}</span></button><button type="button" class="tb" id="yst-b-ses" title="${esc(L('sesTip'))}"><span>${esc(L('ses'))}</span></button><button type="button" class="tb" id="yst-b-kalem" title="${esc(L('kalemTip'))}"><span>${esc(L('kalem'))}</span></button>`;
+  const archive=document.createElement('button'); archive.type='button'; archive.className='tb'; archive.textContent='Arşivden ekle'; archive.onclick=()=>arsivAc().catch(e=>toast(e.message,'error')); g.append(archive);
+  if(GOMULU){const agent=document.createElement('button');agent.type='button';agent.className='tb';agent.textContent='Orkestratör';agent.onclick=()=>window.parent.postMessage({yst:'orkestrator'},new URL(document.referrer).origin);g.append(agent);}
   hedef.before(g);
   const sar = fn => () => fn().catch(er => toast(er.message || String(er), 'error'));
   $('yst-b-gorsel').onclick = sar(gorselAc); $('yst-b-ses').onclick = sar(sesAc); $('yst-b-kalem').onclick = sar(kalemAc);
@@ -228,3 +230,19 @@ const bekleyici = setInterval(() => {
     try { kur(); if (GOMULU) window.parent.postMessage({ yst: 'hazir' }, '*'); } catch (e) { console.error('YSTCore eklentisi başlatılamadı', e); }   // eklenti hatası Kurgu'yu etkilemez
   } else if (++deneme > 200) clearInterval(bekleyici);   // ~60 sn sonra vazgeç: Kurgu'nun arayüzü değişmişse sessizce pasif kal
 }, 300);
+
+// Archive source selection uses the same index as the studio panel.
+async function arsivAc(){
+  const body=html('<div class="yst-satir"><input id="yst-ar-query" placeholder="Dosya veya klasör adı"><button id="yst-ar-search">Ara</button></div><div id="yst-ar-results"></div>');
+  pencere('Arşivden kaynak ekle',body);
+  const search=async()=>{ const host=body.querySelector('#yst-ar-results');host.textContent='Aranıyor…';const d=await api('/api/yst/arsiv?kelime='+encodeURIComponent(body.querySelector('input').value)); host.replaceChildren();
+    for(const f of d.dosyalar){const b=document.createElement('button');b.className='tb';b.textContent=f.ad+' · '+f.klasor;b.disabled=f.cevrimdisi;b.onclick=async()=>{try{const r=await api('/api/yst/arsiv/ekle',{id:f.id});if(r.kind)await addMedia(r.kind,r.path,{quiet:true,time:S.t});toast(r.kind?'Zaman çizelgesine eklendi':'Proje kaynaklarına eklendi','ok');}catch(e){toast(e.message,'error');}};host.append(b);}
+    if(!d.dosyalar.length)host.textContent='Sonuç yok. Panel → Arşiv bölümünde yolu ve tarama durumunu kontrol edin.';
+  };
+  body.querySelector('button').onclick=()=>search().catch(e=>body.querySelector('#yst-ar-results').textContent=e.message);await search();
+}
+if(GOMULU) window.addEventListener('message',async e=>{
+  if(e.source!==window.parent||!document.referrer||e.origin!==new URL(document.referrer).origin||e.data?.yst!=='video-ekle')return;
+  try{const r=await api('/api/yst/video/ekle',{path:e.data.path});await addMedia('video',r.path,{quiet:true,time:S.t});toast('Üretilen video zaman çizelgesine eklendi','ok');}
+  catch(err){toast(err.message,'error');}
+});

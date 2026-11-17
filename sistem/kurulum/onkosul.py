@@ -189,7 +189,7 @@ def k_claude() -> dict:
     kur = {"powershell": "irm https://claude.ai/install.ps1 | iex", "winget": "winget install Anthropic.ClaudeCode", "indir": "https://code.claude.com/docs/en/setup",
            "not": "Yönetici izni gerekmez. Kurduktan sonra bir pencerede 'claude' yazıp hesabınla giriş yap (Claude aboneliği ya da API gerekir)."}
     if not p:
-        return oge("claude", "Claude Code", "zorunlu", "eksik", "", "Video üretimini yürüten ajanlar Claude Code ile çalışır. Panel onsuz da açılır; arşiv ve iyileştirme çalışır, video üretimi çalışmaz.",
+        return oge("claude", "Claude Code", "zorunlu", "eksik", "", "Claude isteğe bağlı orkestratördür. Yerel model kullanacaksan bu adımı atlayıp Ayarlar’da Ollama, LM Studio veya llama.cpp seçebilirsin.",
                    kur, atlanabilir=True)
     return oge("claude", "Claude Code", "zorunlu", "tamam", surum([p, "--version"]))
 

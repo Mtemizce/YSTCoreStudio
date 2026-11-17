@@ -12,3 +12,5 @@ pypdfium2>=4.30               # PDF sayfa → görsel
 pypdf>=4.0                    # PDF metin çıkarma
 cryptography>=42.0           # profil dışa aktarma şifrelemesi (Fernet)
 av>=12,<17                    # faster-whisper ses çözme: av 17+ ile uyumsuz (dikte/altyazı bozulur)
+
+claude-agent-sdk>=0.1,<1     # panel içi Claude oturumu ve izin geri çağrıları

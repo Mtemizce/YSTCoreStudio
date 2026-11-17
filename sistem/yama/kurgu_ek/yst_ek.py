@@ -255,6 +255,46 @@ def api(h, method, yol, q):
             return h.reply(200, durum())
         if not STUDYO:
             raise Hata("bu Kurgu stüdyonun içinde çalışmıyor: YSTCore eklentisi pasif")
+        if yol == "/api/yst/arsiv" and method == "GET":
+            a = _modul("yst_arsiv_editor", "sistem/arsiv/arsiv.py")
+            rows = a.ara(kelime=(q.get("kelime") or "").strip() or None, limit=100)
+            return h.reply(200, {"dosyalar": [{k: r[k] for k in ("id", "ad", "klasor", "tur", "cevrimdisi")} for r in rows]})
+        if yol == '/api/yst/video/ekle' and method == 'POST':
+            from pathlib import Path
+            b = h.read_json()
+            appdir = Path(h.app.dir).resolve()
+            projects = (Path(KOK) / 'projeler').resolve()
+            if appdir.parent.parent != projects or appdir.name not in ('ana', 'reels', 'tiktok', 'shorts'):
+                raise Hata('Geçersiz editör projesi')
+            source_dir = (appdir.parent / 'kaynak/video').resolve()
+            src = (appdir.parent / str(b.get('path', ''))).resolve()
+            if src.parent != source_dir or not src.name.startswith('wan-') or src.suffix != '.mp4' or not src.is_file():
+                raise Hata('Üretilen video bulunamadı')
+            dest = appdir / 'media' / src.name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if not dest.exists():
+                shutil.copy2(src, dest)
+            return h.reply(200, {'ok': True, 'path': _rel(str(appdir), str(dest))})
+        if yol == "/api/yst/arsiv/ekle" and method == "POST":
+            from pathlib import Path
+            import uuid
+            b = h.read_json()
+            appdir = Path(h.app.dir).resolve()
+            projects = (Path(KOK) / "projeler").resolve()
+            if appdir.parent.parent != projects or appdir.name not in ("ana", "reels", "tiktok", "shorts"):
+                raise Hata("Geçersiz editör projesi")
+            a = _modul("yst_arsiv_editor", "sistem/arsiv/arsiv.py")
+            result = a.projeye_ekle(str(appdir.parent), int(b["id"]))
+            if not result["ok"]:
+                raise Hata("Arşiv dosyası okunamadı: " + str(result.get("atlanan", "")))
+            src = appdir.parent / result["projede"]
+            kind = {"foto": "image", "video": "video", "ses": "audio"}.get(src.parent.name)
+            if not kind:
+                return h.reply(200, {"ok": True, "kaynak": result["projede"], "kind": None})
+            dest = appdir / "media" / (uuid.uuid4().hex[:8] + "-" + src.name)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+            return h.reply(200, {"ok": True, "path": _rel(str(appdir), str(dest)), "kind": kind})
         if yol.startswith("/api/yst/gorsel/"):
             return _gorsel_eylem(h, method, yol, q)
         if yol == "/api/yst/is" and method == "GET":

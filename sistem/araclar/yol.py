@@ -27,6 +27,7 @@ def kapsama() -> dict:
     onb = yerel / "onbellek"
     e = {
         "KURGU_CONFIG": str(ORTAM / "kurgu-ayar"), "KURGU_MODELS": str(ORTAM / "modeller"), "KURGU_DATA": str(yerel / "veri"),
+        "HF_HUB_CACHE": str(ORTAM / "modeller" / "hf" / "hub"),
         "HF_HOME": str(ORTAM / "modeller" / "hf"),              # Hugging Face: Pocket TTS, Whisper, EMA, derinlik, Z-Image...
         "TORCH_HOME": str(ORTAM / "modeller" / "torch"),
         "XDG_CACHE_HOME": str(onb),                             # ~/.cache kullanan Python araçları (EMA parti boyutu, ...)

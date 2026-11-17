@@ -126,7 +126,7 @@ Bu stüdyonun kendi yazdığı skill'ler (üçüncü taraf değil): `video-yonet
 | Z-Image-Turbo GGUF | huggingface.co/leejet/Z-Image-Turbo-GGUF (leejet) | Apache-2.0 | Q3_K ... Q6_K nicemlenmiş ağırlıklar; indirilen dosya Hugging Face'in yayımladığı SHA256 ile doğrulanır |
 | stable-diffusion.cpp | github.com/leejet/stable-diffusion.cpp (leejet) | MIT | Vulkan çalıştırıcısı (`sd-cli`); resmî sürümü kendi GitHub yayınından indirilir |
 | Qwen3-4B-Instruct-2507 (GGUF) | huggingface.co/Qwen/Qwen3-4B-Instruct-2507 (Alibaba Qwen); nicemlenmiş: huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF (Unsloth) | Apache-2.0 | Z-Image'ın metin kodlayıcısı |
-| FLUX.1-schnell VAE (`ae.safetensors`) | huggingface.co/black-forest-labs/FLUX.1-schnell (Black Forest Labs) | Apache-2.0 | Z-Image'ın görüntü çözücüsü |
+| FLUX.1-schnell VAE (`ae.safetensors`) | huggingface.co/Comfy-Org/Z-Image-Turbo, `split_files/vae/ae.safetensors` (Black Forest Labs VAE, Comfy-Org dağıtımı) | Apache-2.0 | Z-Image'ın görüntü çözücüsü |
 | **Z-Image-Turbo Pascal 4GB** | github.com/alexturkey/z-image-turbo-pascal-4gb (alexturkey) | Apache-2.0 | **Esin kaynağı:** 4 GB'lık eski ekran kartlarında Z-Image-Turbo'yu çalıştırma yöntemi (`--offload-to-cpu --mmap --flash-attn`, 8 adım / cfg 1.0 / euler, VAE'yi karolu çalıştırma) ve model dosyalarını sabit adres + sha256 ile indiren **kilit dosyası** deseni. Betikler ve kod kopyalanmadı; fikirler `sistem/araclar/yerel_gorsel.py` içinde kendi kodumuzla yazıldı |
 
 <a id="muzik-ve-ses-efektleri"></a>
@@ -153,3 +153,23 @@ Portre, bayrak, 1933 ses kaydı ve diğer örnek girdiler: [docs/ornek/ATIF.md](
 
 ## Kurulum yöntemi ve güvenlik taraması
 Üçüncü taraf skill dosyaları kurulumda kendi depolarından, sabit commit ya da sürümle çekilir; kendiliğinden güncellenmez. `python sistem/kurulum/yama_cikar.py` bizim yama ile çekilen dosyalar arasındaki farkı çalışan bir kurulumdan yeniden üretir. Alınan her üçüncü taraf skill ve kaynak, eklenmeden önce `sistem/araclar/skill_tara.py` ile taranır (ağ çağrısı, gizli betik, bulut/hesap yönlendirmesi, görünmez karakter) ve içeriği okunur. Üçüncü taraf betik çalıştırılmaz: önce okunur, gerekirse kendi kodumuzla yeniden yazılır.
+
+
+<a id="yerel-video-uretim"></a>
+## Yerel video üretim (isteğe bağlı)
+
+| Bileşen | Kaynak / sürüm | Lisans ve kullanım |
+|---|---|---|
+| wan22-pascal-4gb | https://github.com/alexturkey/wan22-pascal-4gb, v0.1.0 | MIT, Copyright (c) 2026 alexturkey. Kurulum/üretim tarifi, Pascal yamaları ve hazır motor. Yalnızca kullanıcı isteğiyle indirilir; betikler ve lisans dosyaları kaynak paketinde korunur. |
+| stable-diffusion.cpp / ggml | leejet; yukarıdaki v0.1.0 paketinde sabit motor | MIT; motor paketindeki `licenses/` ve `THIRD_PARTY.md` dosyaları korunur. |
+| Wan 2.2 TI2V-5B Q8_0 ve VAE | https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF, revision `57437632ddd08bdcbd1508c866aa22e126ed51d2` | Apache-2.0; Wan-AI model kartındaki kullanım koşulları da incelenmelidir. |
+| UMT5 XXL Q5_K_M | https://huggingface.co/city96/umt5-xxl-encoder-gguf, revision `b535255bee98c2b0a59ea7c0ae2dcd0c6657b3b7` | Apache-2.0; metin kodlayıcı. |
+| CUDA 12.8 runtime | v0.1.0 ayrı `cudart-cuda12.8-win-x64.zip` paketi | NVIDIA CUDA Toolkit EULA; MIT değildir. Orijinal runtime DLL'leri değiştirilmez. |
+| Visual C++ runtime | Microsoft resmi yükleyicisi | Microsoft koşulları; depoya dahil edilmez. |
+
+Entegrasyon: `sistem/araclar/yerel_video.py`. Motor/runtime SHA256 değerleri upstream sürüm duyurusundan, üç modelin boyut ve SHA256 değerleri upstream `models.lock.json` dosyasından alınmıştır. Yarım indirmeler `.part` olarak tutulur. Üretilen videonun yanında kaynağı ve AI üretimini belirten `*-ATIF.txt` yazılır. Bu entegrasyon Alibaba/Wan-AI, NVIDIA veya alexturkey tarafından verilmiş bir uyumluluk onayı değildir.
+
+## Panel orkestratör bağlantısı
+
+- Claude Agent SDK Python: https://github.com/anthropics/claude-agent-sdk-python. SDK ve birlikte kullanılan Claude Code çalışma zamanının kendi lisans/hesap koşulları geçerlidir. Panel SDK üzerinden yanıt ve izin olaylarını işler; hesap kimlik bilgilerini kopyalamaz.
+- Ollama, LM Studio ve llama.cpp paketleri veya model ağırlıkları depoya dahil edilmez. Panel onların yerel HTTP API'lerine bağlanır. Seçilen modelin ve sunucu yazılımının kendi lisansı geçerlidir.

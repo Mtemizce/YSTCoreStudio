@@ -21,6 +21,8 @@ import shutil
 import subprocess
 import sys
 
+NW = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW: pythonw altında konsol alt süreçleri pencere açıp kapatmasın
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SISTEM = os.path.dirname(HERE)       # sistem/
 ROOT = os.path.dirname(SISTEM)       # depo kökü
@@ -80,10 +82,10 @@ def hazirla(dest):
     env = dict(os.environ, PYTHONUTF8="1")
     medya = [k for k in ("foto", "video") if os.path.isdir(os.path.join(kaynak, k))]
     if medya:
-        subprocess.run([py, os.path.join(HERE, "medya_envanteri.py"), kaynak, "-o", hazir], env=env)
+        subprocess.run([py, os.path.join(HERE, "medya_envanteri.py"), kaynak, "-o", hazir], env=env, creationflags=NW)
     belge = os.path.join(kaynak, "belge")
     if os.path.isdir(belge) and os.listdir(belge):
-        subprocess.run([py, os.path.join(HERE, "belge_al.py"), belge, "-o", os.path.join(hazir, "belge")], env=env)
+        subprocess.run([py, os.path.join(HERE, "belge_al.py"), belge, "-o", os.path.join(hazir, "belge")], env=env, creationflags=NW)
 
 
 def format_ac(dest, ad, fmt):
