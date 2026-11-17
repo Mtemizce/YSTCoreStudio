@@ -1,0 +1,8 @@
+{
+  "_not": "ÖRNEK ŞABLON: /v1/images/generations, /v1/images/edits ve /v1/audio/speech uç noktalarını konuşan herhangi bir servis ya da yerel sunucu (taban_url + model adı senin). Model adını Bağlayıcılar'da yaz: varsayılan model yoktur.",
+  "tur": "openai-uyumlu",
+  "ad": "OpenAI-uyumlu servis (örnek)",
+  "yetenekler": ["gorsel-uret", "gorsel-duzenle"],
+  "taban_url": "https://api.servis-adresi.example",
+  "anahtar_adi": "SERVIS_API_KEY"
+}

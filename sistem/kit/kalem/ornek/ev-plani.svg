@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+<path id="dwg-object-1" d="M 100,100 L 1100,100 L 1100,700 L 100,700 L 100,100" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-2" d="M 112,112 L 1088,112 L 1088,688 L 112,688 L 112,112" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-3" d="M 500,112 L 500,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-4" d="M 512,112 L 512,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-5" d="M 800,112 L 800,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-6" d="M 812,112 L 812,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-7" d="M 112,400 L 1088,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-8" d="M 112,412 L 1088,412" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-9" d="M 500,412 L 500,688" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-10" d="M 512,412 L 512,688" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-11" d="M 300,400 L 300,330" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-12" d="M 300,330 A 70,70 0 0,1 370,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-13" d="M 650,400 L 650,330" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-14" d="M 650,330 A 70,70 0 0,1 720,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-15" d="M 900,400 L 900,330" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-16" d="M 900,330 A 70,70 0 0,1 970,400" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-17" d="M 560,700 L 560,620" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-18" d="M 560,620 A 80,80 0 0,1 640,700" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-19" d="M 180,100 L 300,100" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-20" d="M 180,106 L 300,106" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-21" d="M 180,112 L 300,112" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-22" d="M 640,100 L 760,100" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-23" d="M 640,106 L 760,106" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-24" d="M 640,112 L 760,112" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-25" d="M 940,100 L 1060,100" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-26" d="M 940,106 L 1060,106" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-27" d="M 940,112 L 1060,112" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-28" d="M 1100,200 L 1100,300" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-29" d="M 1094,200 L 1094,300" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-30" d="M 1100,520 L 1100,620" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-31" d="M 1094,520 L 1094,620" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-32" d="M 820,430 L 1060,430" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-33" d="M 820,454 L 1060,454" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-34" d="M 820,478 L 1060,478" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-35" d="M 820,502 L 1060,502" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-36" d="M 820,526 L 1060,526" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-37" d="M 820,550 L 1060,550" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-38" d="M 820,574 L 1060,574" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-39" d="M 820,598 L 1060,598" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-40" d="M 820,622 L 1060,622" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-41" d="M 820,646 L 1060,646" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-42" d="M 820,430 L 1060,430 L 1060,670 L 820,670 L 820,430" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-43" d="M 360,560 A 60,60 0 1,1 240,560 A 60,60 0 1,1 360,560" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-44" d="M 403,560 A 18,18 0 1,1 367,560 A 18,18 0 1,1 403,560" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-45" d="M 233,560 A 18,18 0 1,1 197,560 A 18,18 0 1,1 233,560" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-46" d="M 318,645 A 18,18 0 1,1 282,645 A 18,18 0 1,1 318,645" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-47" d="M 318,475 A 18,18 0 1,1 282,475 A 18,18 0 1,1 318,475" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-48" d="M 540,440 L 780,440 L 780,600 L 540,600 L 540,440" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-49" d="M 540,470 L 780,470" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-50" d="M 150,150 L 330,150 L 330,330 L 150,330 L 150,150" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-51" d="M 150,210 L 330,210" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-52" d="M 560,150 L 760,150 L 760,300 L 560,300 L 560,150" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-53" d="M 860,150 L 1050,150 L 1050,330 L 860,330 L 860,150" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-54" d="M 860,190 L 1050,190" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-55" d="M 690,520 A 40,40 0 1,1 610,520 A 40,40 0 1,1 690,520" style="fill:none;stroke:black;stroke-width:0.25"/>
+<path id="dwg-object-56" d="M 988,250 A 28,28 0 1,1 932,250 A 28,28 0 1,1 988,250" style="fill:none;stroke:black;stroke-width:0.25"/>
+</svg>

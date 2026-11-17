@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kurgu": {
+      "command": "sistem/ortam/venv/Scripts/kurgu-mcp.exe",
+      "args": []
+    }
+  }
+}

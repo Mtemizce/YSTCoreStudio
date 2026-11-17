@@ -1,0 +1,9 @@
+{
+  "uygulama": "1.0.1",
+  "sema": {
+    "db": 3,
+    "ayar": 1,
+    "profil": 1
+  },
+  "_aciklama": "Uygulama sürümü (semver) ve diske yazılan biçimlerin şema sürümleri. Şema yalnızca ekleme yönünde değişir; bilinmeyen alanlar korunur; her yükseltme için göç + eski sürüm örnek dosyasıyla test vardır."
+}

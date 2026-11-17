@@ -1,0 +1,33 @@
+{
+  "kategoriler": {"ses": "Seslendirme", "gorsel": "Görsel ve karakter üretimi", "gorsel-duzenle": "Fotoğraf iyileştirme / düzenleme", "avatar-video": "Avatar / konuşan kafa video"},
+  "saglayicilar": {
+    "ema": {
+      "ad": "EMA Lightning (yerel)", "tur": ["ses"], "yerel": true, "ucretli": false, "anahtar": null,
+      "aciklama": "Yerel Türkçe konuşma motoru. Hiçbir veri bilgisayardan çıkmaz.", "dogrulama": "yerel motor: kurulduysa çalışır"
+    },
+    "elevenlabs": {
+      "ad": "ElevenLabs", "on_ayar": "elevenlabs", "tur": ["ses"], "yerel": false, "ucretli": true, "anahtar": "ELEVENLABS_API_KEY",
+      "taban_url": "https://api.elevenlabs.io", "gonderilen": "seslendirme metni (ve seçilen ses kimliği)",
+      "aciklama": "Gerçekçi ücretli seslendirme; çok dilli (Türkçe dahil). Ses kimliğini (voice_id) ElevenLabs hesabından alıp Ayarlar'a yaz.",
+      "dogrulama": "istek biçimi resmî API belgesine göre"
+    },
+    "gemini": {
+      "ad": "Google Gemini (görsel)", "on_ayar": "gemini", "tur": ["gorsel", "gorsel-duzenle"], "yerel": false, "ucretli": true, "anahtar": "GEMINI_API_KEY",
+      "taban_url": "https://generativelanguage.googleapis.com", "gonderilen": "görsel/karakter tarifi (+ izin verilirse referans görsel); fotoğraf iyileştirmede SEÇTİĞİN fotoğraf",
+      "aciklama": "Görsel ve karakter üretimi. Model adını sen yazarsın (varsayılan model yok): servisin güncel görsel modeli.",
+      "dogrulama": "istek biçimi resmî API belgesine göre; model adını doğrula"
+    },
+    "openai-gorsel": {
+      "ad": "OpenAI Görsel", "on_ayar": "openai", "tur": ["gorsel", "gorsel-duzenle"], "yerel": false, "ucretli": true, "anahtar": "OPENAI_API_KEY",
+      "taban_url": "https://api.openai.com", "gonderilen": "görsel/karakter tarifi; fotoğraf iyileştirmede SEÇTİĞİN fotoğraf",
+      "aciklama": "Alternatif görsel/karakter üretimi.",
+      "dogrulama": "istek biçimi resmî API belgesine göre"
+    },
+    "heygen": {
+      "ad": "HeyGen", "tur": ["avatar-video"], "yerel": false, "ucretli": true, "anahtar": "HEYGEN_API_KEY", "mcp": true,
+      "gonderilen": "senaryo metni, seçilen avatar/ses",
+      "aciklama": "MCP sunucusu olarak bağlanır: HeyGen'in belgesindeki sunucu komutu/adresini Ayarlar → MCP sunucuları bölümüne gir; Claude oturumuna kendiliğinden eklenir.",
+      "dogrulama": "MCP adresi kullanıcıdan alınır"
+    }
+  }
+}

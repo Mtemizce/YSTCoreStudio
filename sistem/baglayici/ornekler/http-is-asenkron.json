@@ -1,0 +1,31 @@
+{
+  "_not": "ÖRNEK ŞABLON: adresleri, alan adlarını ve model adını KENDİ servisinin belgesine göre değiştir. Hiçbir servis varsayılan değildir. {alan} = çağrıdaki girdi; {alan?} = isteğe bağlı (yoksa düşer); {anahtar} = panelden girdiğin anahtar; {model} = Bağlayıcılar'da yazdığın model adı; {id} = servisin döndürdüğü iş kimliği.",
+  "tur": "http-is",
+  "ad": "Asenkron video servisi (örnek)",
+  "yetenekler": ["video-uret"],
+  "taban_url": "https://api.servis-adresi.example",
+  "anahtar_adi": "SERVIS_API_KEY",
+  "kimlik": {"baslik": "Authorization", "sablon": "Bearer {anahtar}"},
+  "uc": {
+    "video-uret": {
+      "gonder": {
+        "yontem": "POST",
+        "yol": "/v1/videolar",
+        "govde": {"model": "{model}", "prompt": "{istem}", "image_url": "{gorsel_url?}", "duration": "{sure?}"},
+        "sonuc_id": "$.id"
+      },
+      "durum": {
+        "yontem": "GET",
+        "yol": "/v1/videolar/{id}",
+        "durum_alani": "$.status",
+        "biten": ["completed"],
+        "hatali": ["failed", "error"],
+        "hata_alani": "$.error",
+        "bekle": {"aralik": 5, "en_cok": 900}
+      },
+      "cikti": {"yol": "$.output.url", "tur": "url"}
+    }
+  },
+  "maliyet": {"video-uret": {"birim_alani": "sure", "fiyat": 0.0}},
+  "gonderilen": "istem metni ve (verirsen) görsel adresi"
+}

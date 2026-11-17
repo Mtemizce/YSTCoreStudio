@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Güvenlik açığı bildirimi (özel)
+    url: https://github.com/Mtemizce/YSTCoreStudio/security/advisories/new
+    about: Güvenlik açıklarını herkese açık issue olarak açma; bu özel bildirim yolunu kullan.

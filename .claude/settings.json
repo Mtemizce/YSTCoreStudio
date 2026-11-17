@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "deny": [
+      "WebFetch",
+      "WebSearch",
+      "Bash(npx hyperframes auth*)",
+      "Bash(npx hyperframes cloud*)",
+      "Bash(npx hyperframes lambda*)",
+      "Bash(npx hyperframes cloudrun*)",
+      "Bash(npx hyperframes publish*)",
+      "Bash(npx hyperframes share*)",
+      "Bash(npx hyperframes events*)",
+      "Bash(npx hyperframes feedback*)",
+      "Bash(npx hyperframes billing*)",
+      "Bash(npx hyperframes media-use*)",
+      "Bash(npx hyperframes skills*)",
+      "Bash(node * hyperframes/dist/cli.js auth*)",
+      "Bash(node * hyperframes/dist/cli.js cloud*)",
+      "Bash(node * hyperframes/dist/cli.js publish*)",
+      "Bash(node * hyperframes/dist/cli.js share*)",
+      "Bash(node * hyperframes/dist/cli.js events*)",
+      "Bash(node * hyperframes/dist/cli.js feedback*)"
+    ]
+  },
+  "env": {
+    "HYPERFRAMES_NO_TELEMETRY": "1",
+    "DO_NOT_TRACK": "1"
+  }
+}

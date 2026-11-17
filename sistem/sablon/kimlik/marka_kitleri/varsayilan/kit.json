@@ -1,0 +1,44 @@
+{
+  "id": "varsayilan",
+  "ad": "Varsayılan marka kiti",
+  "isim": "",
+  "slogan": "",
+  "logo": null,
+  "imza_cumle": "",
+  "iletisim": {
+    "telefon": "",
+    "eposta": "",
+    "web": "",
+    "instagram": "",
+    "adres": ""
+  },
+  "renkler": {
+    "zemin": "#0E1013",
+    "metin": "#F4EFE6",
+    "vurgu": "#C9A24D"
+  },
+  "intro": {
+    "acik": true,
+    "sure": 2.5
+  },
+  "outro": {
+    "acik": true,
+    "sure": 3.5
+  },
+  "filigran": {
+    "acik": false,
+    "konum": "sag-alt",
+    "opaklik": 0.6,
+    "boyut": 0.09
+  },
+  "kapak_filigran": false,
+  "ek_renkler": [],
+  "yazi_tipleri": {
+    "baslik": "",
+    "govde": ""
+  },
+  "logolar": [],
+  "metinler": [],
+  "kullanim": [],
+  "notlar": ""
+}

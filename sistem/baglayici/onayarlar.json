@@ -1,0 +1,62 @@
+{
+  "_aciklama": "ÖN AYARLAR = bağlantı tarifleri (adres, kimlik başlığı, model listeleme uç noktası). Model seçimi YAPMAZ: bağlanınca servis kendi model listesini verir, sen listeden seçersin. Kaynaklar: her servisin resmî API belgesi (doğrulama notları 'dogrulama' alanında).",
+  "openai": {
+    "ad": "OpenAI", "taban_url": "https://api.openai.com/v1", "anahtar_adi": "OPENAI_API_KEY", "anahtar_gerekli": true,
+    "motor": "openai-uyumlu", "yetenekler": ["gorsel-uret", "gorsel-duzenle", "tts"],
+    "kesif": {"yol": "/models", "kimlik": [{"Authorization": "Bearer {anahtar}"}], "liste": "$.data", "id": "$.id", "ad": "$.id"},
+    "siniflandir": "ad-kalibi",
+    "dogrulama": "GET /v1/models, Bearer anahtar (resmî belge). Yanıtta yetenek alanı yok: tür model adından TAHMİN edilir."
+  },
+  "anthropic": {
+    "ad": "Anthropic", "taban_url": "https://api.anthropic.com", "anahtar_adi": "ANTHROPIC_API_KEY", "anahtar_gerekli": true,
+    "motor": "baglanti", "yetenekler": [],
+    "kesif": {"yol": "/v1/models", "parametre": {"limit": 1000},
+              "kimlik": [{"x-api-key": "{anahtar}", "anthropic-version": "2023-06-01"}, {"Authorization": "Bearer {anahtar}", "anthropic-version": "2023-06-01"}],
+              "liste": "$.data", "id": "$.id", "ad": "$.display_name", "sayfa": {"devam": "$.has_more", "imlec": "$.last_id", "parametre": "after_id"}},
+    "sabit_yetenek": ["llm"],
+    "dogrulama": "GET /v1/models (resmî belge; örnekte Authorization Bearer, eski biçim x-api-key: ikisi sırayla denenir)."
+  },
+  "gemini": {
+    "ad": "Google Gemini", "taban_url": "https://generativelanguage.googleapis.com", "anahtar_adi": "GEMINI_API_KEY", "anahtar_gerekli": true,
+    "motor": "kod", "yetenekler": ["gorsel-uret", "gorsel-duzenle"],
+    "kesif": {"yol": "/v1beta/models", "parametre": {"pageSize": 1000}, "kimlik": [{"x-goog-api-key": "{anahtar}"}], "liste": "$.models", "id": "$.name", "onek_sil": "models/", "ad": "$.displayName",
+              "yontemler": "$.supportedGenerationMethods", "sayfa": {"devam": "$.nextPageToken", "imlec": "$.nextPageToken", "parametre": "pageToken"}},
+    "siniflandir": "gemini",
+    "dogrulama": "GET /v1beta/models, pageSize/nextPageToken, supportedGenerationMethods (resmî belge; belge örneği ?key= kullanır, biz başlık kullanırız)."
+  },
+  "openrouter": {
+    "ad": "OpenRouter", "taban_url": "https://openrouter.ai/api/v1", "anahtar_adi": "OPENROUTER_API_KEY", "anahtar_gerekli": false,
+    "motor": "baglanti", "yetenekler": [],
+    "kesif": {"yol": "/models", "kimlik": [{"Authorization": "Bearer {anahtar}"}], "liste": "$.data", "id": "$.id", "ad": "$.name"},
+    "sabit_yetenek": ["llm"],
+    "dogrulama": "GET /api/v1/models; anahtar herkese açık katalog için isteğe bağlı (resmî belge)."
+  },
+  "ollama": {
+    "ad": "Ollama (yerel / ağdaki sunucu)", "taban_url": "http://localhost:11434", "anahtar_adi": null, "anahtar_gerekli": false,
+    "motor": "baglanti", "yetenekler": [],
+    "kesif": {"yol": "/api/tags", "liste": "$.models", "id": "$.name", "ad": "$.name", "ollama_show": true},
+    "dogrulama": "GET /api/tags + POST /api/show (capabilities: completion, vision…) (resmî belge). Varsayılan adres belgedeki örneklerden: http://localhost:11434."
+  },
+  "lmstudio": {
+    "ad": "LM Studio (yerel / ağdaki sunucu)", "taban_url": "http://localhost:1234", "anahtar_adi": "LMSTUDIO_API_KEY", "anahtar_gerekli": false,
+    "motor": "baglanti", "yetenekler": [],
+    "kesif": {"yol": "/api/v1/models", "yedek_yol": "/v1/models", "kimlik": [{"Authorization": "Bearer {anahtar}"}], "liste": "$.models", "yedek_liste": "$.data", "id": "$.key", "yedek_id": "$.id", "ad": "$.display_name", "tur_alani": "$.type"},
+    "siniflandir": "lmstudio",
+    "dogrulama": "GET /api/v1/models (type: llm | embedding) ya da OpenAI-uyumlu /v1/models; API token yapılandırılmışsa Bearer (belge, beta)."
+  },
+  "genel-openai": {
+    "ad": "Genel OpenAI-uyumlu servis (DeepSeek, Mistral, Groq, vLLM, llama.cpp sunucusu…)", "taban_url": "", "anahtar_adi": "SERVIS_API_KEY", "anahtar_gerekli": false,
+    "motor": "openai-uyumlu", "yetenekler": ["gorsel-uret", "gorsel-duzenle", "tts"],
+    "kesif": {"yol": "/models", "kimlik": [{"Authorization": "Bearer {anahtar}"}], "liste": "$.data", "id": "$.id", "ad": "$.id"},
+    "siniflandir": "ad-kalibi",
+    "dogrulama": "Servisin belgesindeki OpenAI-uyumlu taban adresini (örn. .../v1) yaz; model listesi GET {taban}/models ile çekilir."
+  },
+  "elevenlabs": {
+    "ad": "ElevenLabs", "taban_url": "https://api.elevenlabs.io", "anahtar_adi": "ELEVENLABS_API_KEY", "anahtar_gerekli": true,
+    "motor": "kod", "yetenekler": ["tts"],
+    "kesif": {"yol": "/v1/models", "kimlik": [{"xi-api-key": "{anahtar}"}], "liste": "$", "id": "$.model_id", "ad": "$.name", "tts_alani": "$.can_do_text_to_speech",
+              "ses_yol": "/v1/voices", "ses_liste": "$.voices", "ses_id": "$.voice_id", "ses_ad": "$.name"},
+    "siniflandir": "elevenlabs",
+    "dogrulama": "GET /v1/models (can_do_text_to_speech) resmî belge; ses listesi /v1/voices (belgeden doğrulanamadı, başarısız olursa ses kimliğini elle gir)."
+  }
+}

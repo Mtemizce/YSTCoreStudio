@@ -1,0 +1,90 @@
+name: Kurulum testi (Linux + macOS)
+
+# Sıfır bir makinede TAM kurulumu (sanal ortam, PyTorch, Node paketleri, modeller) yapar, paneli açar, sağlık denetimini ve testleri çalıştırır.
+# macOS sürümü bu iş akışıyla GitHub'ın sanal macOS makinesinde kurulur ve test edilir.
+# Uzun sürer (20-40 dk) ve macOS dakikaları ücretli planda katlanır; bu yüzden yalnızca elle (workflow_dispatch) çalışır.
+# Kota koruması: yalnızca ELLE çalışır (macOS dakikaları ücretli planda 10 kat sayılır).
+on:
+  workflow_dispatch:
+
+jobs:
+  kurulum:
+    name: Tam kurulum (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+      YST_TARAYICI_YOK: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Sistem paketleri (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-venv unzip
+
+      - name: Kurulum
+        run: python sistem/kurulum/kurulum.py 2>&1 | tee kurulum.log
+
+      # PyTorch, yapay zekâ paketleri ve modeller kurulumda değil, panel açıldıktan sonra arka planda iner: burada aynı kuyruğu bitirene kadar çalıştır
+      - name: Arka plan kurulumu (PyTorch, yapay zekâ paketleri, modeller)
+        run: sistem/ortam/venv/bin/python sistem/araclar/arka_indirme.py calis
+
+      - name: Kurulum durumu
+        run: python sistem/kurulum/kurulum.py --kontrol
+
+      - name: Kurgu eklentisi uygulandı mı
+        run: python sistem/kurulum/kurgu_yama.py kurgu --kontrol
+
+      - name: Sağlık denetimi
+        run: sistem/ortam/venv/bin/python sistem/araclar/saglik.py
+
+      # Not: baslat.sh Claude Code kurulu değilse paneli değil kurulum sihirbazını açar (CI'da Claude Code yok); bu yüzden panel doğrudan başlatılır.
+      - name: Panel açılıyor mu
+        run: |
+          nohup sistem/ortam/venv/bin/python sistem/panel/panel.py --tarayici-yok > panel.log 2>&1 &
+          for i in $(seq 1 30); do
+            PORT=$(sed -n 's/.*"port": *\([0-9]*\).*/\1/p' sistem/ortam/yerel/panel.json 2>/dev/null | head -1)
+            if [ -n "$PORT" ] && curl -fsS "http://127.0.0.1:$PORT/api/ping"; then echo; echo "panel yanıt verdi (port $PORT)"; exit 0; fi
+            sleep 2
+          done
+          echo "panel açılmadı"; cat panel.log; exit 1
+
+      - name: Panel API ve donanım tespiti
+        run: |
+          PORT=$(sed -n 's/.*"port": *\([0-9]*\).*/\1/p' sistem/ortam/yerel/panel.json | head -1)
+          curl -fsS -H "X-Panel: 1" "http://127.0.0.1:$PORT/api/donanim" | sistem/ortam/venv/bin/python -c "import sys,json; d=json.load(sys.stdin)['sistem']; print(d['os'], '|', d['cpu'], '|', d['ram_gb'], 'GB RAM |', d['gpuler'])"
+          curl -fsS -H "X-Panel: 1" "http://127.0.0.1:$PORT/api/bilesen" | head -c 300; echo
+
+      - name: Paneli kapat
+        if: always()
+        run: pkill -f "sistem/panel/panel.py" || true
+
+      - name: Testler (kurulu ortamla)
+        run: sistem/ortam/venv/bin/python sistem/testler/calistir.py
+
+      - name: Sürüm paketi (zip)
+        run: python sistem/kurulum/surum_yap.py --kirli
+
+      - name: Günlük ve paket
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kurulum-${{ runner.os }}
+          path: |
+            kurulum.log
+            sistem/ortam/yerel/baslat.log
+            sistem/ortam/surum/*.zip
+          if-no-files-found: ignore
+          retention-days: 14

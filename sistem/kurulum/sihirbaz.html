@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YSTCoreStudio kurulum</title>
+<style>
+:root{--bg:#f5f8fc;--kart:#ffffff;--kenar:#e0e8f3;--yazi:#1e2a3b;--soluk:#5d6d85;--ok:#2a8556;--bad:#c2453c;--warn:#a97410;--vurgu:#3074d1;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--yazi);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.sar{max-width:860px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:22px;margin:0 0 4px}
+.alt{color:var(--soluk);margin:0 0 20px;font-size:13px;word-break:break-all}
+.kart{background:var(--kart);border:1px solid var(--kenar);border-radius:12px;padding:14px 16px;margin:10px 0}
+.satir{display:flex;gap:12px;align-items:flex-start}
+.sim{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;margin-top:2px}
+.tamam .sim{background:var(--ok)} .eksik .sim,.eski .sim{background:var(--bad)} .uyari .sim{background:var(--warn)}
+.ad{font-weight:600} .surum{color:var(--soluk);font-weight:400;margin-left:6px;font-size:13px}
+.neden{color:var(--soluk);font-size:13px;margin-top:2px}
+.kmt{display:flex;gap:8px;align-items:center;margin-top:8px}
+.kmt code{flex:1;background:var(--bg);border:1px solid var(--kenar);border-radius:8px;padding:6px 10px;font:13px ui-monospace,Consolas,monospace;overflow-x:auto;white-space:nowrap}
+.kmt .et{color:var(--soluk);font-size:12px;min-width:76px}
+button,a.btn{font:inherit;border:1px solid var(--kenar);background:var(--kart);color:var(--yazi);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none;display:inline-block}
+button:hover,a.btn:hover{border-color:var(--vurgu)}
+button.ana{background:var(--vurgu);border-color:var(--vurgu);color:#fff;font-weight:600;padding:9px 20px}
+button:disabled{opacity:.5;cursor:default}
+.not{font-size:12.5px;color:var(--soluk);margin-top:6px}
+.eylem{display:flex;gap:10px;align-items:center;margin:16px 0;flex-wrap:wrap}
+.bar{height:10px;background:var(--kenar);border-radius:6px;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:var(--vurgu);transition:width .4s}
+pre{background:#eef3fa;color:#1e2a3b;border-radius:10px;padding:10px 12px;max-height:280px;overflow:auto;font:12px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word;margin:8px 0 0}
+.bad{color:var(--bad)} .ok{color:var(--ok)}
+.onar li{margin:2px 0;font-size:13px}
+h2{font-size:16px;margin:22px 0 4px}
+</style>
+</head>
+<body>
+<div class="sar">
+  <h1>YSTCoreStudio kurulum</h1>
+  <p class="alt" id="kok"></p>
+  <div id="onarKart" class="kart" hidden></div>
+  <h2 id="bslOnk">Sistem analizi</h2>
+  <div id="liste"></div>
+  <div id="kimKart" class="kart">
+    <b>Seni tanıyalım</b> <span class="surum">(isteğe bağlı: sonra Ayarlar → Kimlik'ten de doldurabilirsin)</span>
+    <div class="not" style="margin:6px 0">Videolarda adın ve marka adın bu bilgilerden kullanılır. Yalnızca bu bilgisayarda kalır, hiçbir yere gönderilmez.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="kimAd" placeholder="Adın Soyadın" autocomplete="off" style="flex:1;min-width:150px">
+      <input id="kimMarka" placeholder="Firma / marka adı" autocomplete="off" style="flex:1;min-width:150px">
+      <input id="kimRol" placeholder="Mesleğin (örn. mimar)" autocomplete="off" style="flex:1;min-width:150px">
+      <input id="kimSehir" placeholder="Şehir" autocomplete="off" style="flex:1;min-width:110px">
+    </div>
+  </div>
+  <div class="eylem" id="eylem">
+    <button class="ana" id="devam">Devam et</button>
+    <span id="mesaj" class="neden"></span>
+  </div>
+  <div id="planKart" class="kart" hidden></div>
+  <div id="kurKart" class="kart" hidden>
+    <div><b id="kurAdim">Kurulum</b> <span class="surum" id="kurSure"></span></div>
+    <div class="bar"><i id="kurBar" style="width:0"></i></div>
+    <div id="kurHata" class="bad" hidden></div>
+    <pre id="kurLog"></pre>
+    <div class="not" id="kurDosya"></div>
+  </div>
+  <p class="not">Bu sayfa yalnızca bu bilgisayarda (127.0.0.1) çalışır. Hiçbir komut kendiliğinden çalıştırılmaz: kurulum komutlarını sen kopyalayıp çalıştırırsın.
+  Yönetici izni gerektirmeyen her şeyi (Python paketleri, Remotion, modeller, ffmpeg) kurulum kendisi indirir.</p>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(u,b){const o=b===undefined?{}:{method:'POST',headers:{'X-Panel':'1','Content-Type':'application/json'},body:JSON.stringify(b)};const r=await fetch(u,o);return r.json();}
+const SIM={tamam:'✓',eksik:'✕',eski:'!',uyari:'!'};
+let sonLog='';
+function kmt(et,v){return `<div class="kmt"><span class="et">${et}</span><code>${esc(v)}</code><button data-k="${esc(v)}">Kopyala</button></div>`;}
+function planCiz(p){
+  const k=$('#planKart'); if(!p||!k) return; k.hidden=false;
+  k.innerHTML=`<b>Panel açılana kadar indirilecek: yaklaşık ${p.kurulumda_gb} GB</b> <span class="surum">(+ panel açılınca arka planda ${p.arka_plan_gb} GB: PyTorch, yapay zekâ paketleri, modeller${p.ilk_kullanimda_gb?' · + ilk kullanımda '+p.ilk_kullanimda_gb+' GB':''})</span>
+  <div class="not" style="margin:6px 0">Boş disk: ${p.bos_disk_gb} GB · önerilen boş alan: ${p.onerilen_bos_disk_gb} GB${p.disk_yeterli?'':' · <span class="bad">DİSK YETERSİZ</span>'}</div>
+  <details><summary>Ayrıntı</summary>${p.parcalar.map(x=>`<div class="not">${esc(x.ad)}: ~${x.gb} GB${x.zaman==='kurulumda'?'':' ('+esc(x.zaman)+')'}</div>`).join('')}
+  <div class="not" style="margin-top:6px">${esc(p.not)}</div></details>`;
+}
+function ciz(d){
+  planCiz(d.plan);
+  $('#kok').textContent=d.kok;
+  const on=d.onar||{};
+  if(on.degisti){
+    $('#onarKart').hidden=false;
+    $('#onarKart').innerHTML=`<b>Klasör yeri değişmiş:</b> <span class="neden">${esc(on.eski_kok||'başka bilgisayar')} → ${esc(d.kok)}</span><ul class="onar">${(on.eylemler||[]).map(e=>'<li class="ok">✓ '+esc(e)+'</li>').join('')}${(on.uyarilar||[]).map(e=>'<li class="bad">! '+esc(e)+'</li>').join('')}</ul>`;
+  }
+  const t=d.onkosul; if(!t) return;
+  $('#liste').innerHTML=t.ogeler.map(o=>{
+    let k=''; const q=o.kurulum||{};
+    if(o.durum!=='tamam'){
+      if(q.komut) k+=kmt('Terminal',q.komut);
+      if(q.winget) k+=kmt('winget',q.winget);
+      if(q.powershell) k+=kmt('PowerShell',q.powershell);
+      if(q.indir) k+=`<div class="kmt"><span class="et">indir</span><code>${esc(q.indir)}</code><a class="btn" href="${esc(q.indir)}" target="_blank" rel="noopener">Aç</a><button data-k="${esc(q.indir)}">Kopyala</button></div>`;
+      if(q.not) k+=`<div class="not">${esc(q.not)}</div>`;
+      if(o.atlanabilir && !o.atlandi) k+=`<div class="kmt"><button data-atla="${esc(o.id)}">Şimdilik atla</button></div>`;
+    }
+    const durum=o.atlandi?'uyari':o.durum;
+    return `<div class="kart ${durum}"><div class="satir"><div class="sim">${SIM[durum]||'?'}</div><div style="flex:1"><div class="ad">${esc(o.ad)}<span class="surum">${esc(o.surum)}${o.atlandi?' (atlandı)':''}</span></div>${o.durum!=='tamam'&&o.neden?`<div class="neden">${esc(o.neden)}</div>`:''}${k}</div></div></div>`;
+  }).join('');
+  const k=d.kurulum; const ge=t.engel.length;
+  $('#bslOnk').textContent=ge?`Sistem analizi: ${ge} eksik`:'Sistem analizi: eksik yok';
+  $('#devam').disabled=k.calisiyor||k.bitti;
+  $('#devam').textContent=k.calisiyor?'Kurulum sürüyor…':(ge?'Kurdum, yeniden tara ve devam et':(t.ilk_kurulum?'Kurulumu başlat':'Devam et'));
+  const kur=k.calisiyor||k.bitti||k.hata||(k.log&&k.log.length);
+  $('#kurKart').hidden=!kur;
+  if(kur){
+    $('#kurAdim').textContent=k.bitti?'Kurulum tamam':(k.hata?'Kurulum durdu':`Kurulum: ${k.no||0}/${k.toplam||7} ${k.adim||''}`);
+    $('#kurBar').style.width=(k.bitti?100:Math.round(((k.no||0)-(k.calisiyor?0.5:0))/(k.toplam||7)*100))+'%';
+    $('#kurSure').textContent=k.gecen_sn?Math.floor(k.gecen_sn/60)+' dk '+(k.gecen_sn%60)+' sn':'';
+    $('#kurHata').hidden=!k.hata; $('#kurHata').textContent=k.hata||'';
+    const s=(k.log||[]).join('\n'); if(s!==sonLog){sonLog=s;const p=$('#kurLog');p.textContent=s;p.scrollTop=p.scrollHeight;}
+    $('#kurDosya').textContent='Günlük dosyası: '+d.log_dosyasi;
+  }
+  if(k.bitti&&d.panel_url){ $('#mesaj').textContent='Panel açılıyor…'; setTimeout(()=>location.href=d.panel_url,600); }
+  else if(k.bitti){ $('#mesaj').textContent='Kurulum tamam, panel başlatılıyor…'; }
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.k){ try{await navigator.clipboard.writeText(b.dataset.k);}catch(_){const t=document.createElement('textarea');t.value=b.dataset.k;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();} const o=b.textContent;b.textContent='Kopyalandı';setTimeout(()=>b.textContent=o,1200);}
+  if(b.dataset.atla){ ciz(await api('/api/atla',{id:b.dataset.atla})); }
+});
+$('#devam').onclick=async()=>{ $('#devam').disabled=true; const kv={ad:$('#kimAd').value,marka:$('#kimMarka').value,rol:$('#kimRol').value,sehir:$('#kimSehir').value}; if(Object.values(kv).some(x=>x.trim())){ try{ await api('/api/kimlik',kv); }catch(_){} } $('#mesaj').textContent='Analiz yeniden çalışıyor…'; const r=await api('/api/devam',{}); $('#mesaj').textContent=r.mesaj||''; ciz(await api('/api/durum')); };
+async function dongu(){ try{ ciz(await api('/api/durum')); }catch(_){} setTimeout(dongu,1500); }
+dongu();
+</script>
+</body>
+</html>

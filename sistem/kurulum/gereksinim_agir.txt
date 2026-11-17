@@ -1,0 +1,2 @@
+# ESKİ: derinlik paketi artık varsayılan kurulumda (gereksinim.txt). Bu dosya yalnızca onarım içindir (panel → Sistem → "Derinlik modelini onar").
+transformers>=4.45   # mekân gezisi için Depth Anything V2 Small derinlik modeli (Apache-2.0); ağırlık (~100 MB) ilk kullanımda iner

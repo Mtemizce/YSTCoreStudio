@@ -1,0 +1,122 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#888">
+<canvas id="cv" width="1920" height="1080"></canvas>
+<script type="module">
+// Genel kalem çizimi sahnesi: /sahne/strokes.json içindeki darbeleri kâğıt üstünde kalemle kademeli çizer (kalem_cizim.py üretir).
+// Kaynak: görünüm fikri ve sürücü github.com/leodavincs/kalem (MIT, © 2026 Leo); bu sayfa YSTCore'a özgü yeniden yazımdır.
+// Zaman yalnız kare numarasından gelir; rastgelelik tohumlu karmadan (Math.random yok). İki koşu aynı kareyi verir.
+import { surucu } from "/ortak/surucu.js";
+const W = 1920, H = 1080;
+const cv = document.getElementById("cv"), g = cv.getContext("2d");
+const hash = (a, b = 0, c = 0) => { let h = (Math.imul(a | 0, 374761393) + Math.imul(b | 0, 668265263) + Math.imul(c | 0, 1274126177)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+const kis = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const yumus = (x) => { x = kis(x); return x * x * (3 - 2 * x); };
+
+const STIL = {
+  parsomen:  { kagit: [232, 217, 184], ink: "#2b1d12", alfa: 0.9,  w: 1.6, tane: 7,  leke: true,  imlec: "tuy" },
+  karakalem: { kagit: [243, 241, 236], ink: "#1c1c1c", alfa: 0.74, w: 1.9, tane: 12, leke: false, imlec: "kursun" },
+  teknik:    { kagit: [15, 42, 74],    ink: "#d4e8ff", alfa: 0.9,  w: 1.35, tane: 3, leke: false, imlec: "hedef" },
+};
+let D, S, KARE, bg, base, bctx, bitenIdx = 0, sonUc = null, gercek = null, ara = null;
+
+function kagit() {
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+  const im = x.createImageData(W, H), d = im.data, [r, gg, b] = S.kagit;
+  for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+    // kâğıt tanesi: iki ölçekte tohumlu gürültü
+    const n = (hash(i, j, 1) - 0.5) * S.tane + (hash(i >> 3, j >> 3, 2) - 0.5) * S.tane * 1.4;
+    const dx = (i - W / 2) / (W / 2), dy = (j - H / 2) / (H / 2), vin = 1 - 0.13 * (dx * dx + dy * dy);   // kenarlarda hafif kararma
+    const k = (j * W + i) * 4;
+    d[k] = kis(r * vin + n, 0, 255); d[k + 1] = kis(gg * vin + n, 0, 255); d[k + 2] = kis(b * vin + n * 0.9, 0, 255); d[k + 3] = 255;
+  }
+  x.putImageData(im, 0, 0);
+  if (S.leke) for (let i = 0; i < 26; i++) {   // yaşlanma lekeleri (foxing)
+    const px = hash(i, 11) * W, py = hash(i, 12) * H, rr = 8 + hash(i, 13) * 46;
+    const gr = x.createRadialGradient(px, py, 0, px, py, rr); gr.addColorStop(0, "rgba(140,100,50,0.10)"); gr.addColorStop(1, "rgba(140,100,50,0)");
+    x.fillStyle = gr; x.fillRect(px - rr, py - rr, 2 * rr, 2 * rr);
+  }
+  return c;
+}
+
+// Bir darbeyi çizer: titrek merkez çizgisi + uçlara doğru incelen kalınlık. t: 0..1 ilerleme. Çizilen son noktayı döndürür.
+function ciz(ctx, s, si, t) {
+  const p = s.p, hedef = s.L * t; let kat = 0, son = p[0];
+  ctx.strokeStyle = S.ink; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (let i = 1; i < p.length && kat < hedef; i++) {
+    const a = p[i - 1], b = p[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1e-6;
+    const f = kis((hedef - kat) / l), uc = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+    const nx = -(b[1] - a[1]) / l, ny = (b[0] - a[0]) / l;
+    const sap = (hash(si, i, 5) - 0.5) * 0.9, sap2 = (hash(si, i + 1, 5) - 0.5) * 0.9;    // el titremesi
+    const orta = (kat + l * f / 2) / s.L, incel = Math.min(1, orta / 0.06 + 0.4) * Math.min(1, (1 - orta) / 0.08 + 0.4);
+    ctx.globalAlpha = S.alfa * (0.8 + 0.2 * hash(si, i, 9)) * (s.a ?? 1);          // s.a / s.w: tarama darbeleri daha açık ve ince
+    ctx.lineWidth = Math.max(0.5, S.w * (s.w ?? 1) * (0.55 + 0.45 * incel) * (0.9 + 0.2 * hash(si, 3)));
+    ctx.beginPath(); ctx.moveTo(a[0] + nx * sap, a[1] + ny * sap); ctx.lineTo(uc[0] + nx * sap2, uc[1] + ny * sap2); ctx.stroke();
+    kat += l; son = uc;
+  }
+  ctx.globalAlpha = 1;
+  return son;
+}
+
+function imlec(x, y, gor) {
+  if (gor <= 0) return;
+  g.save(); g.globalAlpha = gor; g.translate(x, y);
+  if (S.imlec === "tuy") {            // tüy kalem
+    g.rotate(-0.95); g.fillStyle = "rgba(0,0,0,0.16)"; g.beginPath(); g.ellipse(6, 8, 15, 62, 0, 0, 7); g.fill();
+    g.fillStyle = "#f4ecd8"; g.strokeStyle = "#2b1d12"; g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(-14, -26, -16, -70, 2, -118); g.bezierCurveTo(14, -78, 12, -30, 0, 0); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(1, -110); g.stroke();
+  } else if (S.imlec === "kursun") {  // kurşun kalem
+    g.rotate(-0.8); g.fillStyle = "rgba(0,0,0,0.12)"; g.fillRect(-3, -150 + 6, 14, 150);
+    g.fillStyle = "#d9a441"; g.fillRect(-7, -150, 14, 128); g.fillStyle = "#c28f33"; g.fillRect(-7, -150, 5, 128);
+    g.fillStyle = "#eadbb4"; g.beginPath(); g.moveTo(-7, -22); g.lineTo(7, -22); g.lineTo(0, 0); g.closePath(); g.fill();
+    g.fillStyle = "#2a2a2a"; g.beginPath(); g.moveTo(-2.2, -6); g.lineTo(2.2, -6); g.lineTo(0, 0); g.closePath(); g.fill();
+    g.fillStyle = "#b9bdc4"; g.fillRect(-7, -164, 14, 14); g.fillStyle = "#d2a3a3"; g.fillRect(-7, -178, 14, 14);
+  } else {                            // teknik: hedef işareti
+    g.strokeStyle = "#ffffff"; g.lineWidth = 1.4; g.beginPath(); g.arc(0, 0, 9, 0, 7); g.moveTo(-18, 0); g.lineTo(18, 0); g.moveTo(0, -18); g.lineTo(0, 18); g.stroke();
+  }
+  g.restore();
+}
+
+async function kur() {
+  D = await (await fetch("/sahne/strokes.json")).json();
+  S = STIL[D.stil] || STIL.parsomen;
+  if (Array.isArray(D.zemin) && D.zemin.length === 3) {   // özel zemin rengi: mürekkep zemin parlaklığına göre koyu ya da açık
+    const par = (0.2126 * D.zemin[0] + 0.7152 * D.zemin[1] + 0.0722 * D.zemin[2]) / 255;
+    S = { ...S, kagit: D.zemin, ink: par > 0.5 ? "#1c1c1c" : "#e6f0ff", alfa: par > 0.5 ? Math.max(S.alfa, 0.74) : 0.9 };
+  }
+  KARE = (Number(new URLSearchParams(location.search).get("kare")) || D.kare);
+  bg = kagit();
+  base = document.createElement("canvas"); base.width = W; base.height = H; bctx = base.getContext("2d");
+  if (D.gercek) {   // çizimin gerçek karşılığı: çizim bitince aynı hizada (D.yer) açılır
+    gercek = new Image(); gercek.src = "/sahne/" + D.gercek; await gercek.decode();
+    ara = document.createElement("canvas"); ara.width = W; ara.height = H;
+  }
+}
+
+// Çizim -> gerçek geçişi: çizim bulanıklaşıp solarken gerçek resim bulanıklıktan netleşerek aynı yerde belirir. Son karede yalnız net resim kalır.
+function gecisCiz(f) {
+  const G = D.gecis, t = kis((f - G.bas) / G.sure), e = yumus(t), y = D.yer;
+  g.drawImage(bg, 0, 0);
+  const a = ara.getContext("2d"); a.clearRect(0, 0, W, H); a.drawImage(bg, 0, 0); a.drawImage(base, 0, 0);
+  g.save(); g.filter = `blur(${(e * 9).toFixed(2)}px)`; g.globalAlpha = 1 - yumus(kis((t - 0.15) / 0.85)); g.drawImage(ara, 0, 0); g.restore();
+  g.save(); g.filter = `blur(${((1 - e) * 11).toFixed(2)}px)`; g.globalAlpha = yumus(kis(t * 1.3)); g.drawImage(gercek, y.x, y.y, y.w, y.h); g.restore();
+  if (t >= 1) { g.drawImage(bg, 0, 0); g.drawImage(gercek, y.x, y.y, y.w, y.h); }   // süzgeç artığı kalmasın: bitişte net resim
+  return cv;
+}
+
+// kare(f) sırayla 0,1,2... çağrılır: biten darbeler bir kez tabana işlenir, çizilmekte olanlar her karede üstüne çizilir
+async function kare(f) {
+  if (D.gecis && f >= D.gecis.bas) { while (bitenIdx < D.darbeler.length) { sonUc = ciz(bctx, D.darbeler[bitenIdx], bitenIdx, 1); bitenIdx++; } return gecisCiz(f); }
+  const ds = D.darbeler;
+  while (bitenIdx < ds.length && ds[bitenIdx].bas + ds[bitenIdx].sure <= f) { sonUc = ciz(bctx, ds[bitenIdx], bitenIdx, 1); bitenIdx++; }
+  g.drawImage(bg, 0, 0); g.drawImage(base, 0, 0);
+  let uc = sonUc, aktif = false;
+  for (let i = bitenIdx; i < ds.length && ds[i].bas <= f; i++) {
+    const t = kis((f - ds[i].bas) / ds[i].sure), e = 0.35 * t + 0.65 * yumus(t);
+    uc = ciz(g, ds[i], i, e); aktif = true;
+  }
+  const bitis = ds.length ? ds[ds.length - 1].bas + ds[ds.length - 1].sure : 0;
+  if (uc) imlec(uc[0], uc[1], aktif ? 1 : kis(1 - (f - bitis) / 18));    // çizim bitince kalem kalkıp kaybolur
+  return cv;
+}
+surucu(kur, kare, () => KARE);
+</script>

@@ -1,0 +1,38 @@
+name: Topluluk bölümü (katkıcılar ve sponsorlar)
+
+# README'nin altındaki "Katkıda bulunanlar" ve "Sponsorlar" bölümlerini günceller (yuvarlak profil resimleri, üstüne gelince ad görünür).
+# Haftada bir ve elle çalışır (çok kısa sürer, kotayı ihmal edilebilir ölçüde harcar). Her push'ta çalışmaz.
+#
+# Sponsorların görünmesi için (bir kez): github.com/settings/tokens → "Generate new token (classic)" → yalnızca `read:user` izni →
+# depoda Settings → Secrets and variables → Actions → New repository secret → adı SPONSORS_TOKEN. Jeton yoksa yalnızca katkıcılar güncellenir.
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+      GH_TOKEN: ${{ github.token }}
+      SPONSORS_TOKEN: ${{ secrets.SPONSORS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install pillow
+      - run: python sistem/araclar/topluluk_readme.py
+      - name: Değişiklik varsa kaydet
+        run: |
+          if [ -n "$(git status --porcelain README.md docs/topluluk)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md docs/topluluk
+            git commit -m "Topluluk bölümü güncellendi"
+            git push
+          else
+            echo "değişiklik yok"
+          fi

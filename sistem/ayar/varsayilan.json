@@ -1,0 +1,193 @@
+{
+  "surum": 1,
+  "_aciklama": "VARSAYILAN ayarlar (depoda, herkes için). Kendi değişikliklerin sistem/ayar/kullanici.json'a (genel) ya da projeler/<ad>/ayar.json'a (yalnızca o proje) yazılır; öncelik: varsayılan < kullanıcı < proje. Panel → Ayarlar bunları düzenler.",
+  "ajanlar": {
+    "senarist": {
+      "gorev": "Senaryo, hikâye tahtası, ton rehberi uygulaması",
+      "model": "opus",
+      "effort": "high",
+      "baglayici": {}
+    },
+    "redaktor": {
+      "gorev": "Yazım, yasak kelime, iddia ve ritim kontrolü (senaryo ve metin)",
+      "model": "haiku",
+      "effort": "low",
+      "baglayici": {}
+    },
+    "sahne-yapimcisi": {
+      "gorev": "Remotion/HyperFrames sahneleri, geçişler, marka kiti bileşenleri",
+      "model": "sonnet",
+      "effort": "medium",
+      "baglayici": {}
+    },
+    "ses-yonetmeni": {
+      "gorev": "Seslendirme planı/üretimi, müzik ve ses efekti, miksaj",
+      "model": "sonnet",
+      "effort": "medium",
+      "baglayici": {
+        "ses": "ema"
+      }
+    },
+    "gorsel-iyilestirici": {
+      "gorev": "Düşük çözünürlüklü fotoğrafları iyileştirme (yerel)",
+      "model": "haiku",
+      "effort": "low",
+      "baglayici": {}
+    },
+    "gorsel-uretici": {
+      "gorev": "Görsel ve karakter üretimi (bağlayıcı model), yatay + dikey",
+      "model": "sonnet",
+      "effort": "medium",
+      "baglayici": {
+        "gorsel": "gemini"
+      }
+    },
+    "sosyal-kesici": {
+      "gorev": "Platform sürümleri: yeniden kompozisyon, altyazı, kapak, metin",
+      "model": "sonnet",
+      "effort": "medium",
+      "baglayici": {}
+    },
+    "elestirmen": {
+      "gorev": "Bağımsız kalite eleştirisi (SHIP / DÜZELT)",
+      "model": "opus",
+      "effort": "high",
+      "baglayici": {}
+    },
+    "arsiv-analisti": {
+      "gorev": "Arşiv fotoğraflarını anlamlandırma: aşama, konu, açıklama, kullanılabilirlik (veritabanına yazar)",
+      "model": "sonnet",
+      "effort": "low",
+      "baglayici": {}
+    }
+  },
+  "uretim": {
+    "seslendirme": {
+      "acik": true,
+      "saglayici": "ema"
+    },
+    "gorsel_uret": {
+      "acik": false,
+      "saglayici": "gemini"
+    },
+    "platformlar": [
+      "youtube-yatay"
+    ],
+    "arsivden_bul": true,
+    "marka_kiti": "varsayilan",
+    "marka": {
+      "intro": true,
+      "outro": true,
+      "filigran": false,
+      "iletisim": false,
+      "gorsel_filigran": false
+    },
+    "onay": "plan-ve-taslak"
+  },
+  "platformlar": {
+    "youtube-yatay": {
+      "ad": "YouTube (yatay 16:9)",
+      "not": "Facebook videosu ve Instagram gönderisi olarak da kullanılabilir",
+      "format": "ana",
+      "oran": "16:9",
+      "w": 1920,
+      "h": 1080,
+      "sure_sn": 45
+    },
+    "youtube-shorts": {
+      "ad": "YouTube Shorts",
+      "not": "dikey 9:16; süre sınırı yükleme ekranında doğrulanır",
+      "format": "shorts",
+      "oran": "9:16",
+      "w": 1080,
+      "h": 1920,
+      "sure_sn": 30
+    },
+    "instagram-reels": {
+      "ad": "Instagram Reels",
+      "not": "dikey 9:16; kapak ızgarada ortadan kırpılır",
+      "format": "reels",
+      "oran": "9:16",
+      "w": 1080,
+      "h": 1920,
+      "sure_sn": 25
+    },
+    "instagram-story": {
+      "ad": "Instagram Story",
+      "not": "dikey 9:16; üst/alt arayüz alanı geniş, yükleme ekranında doğrula",
+      "format": "story",
+      "oran": "9:16",
+      "w": 1080,
+      "h": 1920,
+      "sure_sn": 15
+    },
+    "tiktok": {
+      "ad": "TikTok",
+      "not": "dikey 9:16",
+      "format": "tiktok",
+      "oran": "9:16",
+      "w": 1080,
+      "h": 1920,
+      "sure_sn": 25
+    }
+  },
+  "baglayicilar": {
+    "_aciklama": "Ücretli/bulut servisler. Hepsi KAPALI başlar (ema yerel olduğu için açık). Anahtarlar bu dosyada DEĞİL: sistem/ortam/baglayici/anahtar.json (git'e girmez). 'etkin' + anahtar + projede bulut izni birlikte gerekir.",
+    "ema": {
+      "etkin": true
+    },
+    "elevenlabs": {
+      "etkin": false,
+      "model": "",
+      "ses_id": "",
+      "taban_url": ""
+    },
+    "gemini": {
+      "etkin": false,
+      "model": "",
+      "taban_url": ""
+    },
+    "openai-gorsel": {
+      "etkin": false,
+      "model": "",
+      "taban_url": ""
+    },
+    "heygen": {
+      "etkin": false
+    }
+  },
+  "izin": {
+    "_aciklama": "Proje bazlı bulut izni (projeler/<ad>/ayar.json içinde true yapılır; panelde bulut özelliği açıp 'Üret' dediğinde sorulur).",
+    "bulut": false
+  },
+  "kurallar": {
+    "_aciklama": "Bulut/ücretli bağlayıcı politikası. Varsayılan: hiçbir şey dışarı gitmez.",
+    "bulut_varsayilan_kapali": true,
+    "kaynak_gorselleri_buluta_gonder": false,
+    "her_cagriyi_kaydet": true
+  },
+  "isler": {
+    "_aciklama": "İş = bir işlemin hangi MODELLERLE yapılabileceği. Burada yalnızca YEREL (ücretsiz) modeller hazır gelir; ücretli/bulut modeli sen tanımlarsın (Ayarlar → Bağlayıcılar → Sağlayıcı ekle, sonra İşler ve modeller → Model ekle). Listede işaretlediklerin işlem ekranındaki açılır listede çıkar.",
+    "gorsel-iyilestirme": {
+      "ad": "Fotoğraf iyileştirme (arşiv): çözünürlük ve bulanıklık",
+      "kategori": "gorsel-duzenle",
+      "varsayilan": "yerel-realesrgan",
+      "modeller": {
+        "yerel-realesrgan": {
+          "ad": "Real-ESRGAN x4 (yerel, ücretsiz, gerçeğe sadık)",
+          "motor": "realesrgan",
+          "saglayici": "yerel",
+          "etkin": true,
+          "not": "Gerçek ayrıntıyı toparlar, yeni nesne uydurmaz. GPU'da hızlı, işlemcide yavaş."
+        },
+        "yerel-klasik": {
+          "ad": "Klasik keskinleştirme (yerel, ücretsiz, çok hızlı)",
+          "motor": "klasik",
+          "saglayici": "yerel",
+          "etkin": true,
+          "not": "Yalnızca büyütür ve keskinleştirir; kayıp ayrıntıyı geri getirmez."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "_not": "Test sağlayıcısı: hiçbir yere bağlanmaz, anahtar istemez; sahte görsel/video/ses üretir. Akışları ücretsiz denemek içindir.",
+  "tur": "mock",
+  "ad": "Sahte (test)",
+  "yetenekler": ["gorsel-uret", "gorsel-duzenle", "video-uret", "tts"]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "proje-remotion",
+  "private": true,
+  "description": "Remotion sahneleri. Paketler node_modules içinden gelir; ortak bileşenler kit/src."
+}

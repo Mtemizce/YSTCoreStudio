@@ -1,0 +1,6 @@
+# PyTorch'a bağlı paketler. PyTorch (işlemci sürümü) önce kurulur; sonra bu dosya: ikisi de panel açıldıktan sonra arka planda (sistem/araclar/arka_indirme.py).
+# PyTorch ÖNCE kurulmazsa pip bunları kurarken kendi PyTorch'unu (Linux'ta çok büyük CUDA sürümü) çeker: bu yüzden sıra önemlidir.
+ema-lightning==1.1.2          # Türkçe TTS (Apache-2.0)
+spandrel==0.4.2               # Real-ESRGAN modeli çalıştırıcı
+transformers>=4.45            # mekân gezisi: Depth Anything V2 Small derinlik modeli (Apache-2.0)
+pocket-tts-turkish==0.1.0     # Türkçe TTS + ses klonlama (CC-BY-4.0, atıf gerekir)

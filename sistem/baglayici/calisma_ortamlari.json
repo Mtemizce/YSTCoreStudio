@@ -1,0 +1,19 @@
+{
+  "_aciklama": "ORKESTRATÖR çalışma ortamları. Varsayılan Claude Code'dur (kullanıcının kendi Claude aboneliği; alt ajanlar .claude/agents içinde çalışır). Diğerleri DENEYSEL: stüdyo yönergeleri ve komutları markdown dosyalarında durduğu için her ortam onları okuyup uygulayabilir, ama alt ajan/slash komut/MCP davranışı ortama göre değişir. Komutlar abonelikli CLI'lardır, API anahtarı gerekmez.",
+  "claude-code": {
+    "ad": "Claude Code (varsayılan)", "komut": "claude", "durum": "tam",
+    "not": "Kendi Claude aboneliğinle. Alt ajanlar, slash komutları (/video, /final…) ve MCP tam desteklenir."
+  },
+  "codex": {
+    "ad": "Codex CLI (ChatGPT aboneliği)", "komut": "codex", "istem": "konum", "durum": "deneysel",
+    "not": "codex \"<istem>\" interaktif oturumu istemle açar (belge). Slash komutlar yerine istem, .claude/commands/*.md dosyalarını okutur."
+  },
+  "gemini-cli": {
+    "ad": "Gemini CLI (Google hesabı)", "komut": "gemini", "istem": "-i", "durum": "deneysel",
+    "not": "gemini -i \"<istem>\" istemi çalıştırıp interaktif kalır (belge; sürüme göre değişebilir: gemini --help)."
+  },
+  "opencode": {
+    "ad": "OpenCode (çok sağlayıcılı)", "komut": "opencode", "istem": "--prompt", "durum": "deneysel",
+    "not": "opencode --prompt \"<istem>\" (v1 belgesi; sürüme göre değişebilir: opencode --help). Sağlayıcı/model OpenCode'un kendi ayarından seçilir."
+  }
+}

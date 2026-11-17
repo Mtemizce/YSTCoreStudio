@@ -1,0 +1,14 @@
+# Kurulum bunları .venv'e yükler: panelin açılması için gereken ÇEKİRDEK paketler (küçük ve hızlı).
+# PyTorch ve ona bağlı ağır paketler gereksinim-ml.txt'tedir: panel açıldıktan sonra ARKA PLANDA kurulur (sistem/araclar/arka_indirme.py).
+# Kurgu'nun kendisi `pip install -e kurgu` ile gelir (numpy, Pillow, fonttools zaten onun bağımlılığı).
+numpy>=1.26
+scipy>=1.11                   # resimden kalem çizimi: kenar bulma (kalem_resim.py)
+Pillow>=10.0
+fonttools>=4.40
+faster-whisper==1.2.1         # yerel konuşma→yazı
+safetensors==0.8.0
+praat-parselmouth==0.4.7      # perde/ton ölçümü
+pypdfium2>=4.30               # PDF sayfa → görsel
+pypdf>=4.0                    # PDF metin çıkarma
+cryptography>=42.0           # profil dışa aktarma şifrelemesi (Fernet)
+av>=12,<17                    # faster-whisper ses çözme: av 17+ ile uyumsuz (dikte/altyazı bozulur)

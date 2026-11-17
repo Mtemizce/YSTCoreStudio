@@ -1,0 +1,820 @@
+{
+ "kurgu": {
+  "adres": "https://github.com/leodavincs/kurgu",
+  "ref": "f578b365f542e848a4a715666aaba467bb71a8ce",
+  "yama_dosyalari": [
+   "AGENTS.md",
+   "README.md",
+   "README.tr.md",
+   "SPEC.md",
+   "doctor.py",
+   "guidance/tools.md",
+   "mcp_server.py",
+   "pyproject.toml",
+   "skills/kurgu/SKILL.md",
+   "tests/test_mcp.py",
+   "tests/test_tts.py",
+   "tts.py"
+  ]
+ },
+ "kaynaklar": {
+  "remotion-skills": {
+   "tur": "git",
+   "adres": "https://github.com/remotion-dev/skills",
+   "ref": "7e541aa4d7361dfaca0780a565a47307eb7bdfbb"
+  },
+  "motion-video-kit": {
+   "tur": "git",
+   "adres": "https://github.com/echris6/motion-video-kit",
+   "ref": "e4b1c0004080fe6a0deb883631bad5eba1e5f339"
+  },
+  "hf-director": {
+   "tur": "git",
+   "adres": "https://github.com/artificialguybr/hyperframes-video-director",
+   "ref": "2dfba0e5d268130828efd94dbc2c256acc0d2ab8"
+  },
+  "anthropic-skills": {
+   "tur": "git",
+   "adres": "https://github.com/anthropics/skills",
+   "ref": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064"
+  },
+  "npm-hyperframes": {
+   "tur": "npm",
+   "adres": "hyperframes",
+   "surum": "0.9.49"
+  },
+  "gsap-skills": {
+   "tur": "git",
+   "adres": "https://github.com/greensock/gsap-skills",
+   "ref": "aed9cfd3277740755f6bfc1155c7aa645403b760"
+  },
+  "npm-gl-transitions": {
+   "tur": "npm",
+   "adres": "gl-transitions",
+   "surum": "3.3.0",
+   "kok": ""
+  }
+ },
+ "skill_dosyalari": [
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-captions/display-captions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-captions/display-captions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-captions/import-srt-captions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-captions/import-srt-captions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-captions/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-captions/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-captions/transcribe-captions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-captions/transcribe-captions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-create/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-create/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-create/tailwind.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-create/tailwind.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-create/video-layout.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-create/video-layout.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-docs/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-docs/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-interactivity/inline-effects.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-interactivity/inline-effects.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-interactivity/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-interactivity/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-interactivity/timeline-structure.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-interactivity/timeline-structure.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-license/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-license/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/3d.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/3d.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/arabic-text.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/arabic-text.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/audio-visualization.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/audio-visualization.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/audio.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/audio.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/calculate-metadata.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/calculate-metadata.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/color-correction.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/color-correction.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/compositions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/compositions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/connected-compositions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/connected-compositions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/cropping.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/cropping.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/effects.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/effects.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/embedding-videos.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/embedding-videos.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/ffmpeg.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/ffmpeg.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/gifs.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/gifs.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/google-fonts.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/google-fonts.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/html-in-canvas.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/html-in-canvas.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/images.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/images.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/light-leaks.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/light-leaks.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/local-fonts.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/local-fonts.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/lottie.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/lottie.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/measuring-dom-nodes.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/measuring-dom-nodes.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/measuring-text.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/measuring-text.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/motion-blur.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/motion-blur.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/multi-scene-video.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/multi-scene-video.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/parameters.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/parameters.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/sequencing.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/sequencing.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/sfx.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/sfx.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/silence-detection.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/silence-detection.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/text-highlights.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/text-highlights.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/timing-props.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/timing-props.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/timing.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/timing.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/transitions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/transitions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/video-editing.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/video-editing.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/video-matting.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/video-matting.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-markup/voiceover.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-markup/voiceover.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-multimedia/get-audio-duration.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-multimedia/get-audio-duration.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-multimedia/get-video-dimensions.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-multimedia/get-video-dimensions.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-multimedia/get-video-duration.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-multimedia/get-video-duration.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-multimedia/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-multimedia/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-render/REFERENCE.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-render/REFERENCE.md"
+  },
+  {
+   "hedef": ".claude/skills/remotion-best-practices/remotion-render/transparent-videos.md",
+   "kaynak": "remotion-skills",
+   "yol": "skills/remotion-best-practices/remotion-render/transparent-videos.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/captions.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/captions.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/film.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/film.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/format.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/format.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/look.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/look.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/motion.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/motion.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/overlays.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/overlays.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/path-tracing.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/path-tracing.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/plugin-installation.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/plugin-installation.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/review.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/review.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/runtimes.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/runtimes.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/skill-lifecycle.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/skill-lifecycle.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/sound.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/sound.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/spec.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/spec.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/story.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/story.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/storyboard-format.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/storyboard-format.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/storyboard.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/storyboard.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/3d.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/3d.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/character.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/character.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/data.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/data.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/explainer.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/explainer.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/launch.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/launch.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/music.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/music.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/references/types/vertical.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/references/types/vertical.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/scripts/bake-basemap.mjs",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/scripts/bake-basemap.mjs"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/scripts/lib/main-module.mjs",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/scripts/lib/main-module.mjs"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/scripts/lib/windows-exe-search.mjs",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/scripts/lib/windows-exe-search.mjs"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/scripts/locate.mjs",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/scripts/locate.mjs"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes/scripts/plugin-cli.mjs",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes/scripts/plugin-cli.mjs"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/beats.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/beats.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/cloud.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/cloud.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/cloudrun.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/cloudrun.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/compare-and-batch.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/compare-and-batch.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/conventions.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/conventions.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/doctor-browser.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/doctor-browser.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/feedback.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/feedback.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/init-and-scaffold.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/init-and-scaffold.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/lambda.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/lambda.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/lint-validate-inspect.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/lint-validate-inspect.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/preview-render.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/preview-render.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-cli/references/upgrade-info-misc.md",
+   "kaynak": "npm-hyperframes",
+   "yol": "hyperframes-cli/references/upgrade-info-misc.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/LICENSE",
+   "kaynak": "motion-video-kit",
+   "yol": "LICENSE"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/audio.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/audio.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/business-offers.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/business-offers.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/case-study-alder.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/case-study-alder.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/case-study-duo.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/case-study-duo.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/case-study-home-display.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/case-study-home-display.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/critic-prompts.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/critic-prompts.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/gauntlet.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/gauntlet.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/launch-film-notes.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/launch-film-notes.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/motion-grammar.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/motion-grammar.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/product-hero-realism.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/product-hero-realism.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/quality-bar.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/quality-bar.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/references/three-js-patterns.md",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/references/three-js-patterns.md"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/backtime-music.py",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/backtime-music.py"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/contact-sheet.sh",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/contact-sheet.sh"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/frozen-time.sh",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/frozen-time.sh"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/loudness.sh",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/loudness.sh"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/offline-mix.py",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/offline-mix.py"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/sfx-candidates.py",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/sfx-candidates.py"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/soften-sfx.sh",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/soften-sfx.sh"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/scripts/solve-sfx-gains.py",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/scripts/solve-sfx-gains.py"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/templates/component-lab.html",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/templates/component-lab.html"
+  },
+  {
+   "hedef": ".claude/skills/business-motion-film/templates/projected-overlays.js",
+   "kaynak": "motion-video-kit",
+   "yol": "business-motion-film/templates/projected-overlays.js"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/craft/rules.md",
+   "kaynak": "hf-director",
+   "yol": "craft/rules.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/craft/vocabulary.md",
+   "kaynak": "hf-director",
+   "yol": "craft/vocabulary.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/broadcast.md",
+   "kaynak": "hf-director",
+   "yol": "directing/broadcast.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/data-viz.md",
+   "kaynak": "hf-director",
+   "yol": "directing/data-viz.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/documentary.md",
+   "kaynak": "hf-director",
+   "yol": "directing/documentary.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/explainer.md",
+   "kaynak": "hf-director",
+   "yol": "directing/explainer.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/kinetic-type.md",
+   "kaynak": "hf-director",
+   "yol": "directing/kinetic-type.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/logo-sting.md",
+   "kaynak": "hf-director",
+   "yol": "directing/logo-sting.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/lyric-video.md",
+   "kaynak": "hf-director",
+   "yol": "directing/lyric-video.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/meme-short.md",
+   "kaynak": "hf-director",
+   "yol": "directing/meme-short.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/music-beat.md",
+   "kaynak": "hf-director",
+   "yol": "directing/music-beat.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/procedural-3d.md",
+   "kaynak": "hf-director",
+   "yol": "directing/procedural-3d.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/product-launch.md",
+   "kaynak": "hf-director",
+   "yol": "directing/product-launch.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/showreel.md",
+   "kaynak": "hf-director",
+   "yol": "directing/showreel.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/social-ad.md",
+   "kaynak": "hf-director",
+   "yol": "directing/social-ad.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/trailer.md",
+   "kaynak": "hf-director",
+   "yol": "directing/trailer.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/tutorial.md",
+   "kaynak": "hf-director",
+   "yol": "directing/tutorial.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/ui-demo.md",
+   "kaynak": "hf-director",
+   "yol": "directing/ui-demo.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/directing/vector-2d.md",
+   "kaynak": "hf-director",
+   "yol": "directing/vector-2d.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/LICENSE",
+   "kaynak": "hf-director",
+   "yol": "LICENSE"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/references/accessibility-and-delivery.md",
+   "kaynak": "hf-director",
+   "yol": "references/accessibility-and-delivery.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/rubric.md",
+   "kaynak": "hf-director",
+   "yol": "rubric.md"
+  },
+  {
+   "hedef": ".claude/skills/hyperframes-video-director/SOURCES.md",
+   "kaynak": "hf-director",
+   "yol": "SOURCES.md"
+  },
+  {
+   "hedef": ".claude/skills/frontend-design/LICENSE.txt",
+   "kaynak": "anthropic-skills",
+   "yol": "skills/frontend-design/LICENSE.txt"
+  },
+  {
+   "hedef": ".claude/skills/frontend-design/SKILL.md",
+   "kaynak": "anthropic-skills",
+   "yol": "skills/frontend-design/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gsap-core/SKILL.md",
+   "kaynak": "gsap-skills",
+   "yol": "skills/gsap-core/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gsap-timeline/SKILL.md",
+   "kaynak": "gsap-skills",
+   "yol": "skills/gsap-timeline/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gsap-plugins/SKILL.md",
+   "kaynak": "gsap-skills",
+   "yol": "skills/gsap-plugins/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gsap-performance/SKILL.md",
+   "kaynak": "gsap-skills",
+   "yol": "skills/gsap-performance/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gsap-utils/SKILL.md",
+   "kaynak": "gsap-skills",
+   "yol": "skills/gsap-utils/SKILL.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/references/catalog.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/references/catalog.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/references/native.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/references/native.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/references/skia.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/references/skia.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/references/video.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/references/video.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/references/webgl.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/references/webgl.md"
+  },
+  {
+   "hedef": ".claude/skills/gl-transitions/SKILL.md",
+   "kaynak": "npm-gl-transitions",
+   "yol": "skills/gl-transitions/SKILL.md"
+  }
+ ]
+}

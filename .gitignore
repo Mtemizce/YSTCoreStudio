@@ -1,0 +1,49 @@
+# --- kurulumun ürettikleri (git'e GİRMEZ; sistem/kurulum/kurulum.py yeniden üretir) ---
+/kurgu/
+/node_modules/
+/sistem/ortam/
+/sistem/araclar/dis/
+/sistem/kit/sfx/
+/sistem/kit/sfx-wyzowl/
+/sistem/kit/muzik/
+/sistem/kit/referans/
+# kimlik/ornekler: kişisel gerçek yazı/ses örnekleri (özel repoda bile istenirse buraya konabilir); varsayılan: repoya GİRMEZ
+/kimlik/ornekler/*
+!/kimlik/ornekler/.gitkeep
+# üçüncü taraf skill'ler: kendi depolarından çekilir, bizim fark sistem/yama/ altında
+/.claude/skills/gl-transitions/
+/.claude/skills/gsap-core/
+/.claude/skills/gsap-timeline/
+/.claude/skills/gsap-plugins/
+/.claude/skills/gsap-performance/
+/.claude/skills/gsap-utils/
+/.claude/skills/remotion-best-practices/
+/.claude/skills/hyperframes/
+/.claude/skills/hyperframes-cli/
+/.claude/skills/business-motion-film/
+/.claude/skills/hyperframes-video-director/
+/.claude/skills/frontend-design/
+# --- iş dosyaları ---
+/projeler/*
+!/projeler/.gitkeep
+# Python / editör
+__pycache__/
+*.pyc
+.pytest_cache/
+.claude/settings.local.json
+*.part
+
+# kullanıcı verisi (dijital ikiz fotoğrafları, seriler): depoya girmez, profil dışa aktarmaya girer
+/kimlik/karakterler/
+/kimlik/seriler/
+# kimlik dosyaları kullanıcıya özeldir: depoda yalnızca nötr şablonlar vardır (sistem/sablon/kimlik/); kurulum eksikleri şablondan oluşturur
+/kimlik/PROFIL.md
+/kimlik/MARKA.md
+/kimlik/marka_kitleri/
+
+# ses klonlama örneği (kullanıcının kendi sesi)
+/kimlik/ses/
+
+# referans skill ciktilari (kullanicinin videolarindan cikarilan kareler ve istemler)
+/referanslar/*
+!/referanslar/.gitkeep

@@ -1,0 +1,29 @@
+/* YSTCore eklentisi (Kurgu içinde): görsel, ses ve ara sahne pencereleri. Kurgu'nun kendi tasarım değişkenlerini kullanır (tokens.css). */
+.yst-ov { position: fixed; inset: 0; background: var(--scrim); display: grid; place-items: center; z-index: 400; padding: 16px; }
+.yst-kutu { background: var(--raised); border: 1px solid var(--line2); border-radius: var(--r-2xl); box-shadow: var(--shadow-dialog); width: min(920px, 100%); max-height: 90vh; overflow: auto; color: var(--t1); font: var(--fs-body)/1.5 var(--font); display: flex; flex-direction: column; }
+.yst-bas { display: flex; align-items: center; justify-content: space-between; padding: var(--s-7) var(--s-8) var(--s-4); font-size: var(--fs-lg); }
+.yst-x { width: 28px; height: 28px; }
+.yst-govde { padding: var(--s-4) var(--s-8) var(--s-8); }
+.yst-govde label { display: flex; flex-direction: column; gap: 4px; color: var(--t2); font-size: var(--fs-cap); margin-top: var(--s-5); }
+.yst-govde label.yst-onay { flex-direction: row; align-items: center; gap: 8px; color: var(--t1); font-size: var(--fs-body); margin-top: 0; }
+.yst-govde textarea, .yst-govde select, .yst-govde input[type=number] { background: var(--sunken); color: var(--t1); border: 1px solid var(--line2); border-radius: var(--r-md); padding: 6px 8px; font: inherit; }
+.yst-govde textarea { width: 100%; resize: vertical; box-sizing: border-box; }
+.yst-satir { display: flex; gap: var(--s-7); align-items: flex-end; flex-wrap: wrap; margin-top: var(--s-6); }
+.yst-sek { display: flex; gap: var(--s-3); margin-bottom: var(--s-5); }
+.yst-sek button { background: transparent; color: var(--t2); border: 1px solid var(--line2); border-radius: var(--r-md); padding: 5px 12px; cursor: pointer; font: inherit; }
+.yst-sek button.on { background: var(--acc-soft); color: var(--t1); border-color: var(--acc-line); }
+.yst-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s-6); margin-top: var(--s-6); }
+.yst-kart { border: 1px solid var(--line2); border-radius: var(--r-lg); overflow: hidden; background: var(--panel); display: flex; flex-direction: column; }
+.yst-kart img { width: 100%; height: 130px; object-fit: contain; background: var(--sunken); display: block; }
+.yst-kmeta { padding: var(--s-4) var(--s-5); color: var(--t2); font-size: var(--fs-cap); }
+.yst-kyol { display: flex; gap: var(--s-3); padding: 0 var(--s-5) var(--s-5); flex-wrap: wrap; }
+.yst-bilgi { color: var(--t2); margin: var(--s-5) 0; }
+.yst-durum { color: var(--t2); font-size: var(--fs-cap); }
+.yst-stiller { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: 4px; }
+.yst-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel); color: var(--t1); border: 1px solid var(--line2); border-radius: var(--r-full); padding: 4px 10px; cursor: pointer; font: inherit; }
+.yst-chip i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.yst-chip.on { border-color: var(--acc-line); background: var(--acc-soft); }
+.yst-kmeta b.iyi { color: var(--ok); } .yst-kmeta b.orta { color: var(--warn); } .yst-kmeta b.zayif { color: var(--err); }
+.yst-govde .ok { color: var(--ok); }
+.yst-govde audio { width: 100%; margin-top: var(--s-5); }
+.yst-gomulu #yst-grup .tb { white-space: nowrap; }
