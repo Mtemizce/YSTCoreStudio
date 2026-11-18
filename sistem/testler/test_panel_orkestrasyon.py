@@ -90,7 +90,7 @@ class Downloads(unittest.TestCase):
 class Orchestration(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        self.root = Path(self.tmp.name).resolve()
         (self.root/'projeler/demo/ana/.kurgu').mkdir(parents=True)
         (self.root/'projeler/demo/kaynak').mkdir()
         (self.root/'.claude').mkdir(); (self.root/'.claude/CLAUDE.md').write_text('Test rules')
@@ -253,6 +253,120 @@ class Video(unittest.TestCase):
                 runpy.run_path(str(V.__file__),run_name='__main__')
             self.assertEqual(json.loads(out.read_text()),['--frames','17'])
 
+
+
+class MediaDispatch(unittest.TestCase):
+    def test_direct_command_does_not_call_model(self):
+        import medya_gorevi
+
+        with tempfile.TemporaryDirectory() as temp:
+            job = Path(temp) / 'job.json'
+            job.write_text(json.dumps({'proje': 'demo', 'prompt': '/müzik sakin piyano',
+                                       'cfg': {'calisma_ortami': 'ollama'}}), encoding='utf-8')
+            with patch.object(O.subprocess, 'Popen', O.subprocess.Popen), \
+                 patch.object(O, 'local') as local, patch.object(O, 'emit') as emit, \
+                 patch.object(medya_gorevi, 'gorevlendir', return_value={'dosya': 'kaynak/ses/ace-step.wav'}) as produce:
+                O.worker(job)
+            local.assert_not_called()
+            produce.assert_called_once_with('demo', tur='music', istem='sakin piyano', format='ana')
+            emit.assert_any_call('text', text='Hazır: kaynak/ses/ace-step.wav')
+
+    def test_project_specialist_uses_matching_scene_and_active_format(self):
+        import medya_gorevi
+
+        with tempfile.TemporaryDirectory() as temp, patch.object(O, 'project', return_value=Path(temp)):
+            root = Path(temp)
+            (root / 'hikaye_tahtasi.md').write_text(
+                '| 0-2 | Eski sahne |\n| 2-4 | Modern salon |', encoding='utf-8')
+            (root / 'seri_baglami.md').write_text('# Dizi A, bölüm 3', encoding='utf-8')
+            (root / 'seri_model_seti.md').write_text('Onaylı dekor: ceviz mobilya', encoding='utf-8')
+            (root / 'reels').mkdir()
+            (root / 'reels/project.json').write_text('{"width":1080,"height":1920}', encoding='utf-8')
+            target = root / 'kaynak/foto/salon.png'
+            target.parent.mkdir(parents=True)
+            target.write_bytes(b'fixture')
+            with patch.object(medya_gorevi, 'uret', return_value='kaynak/foto/salon.png') as produce:
+                result = medya_gorevi.gorevlendir('demo', 'image', 'Üret', '2-4', format='reels')
+                prompt = produce.call_args.args[2]
+                self.assertIn('Modern salon', prompt)
+                self.assertNotIn('Eski sahne', prompt)
+                self.assertIn('1080×1920', prompt)
+                self.assertIn('Dizi A, bölüm 3', prompt)
+                self.assertIn('ceviz mobilya', prompt)
+                self.assertEqual(produce.call_args.kwargs['oran'], '9:16')
+                self.assertEqual(result['ajan'], 'gorsel-uretici')
+                self.assertTrue((root / 'medya_gorevleri.jsonl').exists())
+                with self.assertRaisesRegex(ValueError, 'bulunamadı'):
+                    medya_gorevi.gorevlendir('demo', 'image', 'Üret', 'yok')
+                produce.assert_called_once()
+
+    def test_project_media_choice_blocks_generation_or_calls_only_selected_api(self):
+        import medya_gorevi
+        from medya_tercihi import dogrula
+
+        catalog = {'movie-api': {'tur': ['video-uret']}}
+        with self.assertRaises(ValueError):
+            dogrula({'music': 'api:movie-api'}, catalog)
+        choices = dogrula({'video': 'api:movie-api', 'music': 'kurgu'}, catalog)
+        with tempfile.TemporaryDirectory() as temp, patch.object(O, 'project', return_value=Path(temp)):
+            root = Path(temp)
+            (root / 'uretim.json').write_text(json.dumps({'medya': choices}), encoding='utf-8')
+            target = root / 'kaynak/video/demo.mp4'
+            target.parent.mkdir(parents=True)
+            target.write_bytes(b'fixture')
+            with patch.object(medya_gorevi, 'uret') as local, \
+                 patch.object(medya_gorevi, 'api_uret', return_value='kaynak/video/demo.mp4') as api:
+                with self.assertRaisesRegex(ValueError, 'mevcut kaynakları'):
+                    medya_gorevi.gorevlendir('demo', 'image', 'Generate an image')
+                with self.assertRaisesRegex(ValueError, 'kurgu uzmanına'):
+                    medya_gorevi.gorevlendir('demo', 'music', 'Generate music')
+                result = medya_gorevi.gorevlendir('demo', 'video', 'Slow pan', format='reels')
+                self.assertEqual(result['yontem'], 'api:movie-api')
+                self.assertEqual(api.call_args.args[3], 'movie-api')
+                self.assertEqual(api.call_args.args[6], '9:16')
+                api.assert_called_once()
+                local.assert_not_called()
+
+    def test_seedance_reads_result_only_after_completion(self):
+        from unittest.mock import call
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'baglayici'))
+        import yetenek
+
+        path = Path(__file__).resolve().parents[1] / 'baglayici/ornekler/seedance-fal.json'
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+        base = manifest['taban_url']
+        payload = {'istem': 'Slow pan', 'sure_metin': '5', 'oran': '9:16'}
+        ctx = {'taban': base, 'key': 'fixture', 'model': None}
+        headers = {'Authorization': 'Key fixture'}
+        video_url = 'https://example.test/out.mp4'
+        with tempfile.TemporaryDirectory() as temp, patch.object(yetenek, '_http_json', side_effect=[
+            {'request_id': 'request-1'}, {'status': 'COMPLETED'}, {'video': {'url': video_url}}
+        ]) as http, patch.object(yetenek, '_indir', return_value=12) as download:
+            target = Path(temp) / 'clip.mp4'
+            result = yetenek._http_is(manifest, 'video-uret', payload, ctx, target)
+            self.assertEqual(result['bayt'], 12)
+            self.assertEqual(http.call_args_list[1:], [
+                call('GET', base + '/fal-ai/bytedance/requests/request-1/status', headers, None, 60),
+                call('GET', base + '/fal-ai/bytedance/requests/request-1', headers, None, 60),
+            ])
+            download.assert_called_once_with(video_url, target, None)
+
+    def test_media_uses_project_output_locations(self):
+        import yerel_medya, yerel_muzik, yerel_gorsel, yerel_video
+
+        with tempfile.TemporaryDirectory() as temp, patch.object(O, 'project', return_value=Path(temp)):
+            with patch.object(yerel_muzik, 'uret') as music:
+                result = yerel_medya.uret('demo', 'music', 'piano', 15)
+                self.assertTrue(result.startswith('kaynak/ses/ace-step-'))
+                self.assertEqual(music.call_args.args[2], 15)
+            with patch.object(yerel_gorsel, 'uret') as image:
+                result = yerel_medya.uret('demo', 'image', 'sunset')
+                self.assertTrue(result.startswith('kaynak/foto/z-image-'))
+                self.assertEqual(Path(image.call_args.args[1]), Path(temp) / result)
+            with patch.object(yerel_video, 'baslat') as video, patch.object(yerel_video, 'THREAD', Mock()), \
+                 patch.object(yerel_video, 'GEN', {'dosya': 'kaynak/video/wan.mp4'}):
+                self.assertEqual(yerel_medya.uret('demo', 'video', 'camera', 5), 'kaynak/video/wan.mp4')
+                video.assert_called_once_with('demo', 'camera', 121)
 
 class SDK(unittest.TestCase):
     def test_question_permission_and_session_roundtrip(self):

@@ -21,10 +21,13 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+NW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
 ROOT = Path(__file__).resolve().parents[2]
 KOK = ROOT / "kimlik" / "seriler"
@@ -286,13 +289,15 @@ def bolum_ekle(seri: str, sezon: int, ad: str, ozet: str = "", proje_ac: bool = 
     if proje_ac:
         tarif = f"{k['ad']} ({k['tur']}) sezon {sezon} bölüm {no}: {ad}. {ozet}".strip()[:3800]
         r = subprocess.run([sys.executable, str(ROOT / "sistem" / "araclar" / "yeni_proje.py"), proje, "--tarif", tarif, "--format", "ana"], cwd=str(ROOT),
-                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300, creationflags=NW, stdin=subprocess.DEVNULL)
         if r.returncode != 0:
             raise RuntimeError("proje açılamadı: " + (r.stdout + r.stderr)[-300:])
         up = ROOT / "projeler" / proje / "uretim.json"
         u = json.loads(up.read_text(encoding="utf-8")) if up.is_file() else {}
         u["seri"] = {"id": k["id"], "ad": k["ad"], "sezon": sezon, "bolum": no, "bolum_adi": ad, "gorsel_stil": k.get("gorsel_stil", "")}
         up.write_text(json.dumps(u, ensure_ascii=False, indent=2), encoding="utf-8")
+        from kurgu_plan import REQUIRED
+        (up.parent / REQUIRED).touch()
         b["durum"] = "proje-acildi"
     z["bolumler"].append(b)
     _yaz(k)

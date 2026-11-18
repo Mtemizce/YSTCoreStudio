@@ -10,7 +10,7 @@ export type Word = {baslangic: number; bitis: number; kelime: string};
  * `offset`: kelime zamanlarına eklenecek sn (ses katmanının sahnedeki başlangıcı). `perLine`: satırdaki kelime sayısı (dikey 2-3, yatay 6-7).
  * `y`: güvenli kutuya göre değil, kare yüksekliğine kesri (dikey 0.60 → alt arayüzün üstünde).
  */
-export const Captions: React.FC<{words: Word[]; offset?: number; perLine?: number; y?: number; upper?: boolean}> = ({words, offset = 0, perLine, y, upper = false}) => {
+export const Captions: React.FC<{words: Word[]; offset?: number; perLine?: number; y?: number; upper?: boolean; kinetic?: boolean}> = ({words, offset = 0, perLine, y, upper = false, kinetic = false}) => {
   const f = useCurrentFrame();
   const {fps} = useVideoConfig();
   const {W, H, vertical, safe, u} = useFormat();
@@ -71,9 +71,18 @@ export const Captions: React.FC<{words: Word[]; offset?: number; perLine?: numbe
         {group.map((w, i) => {
           const active = g0 + i === idx;
           const txt = upper ? w.kelime.toLocaleUpperCase('tr-TR') : w.kelime;
+          const movement = active && kinetic ? spring({
+            frame: Math.max(0, (t - w.baslangic) * fps), fps,
+            config: {damping: 17, stiffness: 220, mass: 0.8},
+          }) : 1;
+          const emphasis = active && kinetic ? {
+            display: 'inline-block',
+            transform: `translateY(${(1 - movement) * 12}px) scale(${0.92 + movement * 0.08})`,
+            opacity: 0.65 + Math.min(1, movement) * 0.35,
+          } : {};
           return (
             <React.Fragment key={i}>
-              <span style={{color: active ? C.gold : C.paper}}>{txt}</span>
+              <span style={{color: active ? C.gold : C.paper, ...emphasis}}>{txt}</span>
               {i < group.length - 1 ? ' ' : ''}
             </React.Fragment>
           );

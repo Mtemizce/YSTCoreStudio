@@ -30,3 +30,8 @@ Araç; sağlayıcının etkin olduğunu, anahtarın varlığını ve proje iznin
 Bulut izni ve anahtar gerekmez, ağa çıkılmaz. Model kuruluysa: `python sistem/araclar/gorsel_kutuphane.py uret "<istem>" --stil <stil-id> --genislik 1024 --yukseklik 576 --adet 2 --bekle` (yatay 16:9; dikey için 576x1024; stiller: `... stiller`).
 Her görsel **taslak** olarak kütüphaneye düşer. **Her görseli kendin kontrol et** (dosyaya bak; `kalite` ölçütü yalnızca ipucudur): yüz/el/nesne bozukluğu, istemle uyum, okunur yazı yok. Kötüyse `yeniden <id>` (yeni tohum) ya da istemi düzelt; iyiyse kullanıcıya göster, onay alınca `onayla <id>` (kullanıcının arşivine girer), olmazsa `reddet <id>`.
 Projede kullanmak için `python sistem/araclar/gorsel_kutuphane.py projeye <id> <proje>`. Dizi projesinde modelin sabit istem ekini her istemde aynen ekle (`seri_model_seti.md`).
+
+
+## Yerel medya görevi
+
+Görev yerel medya istiyorsa `python sistem/araclar/medya_gorevi.py <proje> image "<kısa görev>" --sahne "<hikâye tahtasındaki zaman veya başlık>"` çalıştır. Görsel için --oran 16:9, 9:16 veya 1:1 kullanılabilir. JSON çıktısındaki `dosya` yolunu kullan. Dosyayı işitsel/görsel olarak incelemediysen bunu raporda belirt.

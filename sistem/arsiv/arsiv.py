@@ -30,6 +30,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -41,6 +42,7 @@ DIR = ROOT / "sistem" / "ortam" / "arsiv"
 AYAR = DIR / "ayar.json"          # yalnızca eski (v1) kurulumdan göç için okunur
 DB = DIR / "arsiv.db"
 ILERLEME = DIR / "ilerleme.json"
+NW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
 TURLER = {
     "foto": {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".heic", ".webp", ".bmp", ".gif", ".avif", ".nef", ".cr2", ".cr3", ".arw", ".dng", ".orf", ".rw2"},
@@ -143,7 +145,7 @@ def foto_meta(yol: str):
 def video_meta(yol: str):
     try:
         r = subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_format", "-show_streams", yol],
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, timeout=30, creationflags=NW, stdin=subprocess.DEVNULL)
         j = json.loads(r.stdout)
         v = next((s for s in j.get("streams", []) if s.get("codec_type") == "video"), {})
         sure = float(j.get("format", {}).get("duration") or 0) or None
@@ -159,7 +161,7 @@ def ses_meta(yol: str):
     if not shutil.which("ffprobe"):
         return None, ""
     try:
-        r = subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_format", yol], capture_output=True, text=True, timeout=15)
+        r = subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_format", yol], capture_output=True, text=True, timeout=15, creationflags=NW, stdin=subprocess.DEVNULL)
         f = json.loads(r.stdout).get("format", {})
         sure = float(f.get("duration") or 0) or None
         tag = {k.lower(): v for k, v in (f.get("tags") or {}).items()}
@@ -192,11 +194,26 @@ def etiket_uret(rel: str) -> str:
 
 # ------------------------------------------------------------------ tarama
 def ilerleme_yaz(d: dict) -> None:
+    temp = None
     try:
-        DIR.mkdir(parents=True, exist_ok=True)
-        ILERLEME.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        ILERLEME.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=ILERLEME.parent,
+                                         prefix="ilerleme-", delete=False) as stream:
+            temp = Path(stream.name)
+            json.dump(d, stream, ensure_ascii=False)
+        temp.replace(ILERLEME)
     except OSError:
         pass
+    finally:
+        if temp is not None:
+            try:
+                temp.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+def ilerleme_aktar(yaz, asama, durum, baslangic, sayac, **ek):
+    yaz({"asama": asama, "durum": durum, **sayac, **ek, "sn": int(time.time() - baslangic)})
 
 
 def _iso_epoch(s) -> float:
@@ -208,20 +225,27 @@ def _iso_epoch(s) -> float:
         return 0.0
 
 
-def _tara_uzak(c, kid: int, ad: str, uzak: str, durdur, yazdir) -> dict:
+def _tara_uzak(c, kid: int, ad: str, uzak: str, durdur, yazdir, yaz) -> dict:
     """Bulut disk (rclone) taraması: yalnızca LİSTE (ad, boyut, tarih). İçerik indirilmez; çözünürlük/keskinlik analiz sırasında ölçülür."""
     baslangic = time.time()
     fts = fts_var(c)
     var_olan = {r["yol"]: (r["boyut"], r["mtime"]) for r in c.execute("SELECT yol, boyut, mtime FROM dosya WHERE kok_id=?", (kid,))}
     sayac = {"gezilen": 0, "yeni": 0, "guncellenen": 0, "ayni": 0, "hata": 0, "bulutta": 0}
-    ilerleme_yaz({"durum": "çalışıyor (bulut listesi alınıyor)", "arsiv": ad, **sayac, "sn": 0})
+    ilerleme_aktar(yaz, "tarama", "Bulut listesi alınıyor", baslangic, sayac, arsiv=ad)
     liste = K._bd().dosyalar(uzak)
     kesildi = False
     bekleyen = 0
+    son_ilerleme = time.monotonic()
+    sayac["gorulen"] = 0
     for e in liste:
         if durdur and durdur():
             kesildi = True
             break
+        sayac["gorulen"] += 1
+        if time.monotonic() - son_ilerleme >= 0.5:
+            ilerleme_aktar(yaz, "tarama", "Bulut dosyaları dizine ekleniyor", baslangic, sayac,
+                           arsiv=ad, liste_toplam=len(liste))
+            son_ilerleme = time.monotonic()
         rel = str(e.get("Path", "")).replace("\\", "/")
         parcalar = rel.split("/")
         isim = parcalar[-1]
@@ -256,18 +280,17 @@ def _tara_uzak(c, kid: int, ad: str, uzak: str, durdur, yazdir) -> dict:
         if bekleyen >= 2000:
             c.commit()
             bekleyen = 0
-            ilerleme_yaz({"durum": "çalışıyor", "arsiv": ad, **sayac, "sn": int(time.time() - baslangic)})
             yazdir(f"  {sayac['gezilen']} dosya · yeni {sayac['yeni']} · değişmemiş {sayac['ayni']}")
     return _tara_sonu(c, kid, ad, fts, baslangic, kesildi, sayac)
 
 
-def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
+def _tara_kok(c, kid: int, derin: bool, durdur, yazdir, yaz) -> dict:
     kok = kok_coz(kid, c)
     ad, adaptor, uzak = c.execute("SELECT ad, adaptor, uzak FROM kok WHERE id=?", (kid,)).fetchone()
     if kok is None:
         raise RuntimeError(f"'{ad}' arşivi bağlı değil ya da bu bilgisayarda bulunamadı: " + K.kok_coz(c, kid)["not"])
     if adaptor == "rclone":
-        return _tara_uzak(c, kid, ad, uzak, durdur, yazdir)
+        return _tara_uzak(c, kid, ad, uzak, durdur, yazdir, yaz)
     baslangic = time.time()
     fts = fts_var(c)
     var_olan = {}
@@ -279,19 +302,29 @@ def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
     bekleyen = 0
     yigin = [kok]
     kesildi = False
-    ilerleme_yaz({"durum": "çalışıyor", "arsiv": ad, **sayac, "sn": 0})
+    sayac.update(gorulen=0, klasor_sayisi=0)
+    son_ilerleme = time.monotonic()
+    ilerleme_aktar(yaz, "tarama", "Klasörler taranıyor", baslangic, sayac, arsiv=ad)
     try:
         while yigin:
             if durdur and durdur():
                 kesildi = True
                 break
             d = yigin.pop()
+            sayac["klasor_sayisi"] += 1
             try:
                 girdiler = list(os.scandir(d))
             except OSError:
                 sayac["hata"] += 1
                 continue
             for e in girdiler:
+                if durdur and durdur():
+                    kesildi = True
+                    break
+                if time.monotonic() - son_ilerleme >= 0.5:
+                    ilerleme_aktar(yaz, "tarama", "Klasörler taranıyor", baslangic, sayac,
+                                   arsiv=ad, klasor=d.relative_to(kok).as_posix()[:120])
+                    son_ilerleme = time.monotonic()
                 try:
                     if e.is_dir(follow_symlinks=False):
                         if e.name.lower() not in ATLA_KLASOR and not e.name.startswith("$"):
@@ -299,6 +332,7 @@ def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
                         continue
                     if not e.is_file(follow_symlinks=False) or e.name.lower() in ATLA_DOSYA:
                         continue
+                    sayac["gorulen"] += 1
                     uz = os.path.splitext(e.name)[1].lower()
                     tur = UZ2TUR.get(uz)
                     if tur is None:
@@ -306,6 +340,9 @@ def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
                     st = e.stat()
                     rel = Path(e.path).relative_to(kok).as_posix()
                     sayac["gezilen"] += 1
+                    if sayac["gezilen"] == 1:
+                        ilerleme_aktar(yaz, "tarama", "Klasörler taranıyor", baslangic, sayac,
+                                       arsiv=ad, klasor=d.relative_to(kok).as_posix()[:120])
                     eski = var_olan.get(rel)
                     bulut = K.bulutta_mi(st)  # içerik yerelde değil: açmak indirmeyi tetikler, o yüzden okunmaz
                     if eski and eski[0] == st.st_size and abs(eski[1] - st.st_mtime) < 2:
@@ -342,10 +379,11 @@ def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
                     if bekleyen >= 2000:
                         c.commit()
                         bekleyen = 0
-                        ilerleme_yaz({"durum": "çalışıyor", "arsiv": ad, **sayac, "sn": int(time.time() - baslangic), "klasor": str(d.relative_to(kok))[:80]})
                         yazdir(f"  {sayac['gezilen']} dosya · yeni {sayac['yeni']} · değişmemiş {sayac['ayni']}")
                 except OSError:
                     sayac["hata"] += 1
+            if kesildi:
+                break
     except KeyboardInterrupt:
         kesildi = True
     c.commit()
@@ -354,10 +392,10 @@ def _tara_kok(c, kid: int, derin: bool, durdur, yazdir) -> dict:
 
 def _tara_sonu(c, kid: int, ad: str, fts: bool, baslangic: float, kesildi: bool, sayac: dict) -> dict:
     if True:
-        if kesildi:
+        if kesildi or sayac["hata"]:
             c.commit()
             sayac["sn"] = int(time.time() - baslangic)
-            sayac["durum"] = "kesildi (tekrar çalıştırınca devam eder)"
+            sayac["durum"] = "kesildi" if kesildi else "erişim hatalarıyla tamamlandı"
             sayac["arsiv"] = ad
             return sayac
         # bu taramada görülmeyenler arşivden silinmiş/taşınmış: dizinden çıkar (arşive dokunulmaz); yalnızca BU kökün kayıtları
@@ -386,19 +424,29 @@ def tara(derin: bool = False, durdur=None, yazdir=print, kok_id: int | None = No
     if not hedef:
         raise RuntimeError("arşiv tanımlı değil (önce 'ayarla' ya da panel → Ayarlar → Konumlar)")
     sonuclar, atlanan = [], []
-    for kid in hedef:
+    alanlar = ("gorulen", "gezilen", "yeni", "guncellenen", "ayni", "hata", "bulutta", "sn",
+               "silinen_kayit", "klasor_sayisi")
+
+    def bildir(yerel):
+        toplam = {k: sum(s.get(k, 0) for s in sonuclar) + yerel.get(k, 0) for k in alanlar}
+        ilerleme_yaz({**yerel, **toplam, "arsiv_sira": sira, "arsiv_toplam": len(hedef),
+                      "liste_islenen": yerel.get("gorulen", 0)})
+
+    for sira, kid in enumerate(hedef, 1):
         if durdur and durdur():
             break
         try:
-            sonuclar.append(_tara_kok(c, kid, derin, durdur, yazdir))
+            sonuclar.append(_tara_kok(c, kid, derin, durdur, yazdir, bildir))
         except RuntimeError as e:
             if kok_id:
                 raise
             atlanan.append(str(e))
-    if not sonuclar:
+    if not sonuclar and not (durdur and durdur()):
         raise RuntimeError("arşiv bağlı değil: " + "; ".join(atlanan))
-    top = {k: sum(s.get(k, 0) for s in sonuclar) for k in ("gezilen", "yeni", "guncellenen", "ayni", "hata", "bulutta", "sn", "silinen_kayit")}
-    top["durum"] = sonuclar[-1]["durum"]
+    top = {k: sum(s.get(k, 0) for s in sonuclar) for k in alanlar}
+    top["asama"] = "tarama"
+    top["durum"] = ("kesildi" if durdur and durdur() else
+                    "erişim hatalarıyla tamamlandı" if top["hata"] else sonuclar[-1]["durum"])
     top["arsiv"] = ", ".join(s["arsiv"] for s in sonuclar)
     if atlanan:
         top["atlanan"] = atlanan
@@ -438,10 +486,14 @@ def _kosul(yil=None, tur=None, kelime=None, klasor=None, c=None, klasor_on=None,
         p += [klasor_on, klasor_on + "/%"]
     if kelime:
         toks = [t for t in re.split(r"\s+", norm(kelime)) if t]
-        # Folder names are substrings, not necessarily FTS token prefixes; cover old indexes too.
+        fts = c is not None and fts_var(c)
         for t in toks:
-            w.append("yst_norm(d.etiket || ' ' || d.ad || ' ' || d.klasor) LIKE ? ESCAPE '\\'")
+            folder = "yst_norm(d.etiket || ' ' || d.ad || ' ' || d.klasor) LIKE ? ESCAPE '\\'"
             p.append("%" + t.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%")
+            if fts and any(ch.isalnum() for ch in t):
+                folder = f"({folder} OR d.id IN (SELECT rowid FROM dosya_fts WHERE dosya_fts MATCH ?))"
+                p.append('"' + t.replace('"', '""') + '"*')
+            w.append(folder)
     return (" WHERE " + " AND ".join(w)) if w else "", p
 
 

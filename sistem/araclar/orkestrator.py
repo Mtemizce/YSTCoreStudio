@@ -144,7 +144,7 @@ def drain(name, approved=False):
                   + item['directory'] + '\nGönderim: ' + str(item['entry']['seq']) + '\n'
                   + '\n'.join(str(n.get('timecode', '')) + ' ' + str(n.get('text', '')) for n in item['entry']['notes'])[:30000]
                   + '\nİş bitince kurgu notes done ile notları yanıtla. Yeni terminal veya bağımsız ajan oturumu açma.')
-        result = start(name, prompt)
+        result = start(name, prompt, format=Path(item['directory']).name)
         if result.get('ok'):
             files[0].replace(files[0].with_suffix('.done'))
         return result
@@ -177,10 +177,19 @@ def trust(approve=False):
     return p.exists()
 
 
-def start(name, prompt, approved=False):
-    project(name)
+def start(name, prompt, approved=False, format='ana'):
+    directory = project(name)
+    if format not in ('ana', 'reels', 'tiktok', 'shorts', 'story'):
+        raise ValueError('Geçersiz kurgu biçimi.')
     if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 40000:
         raise ValueError('Mesaj 1–40000 karakter olmalı')
+    from kurgu_plan import REQUIRED, durum as plan_durum, oner
+    directory = Path(directory)
+    planning = ""
+    if name != '_profil' and (directory / REQUIRED).exists() and not plan_durum(directory)['onayli']:
+        suggestions = ', '.join(item['ad'] for item in oner(prompt)) or 'Doğal montaj'
+        planning = ('\n\nBu tur sadece planlama ve revizyon. Üretim, kesim ve render yapma. '
+                   'Storyboard’u yazıp panel onayında dur. Stil önerileri: ' + suggestions)
     with LOCK:
         if name in JOBS and (JOBS[name]['p'].poll() is None or JOBS[name]['thread'].is_alive()):
             raise ValueError('Orkestratör çalışıyor. Yanıtını bekle veya üretimi durdur.')
@@ -196,7 +205,7 @@ def start(name, prompt, approved=False):
         save(name, d)
         jobfile = STORE / (name + '.job.json')
         jobfile.write_text(json.dumps({'proje': name, 'prompt': prompt, 'cfg': cfg, 'session': d.get('session'),
-                                       'history': d['mesajlar'][-40:]}, ensure_ascii=False), encoding='utf-8')
+                                       'history': d['mesajlar'][-40:], 'format': format, 'planlama': planning}, ensure_ascii=False), encoding='utf-8')
         import yol
         py = ROOT / 'sistem/ortam/venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
         if not py.exists():
@@ -314,12 +323,16 @@ async def claude(job):
                              permission_mode='default', can_use_tool=approve, resume=job.get('session'),
                              model=cfg.get('model') or None,
                              system_prompt={'type': 'preset', 'preset': 'claude_code', 'append': 'Kullanıcıyla yalnızca panelde konuş. Terminal penceresi açma. Proje: ' + job['proje']})
-    configure_mcp(opts)
+    configure_mcp(opts, job['proje'], job.get('format', 'ana'))
+    if job['proje'] != '_profil':
+        opts.allowed_tools = ['mcp__yerel_medya__gorevlendir']
+        opts.env = {**getattr(opts, 'env', {}), 'MCP_TOOL_TIMEOUT': '7500000'}
+        opts.system_prompt['append'] += ' Teknik planın her görevi için ilgili becerileri seç. python sistem/araclar/kurgu_becerileri.py liste komutu uygun yerel dosya yollarını verir. ' + ' Üretim yapma: görevi planla, ilgili alt ajana ver, teslimi kontrol et. Proje tercihi yerel veya API ise medya için sahne etiketi ve kısa görevle yerel_medya / gorevlendir aracını kullan; uzman uygulamayı üstlenir.'
     cli = shutil.which('claude')
     if cli and not cli.lower().endswith(('.cmd', '.bat')):
         opts.cli_path = cli
     async with ClaudeSDKClient(options=opts) as client:
-        await client.query(job['prompt'])
+        await client.query(job['prompt'] + job.get('planlama', ''))
         async for msg in client.receive_response():
             sid = getattr(msg, 'session_id', None)
             if sid:
@@ -333,7 +346,7 @@ async def claude(job):
                 raise RuntimeError(getattr(msg, 'result', None) or 'Claude isteği başarısız')
 
 
-def configure_mcp(opts):
+def configure_mcp(opts, project_name, format='ana'):
     # Use subscription login of the installed CLI when available, SDK bundle otherwise.
     # The existing MCP configuration includes project-selected connectors and scoped secrets.
     sys.path.insert(0, str(ROOT / 'sistem/baglayici'))
@@ -351,6 +364,28 @@ def configure_mcp(opts):
                 if value:
                     os.environ[key] = value
 
+    if project_name != '_profil':
+        from claude_agent_sdk import create_sdk_mcp_server, tool
+        import medya_gorevi
+
+        @tool('gorevlendir', medya_gorevi.DESCRIPTION, {'tur': str, 'istem': str, 'sahne': str, 'oran': str})
+        async def produce(args):
+            try:
+                result = await asyncio.to_thread(
+                    lambda: medya_gorevi.gorevlendir(
+                        project_name, args['tur'], args['istem'], args.get('sahne', ''),
+                        args.get('oran', ''), format=format,
+                    ),
+                )
+                return {'content': [{'type': 'text', 'text': json.dumps(result, ensure_ascii=False)}]}
+            except Exception as exc:
+                return {'isError': True, 'content': [{'type': 'text', 'text': str(exc)}]}
+
+        servers = json.loads(Path(mcp_path).read_text(encoding='utf-8')).get('mcpServers', {}) if mcp_path else {}
+        servers['yerel_medya'] = create_sdk_mcp_server(name='yerel_medya', tools=[produce])
+        opts.mcp_servers = servers
+
+
 def safe_path(value, write=False, name=None):
     p = (ROOT / value).resolve()
     if (p != ROOT.resolve() and ROOT.resolve() not in p.parents) or any(x in p.parts for x in ('.git', '.aws')):
@@ -366,7 +401,12 @@ TOOLS = [{'type': 'function', 'function': {'name': n, 'description': desc,
     ('list', 'List a studio directory', {'path': {'type': 'string'}}),
     ('write', 'Write a generated project file, after panel approval', {'path': {'type': 'string'}, 'text': {'type': 'string'}}),
     ('run', 'Run a program with argv after explicit panel approval; no shell', {'argv': {'type': 'array', 'items': {'type': 'string'}}}),
-    ('delegate', 'Delegate a task to a configured agent role', {'agent': {'type': 'string'}, 'task': {'type': 'string'}})
+    ('local_media', 'Assign a media task to the project specialist using the configured project engine. Pass a short brief. Scene: storyboard label or empty. Aspect ratio: images only, or empty. Returns a verified asset record.', {
+        'tur': {'type': 'string', 'enum': ['image', 'video', 'music']},
+        'istem': {'type': 'string'}, 'sahne': {'type': 'string'}, 'oran': {'type': 'string'},
+    }),
+    ('skills', 'List installed skill IDs and local reference paths before delegating', {}),
+    ('delegate', 'Delegate to a configured agent role with relevant skill IDs in beceriler', {'agent': {'type': 'string'}, 'task': {'type': 'string'}, 'beceriler': {'type': 'array', 'items': {'type':'string'}}})
 ]]
 
 
@@ -378,7 +418,10 @@ def local(job, role=None, depth=0, approval=None):
     instructions = (ROOT / '.claude/CLAUDE.md').read_text(encoding='utf-8')
     if role:
         instructions += '\n' + (ROOT / '.claude/agents' / (role + '.md')).read_text(encoding='utf-8')
-    messages = [{'role': 'system', 'content': instructions + '\nUse tools for actual work. Never claim an action without tool success. Active project: ' + job['proje']}]
+    direction = ('Execute only the assigned specialist task.' if role else
+                 'Plan, delegate production to specialists, verify the result. For media dispatch use local_media; for judgment and editing use delegate.')
+    messages = [{'role': 'system', 'content': instructions + '\n' + direction + job.get('planlama', '') +
+                 ' Do not claim work without a verified result. Active project: ' + job['proje']}]
     messages += [{'role': m['rol'], 'content': m['metin']} for m in job['history'] if m['rol'] in ('user', 'assistant')]
     u = endpoint(kind, cfg) + ('/api/chat' if kind == 'ollama' else '/chat/completions')
     for _ in range(60):
@@ -399,9 +442,25 @@ def local(job, role=None, depth=0, approval=None):
                     result = safe_path(a['path']).read_text(encoding='utf-8')[:60000]
                 elif n == 'list':
                     result = '\n'.join(p.name for p in safe_path(a['path']).iterdir())[:12000]
+                elif n == 'local_media':
+                    from medya_gorevi import gorevlendir
+                    result = json.dumps(gorevlendir(
+                        job['proje'], a['tur'], a['istem'], a.get('sahne', ''), a.get('oran', ''),
+                        format=job.get('format', 'ana'),
+                    ), ensure_ascii=False)
+                elif n == 'skills':
+                    from kurgu_plan import beceriler
+                    result = json.dumps({key: value['yol'] for key, value in beceriler().items()
+                                         if value['kurulu']}, ensure_ascii=False)
                 elif n == 'delegate':
                     if depth >= 2 or not re.fullmatch(r'[a-z][a-z-]{0,50}', a['agent']):
                         raise ValueError('Alt ajan sınırı veya geçersiz rol')
+                    from kurgu_plan import beceriler
+                    known = beceriler()
+                    selected = a.get('beceriler') or []
+                    paths = [known[key]['yol'] for key in selected if key in known and known[key]['kurulu']]
+                    if paths:
+                        a['task'] += '\nUygulanacak beceriler: ' + ', '.join(paths)
                     ac = config().ajan(a['agent'], None if job['proje'] == '_profil' else job['proje'])
                     ak = ac['etkin_ortam']
                     if ak in LOCAL:
@@ -451,7 +510,14 @@ def worker(path):
     job = json.loads(Path(path).read_text(encoding='utf-8'))
     kind = job['cfg'].get('calisma_ortami', 'claude-code')
     try:
-        if kind == 'claude-code':
+        import yerel_medya
+        direct = yerel_medya.komut(job['prompt'])
+        if direct:
+            from medya_gorevi import ROLLER, gorevlendir
+            emit('log', text='Medya görevi: ' + ROLLER[direct['tur']])
+            result = gorevlendir(job['proje'], **direct, format=job.get('format', 'ana'))
+            emit('text', text='Hazır: ' + result['dosya'])
+        elif kind == 'claude-code':
             asyncio.run(claude(job))
         elif kind in LOCAL:
             local(job)
@@ -461,7 +527,7 @@ def worker(path):
             out = Path(path).with_suffix('.output.txt')
             conversation = '\n\n'.join(m['rol'] + ': ' + m['metin'] for m in job['history'] if m['rol'] in ('user', 'assistant'))[-60000:]
             context = Path(path).with_suffix('.conversation.md')
-            context.write_text(conversation, encoding='utf-8')
+            context.write_text(conversation + job.get('planlama', ''), encoding='utf-8')
             prompt = 'Read .claude/CLAUDE.md and ' + context.relative_to(ROOT).as_posix() + '. Continue the conversation from the last user message. Respond through this session; never open a terminal window.'
             cmd = ajan_cagir.komut_kur(kind, prompt, False, out, job['cfg'].get('model') or '')
             r = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, encoding='utf-8', errors='replace', creationflags=NW, stdin=subprocess.DEVNULL, timeout=7200)

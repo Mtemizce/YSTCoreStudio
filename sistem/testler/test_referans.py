@@ -28,7 +28,8 @@ try:
         parcalar.append(p)
     (TMP / "liste.txt").write_text("".join(f"file '{p.name}'\n" for p in parcalar), encoding="utf-8")
     video = TMP / "deneme video.mp4"  # boşluklu ad: yol işleme sağlam mı
-    subprocess.run([FF, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(TMP / "liste.txt"), "-c", "copy", str(video)], check=True)
+    subprocess.run([FF, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", "liste.txt", "-c", "copy", video.name],
+                   cwd=TMP, check=True)
 
     cikti = TMP / "cikti"
     r = subprocess.run([sys.executable, str(BETIK / "sahne_bul.py"), str(video), "--cikti", str(cikti)], capture_output=True, text=True, encoding="utf-8")

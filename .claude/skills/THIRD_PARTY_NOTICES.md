@@ -173,3 +173,19 @@ Entegrasyon: `sistem/araclar/yerel_video.py`. Motor/runtime SHA256 değerleri up
 
 - Claude Agent SDK Python: https://github.com/anthropics/claude-agent-sdk-python. SDK ve birlikte kullanılan Claude Code çalışma zamanının kendi lisans/hesap koşulları geçerlidir. Panel SDK üzerinden yanıt ve izin olaylarını işler; hesap kimlik bilgilerini kopyalamaz.
 - Ollama, LM Studio ve llama.cpp paketleri veya model ağırlıkları depoya dahil edilmez. Panel onların yerel HTTP API'lerine bağlanır. Seçilen modelin ve sunucu yazılımının kendi lisansı geçerlidir.
+
+- **ACE-Step 1.5** — isteğe bağlı sözsüz müzik motoru. [Kaynak ve MIT lisansı](https://github.com/ace-step/ACE-Step-1.5/tree/v0.1.8), [model kartı ve ağırlıklar](https://huggingface.co/ACE-Step/Ace-Step1.5). Kod ve ağırlıklar dağıtım ZIP’ine eklenmez; kullanıcı kurulum isteğiyle indirilir.
+
+- **Video Studio Kit (owlinthebarnai)** — stil ve araç kataloğu referansı. Uygulaması, örnek görüntüleri ve toplu skill arşivi paketlenmez. [Kaynak](https://github.com/owlinthebarnai/video-studio-kit) · [Upstream atıfları](https://github.com/owlinthebarnai/video-studio-kit/blob/main/THIRD_PARTY.md).
+- **LottieFiles Motion Design Skill** — MIT, Copyright (c) 2025 LottieFiles. Kurulum Video Studio Kit’in işaret ettiği `f9a8a041` commit’indeki Markdown rehberlerini lisansla birlikte doğrudan yazardan çeker. [Kaynak ve lisans](https://github.com/LottieFiles/motion-design-skill).
+
+## Montaj teknikleri referansları
+
+| Bileşen | Kaynak / sürüm | Lisans ve kullanım |
+|---|---|---|
+| Opus Video Skills | https://github.com/tuzhechen2005/opus-video-skills | MIT. Kinetik tipografi teknik referansı. Örnekler ve render şablonları paketlenmez. |
+| Brag | https://github.com/latent-spaces/brag | MIT. Kod ve örnekler paketlenmez. Render ilk karesinin denetimi için teknik referans. |
+| Claude Motion Design | https://github.com/howseen-ai/claude-motion-design | MIT. Vuruş eşleme referansı. Kendi kodumuz ses dosyasından vuruş adaylarını çıkarır. |
+| Herk Edit Kit | https://github.com/nateherkai/herk-edit-kit | MIT, Copyright (c) 2026 Nate Herk. Kelime zamanları ve kesim doğrulaması için teknik referans. Kit dosyaları paketlenmez. |
+| SaaS Motion Kit | https://github.com/tugrawork-creator/saas-motion-kit | MIT (kod ve belgeler). Tanıtım sahnesi ve hareket düzenleri için referans. Örnekler, fontlar ve harici materyal paketlenmez. |
+| Snapcn | https://github.com/shadcn-labs/snapcn | MIT. Modüler düzen ve hareket stili için referans. Registry kodu ve tasarım varlıkları paketlenmez. |

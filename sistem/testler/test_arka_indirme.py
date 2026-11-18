@@ -1,13 +1,15 @@
-"""Müzik/ses efekti indirmesi takılmasın: hız sınırında hızlı vazgeçme, arka plan yöneticisi, atlanabilir kurulum adımları. Hermetik (yalnızca 127.0.0.1)."""
+"""Müzik/ses efekti indirmesi takılmasın: hız sınırında hızlı vazgeçme, arka plan yöneticisi, atlanabilir kurulum adımları. Hermetik HTTP yanıtları."""
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 import urllib.error
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import io
+from urllib.parse import urlparse
+from unittest.mock import patch
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -38,39 +40,28 @@ t("User-Agent proje adresini içerir", "https://github.com/" in V.UA and "YSTCor
 t("User-Agent kişisel veri içermez", "@" not in V.UA)
 t("User-Agent ASCII (HTTP başlığı latin-1; Türkçe harf indirmeyi çökertir)", V.UA.isascii())
 
-# ---------------------------------------------------------------- yerel sunucu: 429 davranışı
-SAYAC = {"/uzun": 0, "/kisa": 0, "/iyi": 0, "/gorunmez": 0}
-KISA_ILK = {"gordu": False}
+# ---------------------------------------------------------------- HTTP yanıtları: hız sınırı, 404 ve ağ hatası
+SAYAC = {}
+TAKA = "http://127.0.0.1:49490"
 
 
-class H(BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def do_GET(self):
-        SAYAC[self.path] = SAYAC.get(self.path, 0) + 1
-        if self.path == "/uzun":   # 120 sn bekle diyen sunucu (Wikimedia'nın verdiği)
-            self.send_response(429)
-            self.send_header("Retry-After", "120")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-        elif self.path == "/kisa" and not KISA_ILK["gordu"]:   # 1 sn bekle diyen sunucu: bir kez beklenip başarılı olmalı
-            KISA_ILK["gordu"] = True
-            self.send_response(429)
-            self.send_header("Retry-After", "1")
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-        else:
-            b = b"merhaba"
-            self.send_response(200)
-            self.send_header("Content-Length", str(len(b)))
-            self.end_headers()
-            self.wfile.write(b)
+def http_yanit(istek, **_):
+    url = istek.full_url
+    address = urlparse(url)
+    route = address.path
+    SAYAC[route] = SAYAC.get(route, 0) + 1
+    if address.port == 9:
+        raise urllib.error.URLError("sunucu çevrimdışı")
+    if route == "/uzun" or (route == "/kisa" and SAYAC[route] == 1):
+        raise urllib.error.HTTPError(url, 429, "Too Many Requests",
+                                     {"Retry-After": "120" if route == "/uzun" else "1"}, None)
+    if route == "/yok-dosya-404":
+        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+    return io.BytesIO(b"merhaba")
 
 
-srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
-threading.Thread(target=srv.serve_forever, daemon=True).start()
-TAKA = f"http://127.0.0.1:{srv.server_address[1]}"
+transport = patch("urllib.request.urlopen", side_effect=http_yanit)
+transport.start()
 tmp = Path(tempfile.mkdtemp(prefix="yst_ark_"))
 
 V._SON_ISTEK.clear()
@@ -102,7 +93,8 @@ try:
     V._indir(TAKA + "/yok-dosya-404", tmp / "e.bin")
 except Exception as e:  # noqa: BLE001
     t("404 hız sınırı sayılmaz (devre kesici açmaz)", isinstance(e, urllib.error.HTTPError) and not V._ENGEL)
-srv.shutdown()
+else:
+    t("404 hatası iletilmeli", False)
 V._ENGEL.clear()
 # ulaşılamayan sunucu: engel + hızlı vazgeç
 bas = time.time()
@@ -112,6 +104,8 @@ try:
 except V.SunucuEngeli:
     t("ulaşılamayan sunucu: SunucuEngeli, hızlı", time.time() - bas < 30)
 V._ENGEL.clear()
+
+transport.stop()
 
 # ---------------------------------------------------------------- indir_calistir: engel = ATLANDI (hata değil), diğerleri devam eder
 import sqlite3  # noqa: E402
@@ -161,6 +155,8 @@ A = yukle("arka_t", R / "sistem" / "araclar" / "arka_indirme.py")
 y = tmp / "yerel"
 y.mkdir()
 A.YEREL, A.DURUM, A.ATLA = y, y / "d.json", y / "a.atla"
+A.SES_ISTEMIYOR = y / "tercihler" / "ses-istenmiyor"
+A.GPU_ISTEMIYOR = y / "gpu-tercihleri" / "gpu-istenmiyor"
 EKSIK = {"v": {"model": 12}}
 A.ses_ozeti = lambda: {"eksik": 0, "boyut_mb": 0, "istemiyor": False}
 A.eksikler = lambda taze=False: EKSIK["v"]
@@ -191,7 +187,24 @@ gercek_baslat = A.baslat
 uzun = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
 A._yaz({"calisiyor": True, "pid": uzun.pid, "nabiz": time.time(), "sira": 1, "toplam": 12, "simdiki": "m", "sonuc": {}})
 t("çalışan süreç canlı görünür", A.durum()["calisiyor"])
-r = A.atla()
+if os.name == "nt":
+    # The taskkill command may be disallowed by the runner. Check its arguments
+    # and terminate only the process owned by this fixture.
+    expected = ["taskkill", "/PID", str(uzun.pid), "/T", "/F"]
+    original_run = subprocess.run
+
+    def stop_fixture(args, *other, **kwargs):
+        if args[:1] == ["taskkill"]:
+            if args != expected:
+                raise AssertionError(f"Beklenmeyen durdurma komutu: {args}")
+            uzun.terminate()
+            return subprocess.CompletedProcess(args, 0)
+        return original_run(args, *other, **kwargs)
+
+    with patch.object(A.subprocess, "run", side_effect=stop_fixture):
+        r = A.atla()
+else:
+    r = A.atla()
 try:
     uzun.wait(timeout=15)
     oldu = True
@@ -219,11 +232,13 @@ t("otomatik: yalnızca müzik/ses eksikse HİÇ başlatmaz", A.otomatik() is Non
 src_ark = (R / "sistem" / "araclar" / "arka_indirme.py").read_text(encoding="utf-8")
 t("müzik/ses yalnızca ses=True ile istenir", "if ses:" in src_ark and "turler=SES_TURLER" in src_ark and "SES_TURLER" not in src_ark.split("def calis")[1].split("if ses:")[0])
 A.baslat = gercek_baslat
+A.gpu_istemiyor()
+t("GPU tercihi, dizin önceden yokken kaydedilir", A.GPU_ISTEMIYOR.is_file())
 A.ses_istemiyor(True)
 t("'gerek yok' kararı kaydedilir ve geri alınabilir", A.SES_ISTEMIYOR.exists() and A.ses_istemiyor(False) is not None and not A.SES_ISTEMIYOR.exists())
 
 # ---------------------------------------------------------------- ağır parçalar arka plan kuyruğunda
-t("kuyruk sırası: PyTorch → paketler → modeller", [k["id"] for k in A.KUYRUK][:4] == ["temel", "rclone", "pytorch", "paketler"] and [k["id"] for k in A.KUYRUK if k["tur"] == "hf"][0] == "model-ema")
+t("kuyruk sırası: PyTorch → paketler → modeller", [k["id"] for k in A.KUYRUK if k["id"] != "ajan-sdk"][:4] == ["temel", "rclone", "pytorch", "paketler"] and [k["id"] for k in A.KUYRUK if k["tur"] == "hf"][0] == "model-ema")
 t("her kalemin ne işe yaradığı ve neye gerektiği yazılı", all(k["ne"] and k["gerek"] and k["gb"] > 0 for k in A.KUYRUK) and A.SES_KALEM["ne"])
 t("paketler PyTorch'a bağlı (PyTorch inmeden pip kendi torch'unu çekmesin)", next(k for k in A.KUYRUK if k["id"] == "paketler")["dep"] == "pytorch")
 gr = (R / "sistem" / "kurulum" / "gereksinim.txt").read_text(encoding="utf-8")
@@ -240,7 +255,15 @@ A.kalem_eksik = lambda k: k["id"] in EKS
 A.ses_ozeti = lambda: {"eksik": 0, "boyut_mb": 0, "istemiyor": False}
 cagri = []
 A._pip = lambda args, zaman=3600: cagri.append(("pip", str(args[0]))) or ("ağ yok" if args[0] == "torch" else "")
-A._hf = lambda repo, ev: cagri.append(("hf", repo)) or ""
+def fake_hf(repo, ev):
+    cagri.append(("hf", repo))
+    for item in A.KUYRUK:
+        if item.get("repo") == repo:
+            EKS.discard(item["id"])
+    return ""
+
+
+A._hf = fake_hf
 A.YEREL, A.DURUM = y, y / "kuyruk.json"
 A.calis(False)
 st = json.loads(A.DURUM.read_text(encoding="utf-8"))

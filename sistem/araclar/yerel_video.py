@@ -10,6 +10,7 @@ import threading
 import time
 import uuid
 from indirme import download, valid, unzip
+from medya_kilit import uretim_kilidi
 
 ROOT = Path(__file__).resolve().parents[2]
 DIR = ROOT / 'sistem/ortam/yerel-video'
@@ -119,7 +120,7 @@ def _generate(proje, prompt, frames):
         if not py.exists():
             py = Path(sys.executable)
         cmd = [str(py), str(Path(__file__).resolve()), 'worker', str(work / 'scripts/generate.py'), '--models-dir', str(DIR / 'models'), '--sd-cli', str(exe()), '--prompt', prompt, '--frames', str(frames)]
-        with (work / 'generation.log').open('w', encoding='utf-8') as log:
+        with uretim_kilidi(), (work / 'generation.log').open('w', encoding='utf-8') as log:
             with LOCK:
                 if GEN['iptal']:
                     return
@@ -132,9 +133,13 @@ def _generate(proje, prompt, frames):
         output = next((p for p in work.rglob('video.mp4') if existing.get(p.resolve()) != p.stat().st_mtime_ns), None)
         if not output or output.stat().st_size == 0:
             raise RuntimeError('MP4 üretilemedi. ffmpeg kurulumunu ve üretim günlüğünü kontrol edin.')
-        target = ROOT / 'projeler' / proje / 'kaynak/video' / ('wan-' + work.name[:10] + '.mp4')
+        project_dir = (ROOT / 'projeler' / proje).resolve()
+        directory = (project_dir / 'kaynak/video').resolve()
+        if not directory.is_relative_to(project_dir):
+            raise ValueError('Video klasörü proje dışında')
+        target = directory / ('wan-' + work.name[:10] + '.mp4')
         target.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(output, target)
-        GEN['dosya'] = target.relative_to(ROOT / 'projeler' / proje).as_posix()
+        GEN['dosya'] = target.relative_to(project_dir).as_posix()
         (target.parent / (target.stem + '-ATIF.txt')).write_text('AI-generated video. Wan 2.2 TI2V-5B (Apache-2.0). Recipe/patches: alexturkey/wan22-pascal-4gb (MIT). Engine: stable-diffusion.cpp / ggml (MIT).\n' + REPO, encoding='utf-8')
     except Exception as e:
         if not GEN['iptal']:

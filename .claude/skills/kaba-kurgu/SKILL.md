@@ -44,3 +44,9 @@ Altyazı kelime zamanı (`kelimeler[]`) → Remotion `Captions` ya da `platform_
 - Konuşma tanıma özel adları/yer adlarını bozar; altyazıyı **doğru yazımla** düzelt (`--duzeltme`), kişi adlarını kullanıcıya sor.
 - Çok uzun ham dosyada önce tüm yazıyı çıkar, sonra bölümle; render'ı kısa taslakla doğrula.
 - Kişi/çocuk yüzü, izin: `kimlik/PROFIL.md` §11.
+
+## Panelde sessizlik ve kelime zamanları
+
+Panel projelerinde bu bölümdeki onaylı kesim komutunu kullan.
+
+Önce mevcut `yazi_cikar.py` ile kelime transkriptini çıkar. `python sistem/araclar/montaj_olcum.py kesim-oner <ham.mp4> projeler/<ad>/kesim_oneri.json --proje projeler/<ad>` ile sessizlik ve korunacak aralıkları çıkar. Storyboard’da kesimi göster ve panel onayında dur. Onaydan sonra `python sistem/araclar/montaj_olcum.py kesim-uygula <transkript.json> projeler/<ad>/hazir/konusma-kesildi.mp4 --proje projeler/<ad>` çalıştır. Altyazıda çıkan `konusma-kesildi.kelimeler.json` dosyasını kullan. İçerik ve tekrar kesimlerini ayrı sun.

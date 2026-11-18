@@ -264,7 +264,9 @@ def uret(istem: str, cikti: str, genislik: int = 1024, yukseklik: int = 576, toh
     if tohum is not None:
         komut += ["-s", str(int(tohum))]
     t0 = time.time()
-    r = subprocess.run(komut, cwd=str(DIZIN), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=zaman, creationflags=NW, stdin=subprocess.DEVNULL)
+    from medya_kilit import uretim_kilidi
+    with uretim_kilidi():
+        r = subprocess.run(komut, cwd=str(DIZIN), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=zaman, creationflags=NW, stdin=subprocess.DEVNULL)
     if r.returncode != 0 or not out.is_file():
         raise RuntimeError("üretim başarısız: " + (r.stderr or r.stdout or "")[-400:])
     return {"dosya": str(out), "bayt": out.stat().st_size, "model": "z-image-turbo-" + kalite, "sn": round(time.time() - t0, 1), "yerel": True}

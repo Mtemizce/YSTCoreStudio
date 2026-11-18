@@ -395,9 +395,22 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
         <div class="ust-yol"><a href="#/yeni">Yeni proje</a> / <span>Tek video</span></div>
         <section id="yeni">
     <h2>Tek video</h2>
-    <label for="prompt" style="margin-top:0">Ne istiyorsun? Serbestçe anlat (süre, yıl aralığı, konu, ton…)</label>
+    <div class="blk" style="padding:16px;margin-bottom:16px">
+      <h3 style="margin:0 0 10px">Proje özeti</h3>
+      <label for="projeAdi">Proje adı <span class="meta">· isteğe bağlı</span></label>
+      <input id="projeAdi" placeholder="Örn. Villa portfolyosu" maxlength="70">
+      <label for="prompt">Ne hazırlıyoruz?</label>
     <textarea id="prompt" style="min-height:120px" placeholder="Örn: 2022-2024 arası villa projeleri için öncesi, sonrası ve yapım aşamalarıyla ilgili niş bir video üret. Sakin ve güven veren, 40 saniye."></textarea>
     <div class="row dikte"><button type="button" class="mic" data-hedef="prompt">🎤 Konuşarak yaz</button><span class="meta" data-durum="prompt">Konuş, yazıya dönsün; sonra düzeltebilirsin. Ses bu bilgisayarda yazıya çevrilir, hiçbir yere gitmez.</span></div>
+
+    </div>
+    <div class="blk" style="padding:16px;margin-bottom:16px">
+      <h3 style="margin:0 0 8px">Görsel dil ve üretim</h3>
+      <label for="kurguStili">Hazır kurgu stili</label>
+      <select id="kurguStili"><option value="sade">Doğal montaj</option></select>
+      <p class="meta" id="kurguStiliAciklama"></p><div id="stilOnerileri" class="row" aria-label="İsteme göre stil önerileri"></div>
+      <div id="projeMedyaSecimleri" class="grid2"></div>
+    </div>
 
     <div class="sw"><input type="checkbox" id="sesAc" checked><label for="sesAc" style="margin:0;color:var(--text)">Seslendirme</label>
       <select id="sesSag" class="grow" style="max-width:260px"></select></div>
@@ -412,10 +425,8 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
       </div>
     </div>
 
-    <div class="sw"><input type="checkbox" id="gorAc"><label for="gorAc" style="margin:0;color:var(--text)">Görseli üret (yapay zekâ)</label>
-      <select id="gorSag" class="grow" style="max-width:260px"></select></div>
     <div class="blk" id="gorBlk" hidden>
-      <label for="gorTarif" style="margin-top:0">Karakterin / görselin yapısını tarif et (senin sözlerin olduğu gibi kullanılır)</label>
+      <label for="gorTarif" style="margin-top:0">Görsel yönü <span class="meta">· isteğe bağlı</span></label>
       <textarea id="gorTarif" placeholder="Örn: 40'lı yaşlarında, kısa sakallı, koyu renk gömlekli bir mimar. Şantiyede, baret takmış, sakin ve kendinden emin duruşlu."></textarea>
       <div class="row dikte"><button type="button" class="mic" data-hedef="gorTarif">🎤 Konuşarak yaz</button><span class="meta" data-durum="gorTarif"></span></div>
     </div>
@@ -729,7 +740,11 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
       <label class="pill" title="Videolara ffprobe ile süre/çekim tarihi ekler; çok daha yavaş"><input type="checkbox" id="derin"> derin tarama</label>
       <label class="pill" title="Tarama bitince kullanılabilirlik analizi kendiliğinden başlar"><input type="checkbox" id="otoAnaliz" checked> tarama sonrası analiz</label>
     </div>
-    <div class="meta" id="taraSatir" style="margin-top:6px"></div>
+    <div class="blk" id="taramaIlerleme" hidden style="margin-top:8px">
+      <progress id="taraCubuk" aria-label="Arşiv işleminin ilerlemesi" max="100" style="width:100%"></progress>
+      <div class="meta" id="taraSatir" role="status"></div>
+      <div class="meta" id="taraOzet"></div>
+    </div>
     <div class="meta" id="analizSatir" style="margin-top:6px"></div>
 
     <details id="iyD" style="margin-top:10px">
@@ -764,7 +779,7 @@ section.gorunum{background:none;border:0;box-shadow:none;padding:0;margin:0}
     <h2>Varsayılan üretim tercihleri</h2>
     <div class="grid2">
       <div><label>Seslendirme varsayılanı</label><div class="row"><label class="pill"><input type="checkbox" id="vSesAc"> açık</label><select id="vSesSag" class="grow"></select></div></div>
-      <div><label>Görsel üretimi varsayılanı</label><div class="row"><label class="pill"><input type="checkbox" id="vGorAc"> açık</label><select id="vGorSag" class="grow"></select></div></div>
+      <div id="ayarMedyaSecimleri"></div>
     </div>
     <label>Varsayılan platformlar</label><div class="row" id="vPlats"></div>
     <div class="grid2">
@@ -905,7 +920,7 @@ const H = {'X-Panel':'1'};
 const post = (u, b) => fetch(u, {method:'POST', headers:{...H,'Content-Type':'application/json'}, body:JSON.stringify(b||{})}).then(async r => {
   const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText);
   if (j.guven_gerekli) { if (!await YST.confirmPanel('Orkestratör bu stüdyo klasöründeki yönergeleri ve araçları kullanacak:\n' + j.kok + '\nBu klasöre güveniyor musunuz?')) throw new Error('Klasör güveni onaylanmadı'); return post(u, {...b,guven:true}); }
-  if (u === '/api/claude' || u === '/api/ajan/mesaj') { if (j.ok) { const name=b.proje||'_profil'; if(name!=='_profil') location.hash='#/proje/'+encodeURIComponent(name); YST.show(name); } }
+  if (u === '/api/claude' || u === '/api/ajan/mesaj') { if (j.ok) { const name=b.proje||'_profil'; if(name!=='_profil' && (u !== '/api/ajan/mesaj' || PROJE.ad !== name)) location.hash='#/proje/'+encodeURIComponent(name); YST.show(name); } }
   if (j.ok === false && (u.startsWith('/api/ajan/') || u === '/api/claude')) throw new Error(j.mesaj || j.hata || 'İşlem tamamlanamadı');
   return j; });
 const get = u => fetch(u).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.hata || r.statusText); return j; });
@@ -921,6 +936,88 @@ let AYAR = null, BAG = null, KITLER = [], arsivSecim = {}, bekleyen = [], KARAKT
 async function veriYukle(){
   [AYAR, BAG] = await Promise.all([get('/api/ayar'), get('/api/baglayici')]);
   KITLER = (await get('/api/marka')).kitler;
+}
+let KURGU_STILLERI = {};
+const MEDYA_TURLER = [
+  ['image', 'Görsel', 'gorsel-uret', 'Z-Image-Turbo'],
+  ['video', 'Video klibi', 'video-uret', 'Wan 2.2'],
+  ['music', 'Müzik', 'muzik', 'ACE-Step 1.5'],
+];
+function medyaSecenekleri(container, u, onChange){
+  const root = $(container);
+  root.replaceChildren();
+  for (const [kind, label, ability, model] of MEDYA_TURLER){
+    const box = document.createElement('div');
+    const title = document.createElement('label');
+    const select = document.createElement('select');
+    select.id = root.id + '-' + kind;
+    select.dataset.medya = kind;
+    title.htmlFor = select.id;
+    title.textContent = label;
+    for (const [id, name] of [['kaynak','Mevcut kaynakları kullan'], ['kurgu','Kurgu ajanına bırak'], ['yerel','Yerel model · ' + model]]){
+      select.add(new Option(name, id));
+    }
+    for (const supplier of BAG.saglayicilar){
+      const tags = supplier.tur || [];
+      if (supplier.id === 'yerel-zimage' || !(tags.includes(ability) || (kind === 'image' && tags.includes('gorsel')))) continue;
+      select.add(new Option('API · ' + supplier.ad + (supplier.etkin ? '' : ' (kapalı)'), 'api:' + supplier.id));
+    }
+    const old = u.gorsel_uret;
+    const legacy = kind === 'image' && old?.acik ? (old.saglayici === 'yerel-zimage' ? 'yerel' : 'api:' + old.saglayici) : 'kaynak';
+    const value = u.medya?.[kind] ?? legacy;
+    if (![...select.options].some(option => option.value === value)) select.add(new Option('Yapılandırılmamış · ' + value, value));
+    select.value = value;
+    if (onChange) select.onchange = onChange;
+    box.append(title, select);
+    root.append(box);
+  }
+}
+function medyaDegerleri(container){
+  return Object.fromEntries([...$(container).querySelectorAll('select[data-medya]')].map(s => [s.dataset.medya, s.value]));
+}
+function projeMedyaDegisti(){
+  $('#gorBlk').hidden = medyaDegerleri('#projeMedyaSecimleri').image === 'kaynak';
+  bulutDurum();
+}
+let stilZaman;
+$('#prompt').addEventListener('input', () => {
+  clearTimeout(stilZaman);
+  stilZaman = setTimeout(stilOner, 350);
+});
+async function stilOner(){
+  const prompt = $('#prompt').value;
+  const choice = $('#kurguStili').value;
+  const slot = $('#stilOnerileri');
+  if (!prompt.trim()){ slot.replaceChildren(); return; }
+  try {
+    const data = await get('/api/kurgu/stil-oner?' + new URLSearchParams({prompt:prompt.slice(0,3200), secili:choice}));
+    if (prompt !== $('#prompt').value || choice !== $('#kurguStili').value) return;
+    slot.replaceChildren(...data.map(item => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Öneri · ' + item.ad;
+      button.title = item.ozet;
+      button.onclick = () => {
+        if (!KURGU_STILLERI[item.id]) return;
+        $('#kurguStili').value = item.id;
+        $('#kurguStili').onchange();
+        stilOner();
+      };
+      return button;
+    }));
+  } catch (_) {}
+}
+function kurguStiliCiz(){
+  const select = $('#kurguStili');
+  const selected = select.value;
+  select.replaceChildren(...Object.entries(KURGU_STILLERI).map(([id, style]) => new Option(style.ad, id)));
+  select.value = KURGU_STILLERI[selected] ? selected : 'sade';
+  select.onchange = () => {
+    const item = KURGU_STILLERI[select.value];
+    const scenes = item?.sahneler?.join(' → ');
+    $('#kurguStiliAciklama').textContent = [item?.ozet, scenes].filter(Boolean).join(' · ');
+  };
+  select.onchange();
 }
 function sagSecenek(tur, secili){
   return BAG.saglayicilar.filter(s => s.tur.includes(tur)).map(s =>
@@ -1010,7 +1107,10 @@ document.addEventListener('click', e => { const b = e.target.closest('button.mic
 function stüdyoCiz(){
   const u = AYAR.uretim;
   $('#sesSag').innerHTML = sagSecenek('ses', u.seslendirme.saglayici); $('#sesAc').checked = !!u.seslendirme.acik;
-  $('#gorSag').innerHTML = sagSecenek('gorsel', varsayilanGorselSag(u.gorsel_uret.saglayici)); $('#gorAc').checked = !!u.gorsel_uret.acik; $('#gorBlk').hidden = !$('#gorAc').checked;
+  medyaSecenekleri('#projeMedyaSecimleri', u, projeMedyaDegisti);
+  projeMedyaDegisti();
+  get('/api/kurgu/stiller').then(styles => { KURGU_STILLERI = styles; kurguStiliCiz(); }).catch(() => {});
+
   platCiz('#plats', u.platformlar, 'pl');
   $('#kitSec').innerHTML = `<option value="">— marka kiti kullanma —</option>` + KITLER.map(k => `<option value="${k.id}" ${k.id===u.marka_kiti?'selected':''}>${esc(k.ad)}</option>`).join('');
   const m = u.marka || {}; $('#mkIntro').checked = !!m.intro; $('#mkOutro').checked = !!m.outro; $('#mkFil').checked = !!m.filigran; $('#mkIlet').checked = !!m.iletisim; $('#mkKapak').checked = !!m.gorsel_filigran;
@@ -1159,13 +1259,17 @@ function kitDurum(){ const var_ = !!$('#kitSec').value; $$('#kitSecenek input').
 function bulutDurum(){
   const bulut = [];
   if ($('#sesAc').checked && !$('#klonAc').checked){ const s = BAG.saglayicilar.find(x => x.id === $('#sesSag').value); if (s && !s.yerel) bulut.push(`${s.ad}: seslendirme metni`); }
-  if ($('#gorAc').checked){ const s = BAG.saglayicilar.find(x => x.id === $('#gorSag').value); if (s && !s.yerel) bulut.push(`${s.ad}: görsel/karakter tarifi`); }
+  for (const value of Object.values(medyaDegerleri('#projeMedyaSecimleri'))){
+    if (!value.startsWith('api:')) continue;
+    const provider = BAG.saglayicilar.find(s => s.id === value.slice(4));
+    if (provider && !provider.yerel) bulut.push(provider.ad + ': üretim istemi');
+  }
   if ($('#bpAc').checked && $('#bpUretken').checked) bulut.push('üretken ikiz: karakter fotoğrafları ve mekân kareleri seçtiğin bulut servisine gider');
   $('#bulutBlk').hidden = !bulut.length;
   $('#bulutMetin').textContent = bulut.length ? `Bu projede şunların ücretli bir servise GÖNDERİLMESİNE izin veriyorum: ${bulut.join('; ')}. (Kaynak fotoğraflarım gönderilmez. Her çağrı proje klasöründe bulut_gunlugu.md'ye yazılır.)` : '';
   if (!bulut.length) $('#bulutIzin').checked = false;
 }
-['#sesAc','#sesSag','#gorAc','#gorSag'].forEach(s => $(s).onchange = () => { $('#gorBlk').hidden = !$('#gorAc').checked; bulutDurum(); });
+['#sesAc','#sesSag'].forEach(s => $(s).onchange = bulutDurum);
 $('#kitSec').onchange = kitDurum;
 $('#bpAc').onchange = () => { $('#bpAlan').hidden = !$('#bpAc').checked; bulutDurum(); };
 $('#bpUretken').onchange = bulutDurum;
@@ -1210,9 +1314,10 @@ $('#uret').onclick = async () => {
     log('Proje kuruluyor…');
     const kit = $('#kitSec').value;
     const govde = {
+      ad:$('#projeAdi').value, medya:medyaDegerleri('#projeMedyaSecimleri'), kurgu_stili:$('#kurguStili').value,
       prompt:$('#prompt').value, notlar:$('#notlar').value, sure:$('#sure').value,
       seslendirme:{acik:$('#sesAc').checked, saglayici:$('#sesSag').value, klon:$('#klonAc').checked, klon_onay:$('#klonAc').checked},
-      gorsel_uret:{acik:$('#gorAc').checked, saglayici:$('#gorSag').value, tarif:$('#gorTarif').value},
+      gorsel_uret:{tarif:$('#gorTarif').value},
       platformlar:$$('.pl:checked').map(i=>i.value),
       marka: kit ? {kit, intro:$('#mkIntro').checked, outro:$('#mkOutro').checked, filigran:$('#mkFil').checked, iletisim:$('#mkIlet').checked, kapak_filigran:$('#mkKapak').checked}
                  : {kit:'varsayilan', intro:false, outro:false, filigran:false, iletisim:false, kapak_filigran:false},
@@ -1452,9 +1557,61 @@ async function arsivYenile(){
   $('#analizSatir').innerHTML = !d.toplam ? '' : an
     ? `Analiz: <b>${an.otomatik_analiz}/${an.dosya}</b> fotoğraf ölçüldü · <b>${an.kullanilabilir}</b> kullanılabilir · ${an.claude_analiz} tanesi Claude tarafından anlamlandırıldı (aşama, konu, açıklama)` + (an.claude_analiz < an.kullanilabilir ? '<br><span class="meta">Anlamlandırma için Claude\'da <code>/arsiv-analiz</code> çalıştır (sonuç veritabanına yazılır, bir kez yapılır).</span>' : '')
     : 'Henüz analiz edilmedi: <b>Analiz et</b>.';
-  const ilr = d.ilerleme, cal = d.calisiyor; $('#durBtn').hidden = !cal; $('#taraBtn').disabled = cal; $('#analizBtn').disabled = cal;
-  $('#taraSatir').textContent = ilr ? `${ilr.durum||''}: ${ilr.gezilen||0} dosya gezildi · yeni ${ilr.yeni||0} · değişmemiş ${ilr.ayni||0}${ilr.bulutta ? ` · bulutta-yalnızca ${ilr.bulutta}` : ''} · ${ilr.sn||0} sn` + (ilr.klasor ? ` · ${ilr.klasor}` : '') : '';
-  if (cal && !tarTimer) tarTimer = setInterval(arsivYenile, 2000); if (!cal && tarTimer){ clearInterval(tarTimer); tarTimer = null; }
+  arsivIlerlemeCiz(d);
+}
+function arsivIlerlemeCiz(d){
+  const ilr = d.ilerleme;
+  const cal = d.calisiyor;
+  $('#durBtn').hidden = !cal;
+  $('#durBtn').disabled = d.durduruluyor;
+  $('#taraBtn').disabled = $('#analizBtn').disabled = cal;
+  $('#taramaIlerleme').hidden = !ilr && !cal;
+  const bar = $('#taraCubuk');
+  const analiz = ilr?.asama === 'analiz' || ilr?.toplam_bekleyen != null;
+  const total = analiz ? ilr?.toplam_bekleyen : ilr?.liste_toplam;
+  const done = analiz ? ilr?.islenen : ilr?.liste_islenen;
+  const failed = ilr?.durum?.startsWith('hata:');
+  const incomplete = failed || d.durduruluyor || /kesildi|durduruldu/.test(ilr?.durum || '');
+  bar.hidden = !cal && incomplete && total == null;
+  if (total > 0) {
+    bar.value = Math.min(100, 100 * (done || 0) / total);
+  } else if (cal) {
+    bar.removeAttribute('value');
+  } else {
+    bar.value = incomplete ? 0 : 100;
+  }
+  if (ilr) {
+    const counts = analiz
+      ? (total == null ? '' : ` · ${done || 0}/${total} analiz edildi · ${ilr.kullanilabilir || 0} kullanılabilir · ${ilr.kullanilamaz || 0} kullanılamaz · ${ilr.hata || 0} hata`)
+      : (ilr.gezilen == null ? '' : ` · ${ilr.gorulen ?? ilr.gezilen} dosya görüldü · ${ilr.gezilen} arşive uygun · ${(ilr.yeni || 0) + (ilr.ayni || 0) + (ilr.guncellenen || 0)} işlendi · ${ilr.yeni || 0} yeni · ${ilr.guncellenen || 0} güncellendi · ${ilr.ayni || 0} değişmedi · ${ilr.hata || 0} hata`);
+    const detail = [ilr.arsiv, ilr.klasor, ilr.dosya, ilr.sn != null ? ilr.sn + ' sn' : ''].filter(Boolean);
+    if (ilr.arsiv_toplam > 1) detail.push(`Arşiv ${ilr.arsiv_sira}/${ilr.arsiv_toplam}`);
+    $('#taraSatir').textContent = (cal && d.durduruluyor ? 'Durduruluyor…' : ilr.durum || '')
+      + counts + (detail.length ? ' · ' + detail.join(' · ') : '');
+    const skipped = analiz ? ilr.bulutta_atlanan : ilr.bulutta;
+    const scan = d.tarama_sonucu;
+    $('#taraOzet').textContent = [
+      skipped ? `Bulutta ${skipped} dosya` : '',
+      analiz && scan ? `Tarama sonucu: ${scan.gezilen} arşive uygun dosya, ${scan.yeni} yeni, ${scan.hata} hata` : '',
+      (ilr.atlanan || []).join(' · '),
+    ].filter(Boolean).join(' · ');
+  }
+  if (cal && !tarTimer) tarTimer = setInterval(arsivIlerlemeYokla, 1000);
+  if (!cal && tarTimer){ clearInterval(tarTimer); tarTimer = null; }
+}
+let arsivYoklaniyor = false;
+async function arsivIlerlemeYokla(){
+  if (arsivYoklaniyor) return;
+  arsivYoklaniyor = true;
+  try {
+    const d = await get('/api/arsiv/ilerleme');
+    arsivIlerlemeCiz(d);
+    if (!d.calisiyor) await arsivYenile();
+  } catch (e) {
+    $('#taraSatir').textContent = e.message;
+  } finally {
+    arsivYoklaniyor = false;
+  }
 }
 /* ---------- arşiv kütüphanesi: Resim / Video / Müzik / Dosya ---------- */
 const KUT = {tur: 'ses', kelime: '', toplam: -1, zaman: null};
@@ -1498,9 +1655,9 @@ async function arsivAyarla(zorla){
   }
 }
 $('#arsivAyarBtn').onclick = () => arsivAyarla(false);
-$('#taraBtn').onclick = async () => { try { await post('/api/arsiv/tara', {derin:$('#derin').checked, analiz:$('#otoAnaliz').checked, kok:kokSecili()}); await arsivYenile(); } catch(e){ $('#taraSatir').textContent = e.message; } };
-$('#analizBtn').onclick = async () => { try { const r = await post('/api/arsiv/analiz', {kok:kokSecili()}); if (!r.ok) $('#taraSatir').textContent = r.mesaj; await arsivYenile(); } catch(e){ $('#taraSatir').textContent = e.message; } };
-$('#durBtn').onclick = async () => { await post('/api/arsiv/durdur'); };
+$('#taraBtn').onclick = async () => { try { const r = await post('/api/arsiv/tara', {derin:$('#derin').checked, analiz:$('#otoAnaliz').checked, kok:kokSecili()}); if (!r.ok) throw new Error(r.mesaj); await arsivIlerlemeYokla(); } catch(e){ $('#taramaIlerleme').hidden = false; $('#taraCubuk').hidden = true; $('#taraSatir').textContent = e.message; } };
+$('#analizBtn').onclick = async () => { try { const r = await post('/api/arsiv/analiz', {kok:kokSecili()}); if (!r.ok) throw new Error(r.mesaj); await arsivIlerlemeYokla(); } catch(e){ $('#taramaIlerleme').hidden = false; $('#taraCubuk').hidden = true; $('#taraSatir').textContent = e.message; } };
+$('#durBtn').onclick = async () => { await post('/api/arsiv/durdur'); await arsivIlerlemeYokla(); };
 
 /* ------------------------------------------------------------ fotoğraf iyileştirme (arşiv) */
 let IYM = null, iyTimer = null, iyAdaylar = [];
@@ -1596,7 +1753,7 @@ async function ayarYukle(){
   ajanTablo('#ajanGenel', AYAR.ajanlar, 'genel');
   const u = AYAR.uretim;
   $('#vSesAc').checked = !!u.seslendirme.acik; $('#vSesSag').innerHTML = sagSecenek('ses', u.seslendirme.saglayici);
-  $('#vGorAc').checked = !!u.gorsel_uret.acik; $('#vGorSag').innerHTML = sagSecenek('gorsel', u.gorsel_uret.saglayici);
+  medyaSecenekleri('#ayarMedyaSecimleri', u);
   platCiz('#vPlats', u.platformlar, 'vpl');
   $('#vKit').innerHTML = `<option value="">— yok —</option>` + KITLER.map(k => `<option value="${k.id}" ${k.id===u.marka_kiti?'selected':''}>${esc(k.ad)}</option>`).join('');
   const m = u.marka || {}; $('#vmIntro').checked = !!m.intro; $('#vmOutro').checked = !!m.outro; $('#vmFil').checked = !!m.filigran; $('#vmIlet').checked = !!m.iletisim; $('#vArsiv').checked = !!u.arsivden_bul;
@@ -1605,7 +1762,7 @@ async function ayarYukle(){
 $('#ajanKaydet').onclick = async () => { try { const r = await post('/api/ayar', {yama:{ajanlar:ajanDegerleri('genel', AYAR.ajanlar)}}); $('#ajanSonuc').textContent = `Kaydedildi. Ajan dosyaları eşitlendi (${(r.esitlenen||[]).length} dosya).`; } catch(e){ $('#ajanSonuc').textContent = e.message; } };
 $('#varKaydet').onclick = async () => {
   try {
-    await post('/api/ayar', {yama:{uretim:{seslendirme:{acik:$('#vSesAc').checked, saglayici:$('#vSesSag').value}, gorsel_uret:{acik:$('#vGorAc').checked, saglayici:$('#vGorSag').value},
+    await post('/api/ayar', {yama:{uretim:{seslendirme:{acik:$('#vSesAc').checked, saglayici:$('#vSesSag').value}, medya:medyaDegerleri('#ayarMedyaSecimleri'),
       platformlar:$$('.vpl:checked').map(i=>i.value), marka_kiti:$('#vKit').value, arsivden_bul:$('#vArsiv').checked,
       marka:{intro:$('#vmIntro').checked, outro:$('#vmOutro').checked, filigran:$('#vmFil').checked, iletisim:$('#vmIlet').checked}}}});
     $('#varSonuc').textContent = 'Kaydedildi.'; await veriYukle(); stüdyoCiz();
@@ -2071,7 +2228,7 @@ $('#srDetay').addEventListener('change', e => { const i = e.target.closest('[dat
 
 /* ------------------------------------------------------------ yardım: her kartta "?" ile ne işe yaradığı */
 const YARDIM = {
-  'Yeni video': {ne:'Ne istediğini serbestçe yazarak bir video projesi başlatırsın.', yapar:'<code>projeler/&lt;ad&gt;/</code> klasörünü açar, isteğini <code>brief.md</code> ve <code>uretim.json</code> dosyalarına yazar, sonra seçili orkestratörü (varsayılan Claude Code) yeni bir terminal penceresinde açar. Videoyu o yürütür: metin, ses, görsel, kurgu. "Konuşarak yaz" mikrofonla dikte eder (ses bu bilgisayarda yazıya çevrilir, dışarı çıkmaz).', dikkat:'Ses ve görsel kutularında bulut servis seçersen o proje için ayrıca bulut izni sorulur. Yerel seçenekler (EMA, kodla çizim) hiçbir şeyi dışarı göndermez.'},
+  'Yeni video': {ne:'Ne istediğini serbestçe yazarak bir video projesi başlatırsın.', yapar:'<code>projeler/&lt;ad&gt;/</code> klasörünü açar, isteğini <code>brief.md</code> ve <code>uretim.json</code> dosyalarına yazar, sonra seçili orkestratörü (varsayılan Claude Code) panelin sağ sohbet alanında başlatır. Videoyu o yürütür: metin, ses, görsel, kurgu. "Konuşarak yaz" mikrofonla dikte eder (ses bu bilgisayarda yazıya çevrilir, dışarı çıkmaz).', dikkat:'Ses ve görsel kutularında bulut servis seçersen o proje için ayrıca bulut izni sorulur. Yerel seçenekler (EMA, kodla çizim) hiçbir şeyi dışarı göndermez.'},
   'Projeler': {ne:'Açtığın videoların listesi ve her birinin durumu.', yapar:'Her projenin aşamasını (planlama, taslak hazır, onay, final) gösterir. Buradan Kurgu editörünü açar, Orkestratörle devam eder, kaynak dosya ekler, ses kaydı alır ve çıktıları görürsün.', dikkat:'Projeler yalnızca bu bilgisayardaki <code>projeler/</code> klasöründedir; silmek için klasörü sil.'},
   'Arşiv': {ne:'Eski iş fotoğraf ve videolarından yeni videoya malzeme bulursun.', yapar:'Arşiv klasörünü (harici disk, ağ, Drive eşitleme klasörü ya da bulut disk) tarar, dosyaları yıl, proje ve türe göre dizine alır; her fotoğrafı çözünürlük, keskinlik ve ışık yönünden puanlar. İsteyince seçtiklerini projeye KOPYALAR. Arşivdeki hiçbir dosya değiştirilmez ya da silinmez.', dikkat:'Birden fazla arşiv ekleyebilirsin. Dizin ve puanlar bu stüdyonun veritabanında durur; disk takılı değilken de aranabilir.'},
   'Arşiv ekle': {ne:'Bir klasörü arşiv olarak tanıtırsın.', yapar:'Yol her bilgisayar için ayrı hatırlanır; disk harfi değişirse seri numarasından yeniden bulunur. Aynı adlı arşivin kayıtlı dosyalarına benzemeyen bir klasör gösterirsen uyarır (yanlış diski göstermek dizini bozmasın).', dikkat:'Google Drive için Drive masaüstü uygulamasının klasörünü ya da aşağıdaki "Bulut disk" bölümünü kullanabilirsin.'},
@@ -2299,12 +2456,7 @@ function kurulumYonlendir(geri){
   $('#kyVazgec').onclick = () => { ortakKapat(); if (geri) geri(); };
   $('#kyGit').onclick = () => { ortakKapat(); YG_ODAK = true; if (location.hash === '#/ayar/servis'){ YG_ODAK = false; kurulumaOdaklan(); } else location.hash = '#/ayar/servis'; };
 }
-let gorSagOnceki = '';
-$('#gorSag').addEventListener('focus', () => { gorSagOnceki = $('#gorSag').value; });
-$('#gorSag').addEventListener('change', () => {
-  const y = (BAG && BAG.saglayicilar || []).find(x => x.id === 'yerel-zimage');
-  if ($('#gorSag').value === 'yerel-zimage' && y && !y.kurulu){ const geri = () => { $('#gorSag').value = gorSagOnceki || $('#gorSag').options[1] && $('#gorSag').options[1].value; }; kurulumYonlendir(geri); }
-});
+
 
 /* stil galerisi (görsel üret, dizi): kartlar bir gradyan ve kısa tarif gösterir */
 function stilGaleriHtml(grup, secili, bos){
@@ -2537,13 +2689,9 @@ function arkaCiz(a){
   ARKA = a;
   sesKitCiz(a);
   const chip = $('#arkaChip'), bant = $('#arkaBant');
-  const ek = [];
-  if (a && a.gpu && a.gpu.oner) ek.push(`<div class="uyari-bant bilgi">${ik('spark')}<div class="grow"><b>NVIDIA ekran kartın var.</b> <span class="meta">GPU hızlandırma (~${a.gpu.boyut_gb} GB) foto iyileştirme ve modelleri kat kat hızlandırır; kurmasan da her şey işlemcide çalışır.</span></div><div class="row"><button type="button" class="main" data-arka="gpu-kur">Kur</button><button type="button" data-arka="gpu-gerek-yok">Gerek yok</button></div></div>`);
-  if (a && a.ses && a.ses.eksik && !a.ses.istemiyor && !a.ses.iniyor) ek.push(`<div class="uyari-bant bilgi">${ik('spark')}<div class="grow"><b>Müzik ve ses efektleri isteğe bağlı.</b> <span class="meta">Videolarına atmosfer katar (~${a.ses.boyut_mb} MB, atıfsız). İstersen şimdi indir; Ayarlar → Sistem'den sonra da indirebilirsin.</span></div><div class="row"><button type="button" class="main" data-arka="ses">İndir</button><button type="button" data-arka="ses-gerek-yok">Gerek yok</button></div></div>`);
   if (!a || !a.kod || a.kod === 'tamam'){
-    chip.hidden = !(a && a.ses && a.ses.iniyor);
-    if (!chip.hidden){ chip.className = 'chip bilgi'; chip.querySelector('span').textContent = 'Müzik iniyor'; }
-    bant.innerHTML = ek.join(''); return;
+    chip.hidden = true;
+    bant.innerHTML = ''; return;
   }
   chip.hidden = false;
   chip.className = 'chip ' + (a.kod === 'sorun' ? 'warn' : 'bilgi');
@@ -2553,7 +2701,7 @@ function arkaCiz(a){
     : a.kod === 'atlandi' ? `<button type="button" class="main" data-arka="baslat">Başlat</button>`
     : `<button type="button" class="main" data-arka="baslat">Şimdi dene</button><button type="button" data-arka="atla">Atla</button>`;
   const liste = (a.kuyruk || []).filter(x => x.durum !== 'istege-bagli');
-  bant.innerHTML = ek.join('') + `<div class="uyari-bant ${a.kod === 'sorun' ? '' : 'bilgi'}">${ik(a.kod === 'sorun' ? 'alert' : 'refresh')}<div class="grow"><b>Arka planda hazırlanıyor.</b> <span class="meta">${esc(a.ozet)}</span>
+  bant.innerHTML = `<div class="uyari-bant ${a.kod === 'sorun' ? '' : 'bilgi'}">${ik(a.kod === 'sorun' ? 'alert' : 'refresh')}<div class="grow"><b>Arka planda hazırlanıyor.</b> <span class="meta">${esc(a.ozet)}</span>
     <details ${a.kod === 'calisiyor' || a.kod === 'sorun' ? 'open' : ''} style="margin-top:6px"><summary>Neler iniyor, sırada ne var? (${liste.filter(x => x.durum === 'hazir').length}/${liste.length} hazır)</summary>${liste.map(kuyrukSatir).join('')}</details></div><div class="row">${dugme}</div></div>`;
 }
 async function arkaYokla(){ try { arkaCiz(await get('/api/arka-indirme')); } catch(e){ /* panel kapanıyor olabilir */ } }

@@ -137,5 +137,29 @@ cl = (R / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
 ses = (R / ".claude" / "agents" / "ses-yonetmeni.md").read_text(encoding="utf-8")
 t("orkestratör kuralı: prompt'ta adı geçen müzik/dosya arşivden bulunur (CLAUDE.md + ses-yönetmeni)", "arsiv.py bul" in cl and "arsiv.py bul" in ses)
 
+
+# Progress tracks supported files separately and stopped analysis retains its true count.
+(muz / "taninmayan.xyz").write_bytes(b"fixture")
+A.tara(yazdir=lambda *a: None)
+scan = json.loads(A.ILERLEME.read_text(encoding="utf-8"))
+t("tarama sayaçları: görülen, uygun ve işlenen", scan["asama"] == "tarama" and
+  scan["gorulen"] > scan["gezilen"] == scan["yeni"] + scan["guncellenen"] + scan["ayni"])
+sp_an = importlib.util.spec_from_file_location("analiz_t", R / "sistem" / "arsiv" / "analiz.py")
+AN = importlib.util.module_from_spec(sp_an)
+sp_an.loader.exec_module(AN)
+AN.A = A
+from unittest.mock import Mock, patch
+with patch.object(A, "video_meta", return_value=(1920, 1080, 3.0, None, None)), \
+     patch.object(AN, "_video_kare_olc", return_value=(40.0, 100.0, "0")):
+    stop = Mock(side_effect=[False, True, True])
+    result = AN.oto(durdur=stop, yazdir=lambda *a: None)
+    stopped = json.loads(A.ILERLEME.read_text(encoding="utf-8"))
+    t("durdurulan analiz tamamlandı görünmez", stopped["durum"] == "Analiz durduruldu" and
+      stopped["islenen"] == 1 < stopped["toplam_bekleyen"])
+    AN.oto(yazdir=lambda *a: None)
+    done = json.loads(A.ILERLEME.read_text(encoding="utf-8"))
+    t("analiz kaldığı yerden tamamlanır", done["asama"] == "analiz" and
+      done["islenen"] == done["toplam_bekleyen"] == result["toplam_bekleyen"] - 1)
+
 shutil.rmtree(tmp, ignore_errors=True)
 print(f"{ok} başarılı, {bad} başarısız")

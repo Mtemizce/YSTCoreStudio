@@ -284,8 +284,8 @@ def ses_ozeti() -> dict:
 
 
 def ses_istemiyor(deger: bool = True) -> dict:
-    YEREL.mkdir(parents=True, exist_ok=True)
     if deger:
+        SES_ISTEMIYOR.parent.mkdir(parents=True, exist_ok=True)
         SES_ISTEMIYOR.write_text("gerek yok\n", encoding="utf-8")
     else:
         SES_ISTEMIYOR.unlink(missing_ok=True)
@@ -304,7 +304,7 @@ def gpu_oneri() -> dict:
 
 
 def gpu_istemiyor() -> dict:
-    YEREL.mkdir(parents=True, exist_ok=True)
+    GPU_ISTEMIYOR.parent.mkdir(parents=True, exist_ok=True)
     GPU_ISTEMIYOR.write_text("gerek yok\n", encoding="utf-8")
     return durum()
 
@@ -438,7 +438,7 @@ def _baslat(zorla: bool = True, ses: bool = False) -> dict:
 
 def atla() -> dict:
     """Çalışan indirmeyi durdurur ve kendiliğinden yeniden denemeyi kapatır (kullanıcı kararı; baslat() geri açar)."""
-    YEREL.mkdir(parents=True, exist_ok=True)
+    ATLA.parent.mkdir(parents=True, exist_ok=True)
     ATLA.write_text("kullanıcı atladı\n", encoding="utf-8")
     d = _oku()
     pid = _PROCESS.pid if _PROCESS is not None and _PROCESS.poll() is None else int(d.get("pid") or 0)

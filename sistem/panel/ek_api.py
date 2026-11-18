@@ -653,12 +653,21 @@ def uretim_durumu(proje: str) -> dict:
         pass
     bulut = (p / "bulut_gunlugu.md")
     cagri = max(0, len(bulut.read_text(encoding="utf-8").splitlines()) - 6) if bulut.exists() else 0
-    return {"durum": d, "uretim": {k: u.get(k) for k in ("platformlar", "seslendirme", "gorsel_uret", "sure", "marka", "seri")}, "bulut_cagri": cagri,
+    return {"durum": d, "uretim": {k: u.get(k) for k in ("platformlar", "seslendirme", "gorsel_uret", "medya", "kurgu_stili", "sure", "marka", "seri")}, "bulut_cagri": cagri,
             "onay": (p / "onay.json").exists(), "ajan_ayari_var": (p / "ayar.json").exists()}
 
 
 # ------------------------------------------------------------------ GET
 def get(yol: str, q: dict):
+    if yol == "/api/kurgu/stil-oner":
+        from kurgu_plan import oner
+        return oner(q.get("prompt", "")[:3200], q.get("secili", "sade"))
+    if yol == "/api/kurgu/stiller":
+        from kurgu_stilleri import stiller
+        return stiller()
+    if yol == "/api/yerelmuzik":
+        import yerel_muzik
+        return yerel_muzik.durum()
     if yol == "/api/yerelvideo":
         return yerel_video_m().durum()
     if yol == "/api/dikte/durum":
@@ -815,7 +824,40 @@ def sistem_ozeti(ag: bool) -> dict:
 
 
 # ------------------------------------------------------------------ POST
+def medya_kaydet(b):
+    from kurgu_stilleri import stiller
+    from medya_tercihi import dogrula
+    import orkestrator
+
+    name = str(b.get("proje") or "")
+    root = proje_kontrol(name)
+    if orkestrator.state(name).get("durum") in ("calisiyor", "izin"):
+        raise ValueError("Medya tercihlerini değiştirmek için çalışan görevi bitir veya durdur.")
+    catalog = ortak().katalog()["saglayicilar"]
+    choices = dogrula(b.get("medya"), catalog)
+    style = b.get("kurgu_stili")
+    if not isinstance(style, str) or style not in stiller():
+        raise ValueError("Bilinmeyen kurgu stili")
+    cloud = any(value.startswith("api:") and not catalog[value[4:]].get("yerel") for value in choices.values())
+    if cloud and b.get("bulut_izni") is not True:
+        raise ValueError("Seçilen API için proje bulut iznini onayla.")
+    if cloud:
+        ayar().kaydet({"izin": {"bulut": True}}, name)
+    path = root / "uretim.json"
+    current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    current.update(medya=choices, kurgu_stili=style)
+    temp = path.with_suffix(".medya.tmp")
+    temp.write_text(json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8")
+    temp.replace(path)
+    return {"ok": True}
+
+
 def post(yol: str, q: dict, b: dict):
+    if yol == "/api/proje/medya":
+        return medya_kaydet(b)
+    if yol == "/api/yerelmuzik/kur":
+        import yerel_muzik
+        return yerel_muzik.kur()
     if yol == "/api/yerelvideo/kur":
         return yerel_video_m().kur()
     if yol == "/api/yerelvideo/uret":
@@ -1169,6 +1211,16 @@ def uret_hazirla(b: dict) -> dict:
         ses = {"acik": True, "saglayici": "ema", "motor": "pocket-tr", "klon": True, "klon_yol": "klon/ornek.wav", "klon_onay": time.strftime("%Y-%m-%d %H:%M:%S")}
     o = ortak()
     bulut_kullan = []
+    medya = None
+    if "medya" in b:
+        from medya_tercihi import dogrula
+        media_catalog = o.katalog()["saglayicilar"]
+        medya = dogrula(b["medya"], media_catalog)
+        for tur, tercih in medya.items():
+            if tercih.startswith("api:") and not media_catalog[tercih[4:]].get("yerel"):
+                bulut_kullan.append((tur, tercih[4:]))
+        # New routing owns image generation; the old cloud step stays available to old projects.
+        gor = {"acik": False, "tarif": str(gor.get("tarif") or "")[:1500]}
     if ses.get("acik") and ses.get("saglayici") and not o.katalog()["saglayicilar"].get(ses["saglayici"], {}).get("yerel", True):
         bulut_kullan.append(("ses", ses["saglayici"]))
     if gor.get("acik"):
@@ -1191,7 +1243,7 @@ def uret_hazirla(b: dict) -> dict:
             sorunlar.append(f"{d['ad']} için API anahtarı yok (Ayarlar → Bağlayıcılar)")
     if sorunlar:
         raise ValueError("; ".join(sorunlar))
-    if bulut_kullan and not b.get("bulut_izni"):
+    if bulut_kullan and b.get("bulut_izni") is not True:
         raise ValueError("ücretli/bulut servis seçili: 'Bu projede verilerimin bu servise gönderilmesine izin veriyorum' kutusunu işaretle")
     ajan_ov = {}
     for k, v in (b.get("ajanlar") or {}).items():
@@ -1201,6 +1253,8 @@ def uret_hazirla(b: dict) -> dict:
                  "uretim": {"seslendirme": {"acik": bool(ses.get("acik")), "saglayici": ses.get("saglayici") or cz["uretim"]["seslendirme"]["saglayici"]},
                             "gorsel_uret": {"acik": bool(gor.get("acik")), "saglayici": gor.get("saglayici") or cz["uretim"]["gorsel_uret"]["saglayici"]},
                             "platformlar": plats, "arsivden_bul": bool(b.get("arsivden_bul"))}}
+    if medya is not None:
+        ayar_yama["uretim"]["medya"] = medya
     if ajan_ov:
         ayar_yama["ajanlar"] = ajan_ov
     marka_secim = {"kit": mk.get("kit") or cz["uretim"].get("marka_kiti") or "varsayilan",
@@ -1222,6 +1276,13 @@ def uret_hazirla(b: dict) -> dict:
     }
     uretim = {"prompt": prompt, "platformlar": plats, "formatlar": formatlar, "seslendirme": ses, "gorsel_uret": gor, "sure": sure, "marka": marka_secim,
               "arsivden_bul": bool(b.get("arsivden_bul")), "olusturma": time.strftime("%Y-%m-%d %H:%M:%S")}
+    if medya is not None:
+        uretim["medya"] = medya
+    from kurgu_stilleri import stiller
+    style = b.get("kurgu_stili") or "sade"
+    if not isinstance(style, str) or style not in stiller():
+        raise ValueError("Bilinmeyen kurgu stili")
+    uretim["kurgu_stili"] = style
     bp = b.get("b_plani") or {}
     if bp.get("acik"):  # B planı: kişi çekime gidemedi → dijital sunucu + gerçek mekân görüntüleri
         k = karakter_m()

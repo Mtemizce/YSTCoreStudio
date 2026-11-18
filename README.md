@@ -229,13 +229,13 @@ Bu projelerin çoğu **bu depodan değil, kurulum sırasında kendi resmî kayna
 | Python | 3.10 | 3.12 |
 | Node.js | 20 | güncel LTS |
 | Git | gerekli | |
-| **Orkestratör yapay zekâ** | **zorunlu:** Claude Code + Claude aboneliği (önerilen). Alternatif: Codex CLI, Gemini CLI ya da OpenCode (deneysel). İsteğe bağlı: OpenCode + yerel model (Ollama, LM Studio; deneysel) | |
+| **Orkestratör yapay zekâ** | Bir sağlayıcı seçilir: Claude Code, Ollama, LM Studio veya llama.cpp. Codex CLI, Gemini CLI ve OpenCode deneysel seçeneklerdir. | |
 | RAM | 8 GB | 16 GB |
 | Boş disk | ~8 GB (işlemci) / ~11 GB (NVIDIA) | 20 GB ve üstü (projeler için) |
 | Ekran kartı | gerekmez | NVIDIA, 6 GB VRAM (fotoğraf iyileştirme ve Z-Image'ı hızlandırır) |
 | İnternet | yalnızca kurulum ve güncelleme için | |
 
-ffmpeg sistemde yoksa kurulum kendisi indirir (yönetici izni gerekmez). Eksik Python, Git ya da Node için sihirbaz bu sistemin paket yöneticisine göre komutu gösterir. DWG okuma yalnızca Windows'ta çalışır.
+ffmpeg sistemde yoksa kurulum kendisi indirir (yönetici izni gerekmez). Windows kurulum sihirbazı eksik Python, Git ve Node.js için otomatik kurulumu başlatabilir. Elle kurulum komutları da sihirbazda bulunur. DWG okuma yalnızca Windows'ta çalışır.
 
 ## Destek ol
 
@@ -263,3 +263,29 @@ Henüz sponsor yok. Sponsor olursan profil resmin burada görünür ([GitHub Spo
 Varsayılan depo `Mtemizce/YSTCoreStudio`; jeton yalnızca özel depo veya API kotası için isteğe bağlıdır. Arka plan kontrolü dosya kurmaz. Güncelle düğmesi üretim/indirme sürerken çalışmaz; açık Kurgu editörünü kaydedip stüdyoyu kapatıp yeniden açmak gerekir. Kurulum sırasında yeni işler bekletilir.
 
 Sürüm ZIP dosyası SHA256 ile doğrulanır. Release yoksa varsayılan dalın belirli commit paketi GitHub dosya ağacındaki Git blob özetleriyle doğrulanır. Git klonunda yerel değişiklikler varsa işlem durur; yalnızca seçili deponun kontrol edilen commitine ileri sarma yapılır. ZIP değişiklikleri ve kullanıcı verileri `sistem/ortam/yedek/guncelleme-*` altında saklanır. ZIP yerleştirme hatasında kod geri alınır; bağımlılık/veritabanı hatası başarı sayılmaz ve onarım gerektiği raporlanır. Pip/npm ve veritabanı değişiklikleri otomatik geri alınmaz. Güncelleme bitince **Paneli yeniden başlat** düğmesine kullanıcı basar.
+
+
+### Yerel medya üretimi
+
+Panelin sağındaki **İsteğe bağlı kurulumlar** cebinden Z-Image-Turbo, Wan 2.2 ve ACE-Step 1.5 kurulabilir. ACE-Step, 2B Turbo ile bir seferde tek sözsüz parça üretir. Bellek kullanımını azaltmak için desteklenen NVIDIA çalıştırmalarında CPU offload kullanılır, ayrı müzik dil modeli yüklenmez. CPU üretimi daha uzun sürebilir.
+
+Proje sohbetine `/görsel gün batımında modern bir villa`, `/video yavaş kamera hareketiyle salon` veya `/müzik sakin enstrümantal piyano` yaz. Bu komutlar orkestratör dil modelini çağırmadan çalışır. Projede API seçiliyse ilgili sağlayıcının ücreti ve proje izinleri geçerlidir. Normal mesajlarda Claude ve araç çağrısı destekleyen yerel orkestratör modelleri, proje için seçili motoru görev olarak çağırabilir. Çıktılar aktif projenin kaynaklarına kaydedilir.
+
+Yerel medya görevleri aktif biçimin Kurgu ayarını, hikâye tahtasını ve ilgili ton, marka veya ses planını okur. Orkestratör kısa görev ve sahne etiketi gönderir. Motor çıktısı `medya_gorevleri.jsonl` dosyasına yazılır ve kurguya yerleştirmek üzere ilgili uzmana iletilir.
+
+### 1.2.0 · Kurgu stilleri, medya seçimi ve arşiv ilerlemesi
+
+- **Yeni video:** proje özeti, hazır kurgu stili ve görsel, video, müzik tercihleri ayrı alanlarda. Mevcut kaynakları kullan, işi Kurgu ajanına bırak, kurulu yerel modeli seç veya kendi API sağlayıcını bağla. Yeni projede varsayılan seçim mevcut kaynaklardır. Kurgu ajanı, örneğin Claude Code, Remotion/HyperFrames ile sahne ve video üretebilir. Kurgu sohbetinden **Bu projenin medya tercihleri** ile aynı seçimler video ve dizi bölümlerinde değiştirilebilir.
+- **Sağlayıcılar:** Gemini görsel bağlayıcısı ve Seedance için fal manifest örneği var. Ayarlar → Bağlayıcılar'da manifesti ekle, anahtarı ve modeli ayarla, etkinleştir. Higgsfield veya başka hizmetler için kendi hesabının API alanlarıyla uygun video/müzik manifesti tanımlanabilir. Proje izni ve bütçe kontrolleri geçerli. Seçili sağlayıcı hata verirse otomatik yedek sağlayıcı çalışmaz.
+- **Yerel medya:** Z-Image-Turbo, Wan 2.2 ve ACE-Step 1.5, sağdaki **İsteğe bağlı kurulumlar** cebinden kurulabilir. Proje bağlamı ve açık Kurgu biçimi uzman işine aktarılır. ACE-Step ile mevcut üretim akışı sözsüz fon müziğidir.
+- **Hazır stiller:** doğal montaj, kalem ve eskiz, teknik sunum, kinetik tipografi, kâğıt kolaj, suluboya ve sinematik portfolyo. Bunlar mevcut render motorlarına verilen sahne planlarıdır. Efektli stillerde uzman, uygulandığı katmanı, süreyi ve render kontrol karelerini teslim raporuna yazar.
+- **Kurgu ve arşiv:** Windows arşiv taraması, medya analizi ve bölüm hazırlığı konsol açmadan çalışır. Arşivde görülen, işlenen ve analiz edilen dosya sayıları canlı görünür. Durdurulan analiz yeniden başlatıldığında kalan işlerden sürer.
+- **Skill atfı:** [Video Studio Kit](https://github.com/owlinthebarnai/video-studio-kit) kataloğu incelendi. Daha önce kullanılan Remotion, HyperFrames ve GSAP yeniden eklenmedi. Kurulum, kitin atıf verdiği [LottieFiles Motion Design](https://github.com/LottieFiles/motion-design-skill) rehberini MIT lisansıyla ve belirtilen revizyondan alır. Hazır stil planları bu depo için yazılmıştır. [Diğer atıflar](.claude/skills/THIRD_PARTY_NOTICES.md).
+
+### Storyboard ve montaj denetimi
+
+Yeni video ve dizi bölümü önce storyboard hazırlar. Panelde sahne akışını ve varsa sessizlik kesimlerini incele, ardından onayla. Plan veya kesim önerisi değişirse yeniden onay gerekir.
+
+Hazır stiller arasında ürün lansmanı, arayüz turu, modüler vitrin, ritmik kolaj ve konuşma klibi bulunur. Stil menüsünden seçebilir veya istemde adını yazabilirsin. Örneğin “Modüler vitrin stilinde kısa bir tanıtım öner”. Panel istemden stil adaylarını gösterir ve orkestratör sahne görevlerinde şablonları kullanabilir.
+
+Efektli sahnelerde kelime zamanlı kinetik yazı, ses dosyasından vuruş adayları ve taslak MP4’ten ilk kare kontrolü kullanılabilir. Sessizlikler yalnızca gösterilen plan onaylandıktan sonra kesilir. Düzeltilen kelime zamanları kesilmiş video ile birlikte çıkar. [Teknik kaynak ve lisanslar](.claude/skills/THIRD_PARTY_NOTICES.md).

@@ -390,7 +390,8 @@ def ork():
 
 
 def guncelleme_engeller():
-    out = []
+    import yerel_muzik
+    out = ['müzik modeli kurulumu'] if yerel_muzik.IS['var'] else []
     if any(j['p'].poll() is None or j['thread'].is_alive() for j in list(ork().JOBS.values())):
         out.append('orkestratör üretimi')
     if any(pr.poll() is None for pr, _ in list(editorler.values())):
@@ -419,7 +420,15 @@ def claude_baslat(proje=None, gorev=None, guven=False):
         raise ValueError("Proje bulunamadı")
     if gorev == "final" and not (d / "onay.json").is_file():
         raise ValueError("Önce taslağı onaylayın")
-    return ork().start(proje, baska_ortam_istemi(proje, gorev), guven)
+    instruction = baska_ortam_istemi(proje, gorev)
+    if gorev in (None, "", "seri"):
+        import kurgu_plan
+        (d / kurgu_plan.REQUIRED).touch()
+        if not kurgu_plan.durum(d)["onayli"]:
+            instruction += (" Bu tur yalnızca storyboard planla. Alternatif stil ve sahne akışını hazırla; "
+                            "hikaye_tahtasi.md dosyasını yaz, plan-onayi-bekliyor durumuna geç ve oturumu bitir. "
+                            "Üretim ve render paneldeki güncel plan onayından sonra başlar.")
+    return ork().start(proje, instruction, guven)
 
 
 def klasor_ac(yol: Path) -> None:
@@ -430,14 +439,18 @@ def klasor_ac(yol: Path) -> None:
 
 
 # ------------------------------------------------------------------ arşiv
-def arsiv_durum() -> dict:
-    A = arsiv()
-    d = A.durum()
+def arsiv_ilerleme() -> dict:
     try:
-        d["ilerleme"] = json.loads(A.ILERLEME.read_text(encoding="utf-8"))
+        progress = json.loads(arsiv().ILERLEME.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        d["ilerleme"] = None
-    d["calisiyor"] = bool(tarama["thread"] and tarama["thread"].is_alive())
+        progress = None
+    return {"ilerleme": progress, "calisiyor": bool(tarama["thread"] and tarama["thread"].is_alive()),
+            "durduruluyor": tarama["dur"], "tarama_sonucu": tarama.get("sonuc")}
+
+
+def arsiv_durum() -> dict:
+    d = arsiv().durum()
+    d.update(arsiv_ilerleme())
     try:
         d["analiz"] = analiz().ozet(1)["turler"] if d.get("toplam") else None
     except Exception:  # noqa: BLE001
@@ -449,12 +462,14 @@ def arsiv_tara_baslat(derin: bool, analizle: bool = True, kok_id: int | None = N
     A = arsiv()
     if tarama["thread"] and tarama["thread"].is_alive():
         return {"ok": False, "mesaj": "tarama zaten çalışıyor"}
-    tarama["dur"] = False
+    tarama.update(dur=False, sonuc=None)
+    A.ilerleme_yaz({"asama": "tarama", "durum": "Tarama hazırlanıyor"})
 
     def is_():
         try:
-            A.tara(derin=derin, durdur=lambda: tarama["dur"], yazdir=lambda *a, **k: None, kok_id=kok_id)
+            tarama["sonuc"] = A.tara(derin=derin, durdur=lambda: tarama["dur"], yazdir=lambda *a, **k: None, kok_id=kok_id)
             if analizle and not tarama["dur"]:  # tarama bitince kullanılabilirlik analizi kendiliğinden başlar
+                A.ilerleme_yaz({"asama": "analiz", "durum": "Analiz listesi hazırlanıyor"})
                 analiz().oto(durdur=lambda: tarama["dur"], yazdir=lambda *a, **k: None, kok_id=kok_id)
         except Exception as e:  # noqa: BLE001
             A.ilerleme_yaz({"durum": f"hata: {e}"})
@@ -469,7 +484,8 @@ def arsiv_analiz_baslat(proje: str | None, yil: str | None, kok_id: int | None =
         raise ValueError("arşiv bağlı değil: harici diski tak ya da Ayarlar → Konumlar'dan yolunu göster")
     if tarama["thread"] and tarama["thread"].is_alive():
         return {"ok": False, "mesaj": "tarama/analiz zaten çalışıyor"}
-    tarama["dur"] = False
+    tarama.update(dur=False, sonuc=None)
+    arsiv().ilerleme_yaz({"asama": "analiz", "durum": "Analiz listesi hazırlanıyor"})
 
     def is_():
         try:
@@ -671,6 +687,14 @@ class H(BaseHTTPRequestHandler):
                 r["katmanlar"] = m.katmanlar()
                 r.pop("alanlar", None)
                 return self._json(r)
+            if u.path == "/api/proje/plan":
+                from kurgu_plan import durum
+                name = q.get("proje", "")
+                plan = durum(ork().project(name))
+                plan["asama"] = ek().durum().oku(name).get("asama")
+                return self._json(plan)
+            if u.path == "/api/arsiv/ilerleme":
+                return self._json(arsiv_ilerleme())
             if u.path == "/api/arsiv/durum":
                 return self._json(arsiv_durum())
             if u.path == "/api/arsiv/ses":   # arşivdeki müziği tarayıcıda dinlemek için (yalnızca dizindeki ses dosyaları, salt okunur)
@@ -797,7 +821,7 @@ class H(BaseHTTPRequestHandler):
                 return self._json(ek().ses_kaydet(q.get("proje", ""), self.rfile.read(n), uz))
             b = self._govde_json()
             if u.path == "/api/ajan/mesaj":
-                return self._json(ork().start(b.get("proje", ""), b.get("mesaj", ""), b.get("guven") is True))
+                return self._json(ork().start(b.get("proje", ""), b.get("mesaj", ""), b.get("guven") is True, b.get("format", "ana")))
             if u.path == "/api/ajan/notlar":
                 return self._json(ork().drain(b.get("proje", ""), b.get("guven") is True))
             if u.path == "/api/ajan/izin":
@@ -846,6 +870,24 @@ class H(BaseHTTPRequestHandler):
                 return self._json(kurgu_ac(b.get("proje", ""), b.get("format", "ana")))
             if u.path == "/api/kurgu/eklenti":
                 return self._json(eklenti_islem(str(b.get("islem") or "yeniden")))
+            if u.path == "/api/proje/plan-onay":
+                import kurgu_plan
+                name = b.get("proje", "")
+                root = ork().project(name)
+                if name == "_profil" or not (root / kurgu_plan.REQUIRED).exists():
+                    raise ValueError("Bu proje storyboard onayı beklemiyor.")
+                if ork().state(name).get("durum") in ("calisiyor", "izin"):
+                    raise ValueError("Storyboard görevini bitir, ardından planı onayla.")
+                status = ek().durum().oku(name).get("asama")
+                completed = ("taslak-hazir", "onaylandi", "final-render", "platform-surumleri", "teslim")
+                if status in completed and kurgu_plan.durum(root)["onayli"]:
+                    raise ValueError("Onaylı planın taslağı zaten üretildi.")
+                kurgu_plan.onayla(root, b.get("revizyon"))
+                return self._json(ork().start(name, (
+                    "Kullanıcı güncel storyboard’u ve varsa gösterilen sessizlik kesimlerini panelden onayladı. "
+                    "Onaylanan storyboard’daki stili ve sahneleri kullan. Yeni plan yazmadan .claude/commands/video.md Üretim "
+                    "adımından devam et. Uzmanlara görev ver, ilk kareyi ve render’ı denetle, taslakta dur."
+                ), format=b.get("format", "ana")))
             if u.path == "/api/claude":
                 return self._json(claude_baslat(b.get("proje"), b.get("gorev"), b.get("guven") is True))
             if u.path == "/api/klasor":
@@ -984,6 +1026,8 @@ class H(BaseHTTPRequestHandler):
         e.ayar().kaydet(h["ayar_yama"], ad)
         e.marka().uygula(ad, h["marka"]["kit"], {k: v for k, v in h["marka"].items() if k != "kit"})
         (pk / "uretim.json").write_text(json.dumps(h["uretim"], ensure_ascii=False, indent=2), encoding="utf-8")
+        from kurgu_plan import REQUIRED
+        (pk / REQUIRED).touch()
         if (h["uretim"].get("seslendirme") or {}).get("klon"):
             e.klon_projeye(ad)  # kayıtlı örnek ses projenin klon/ornek.wav dosyası olur
         e.durum().yaz(ad, "taslak" if b.get("taslak") else "hazirlaniyor", "Proje kaydedildi; orkestratör panelden başlatılır.")

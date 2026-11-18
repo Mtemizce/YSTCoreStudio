@@ -4,7 +4,7 @@
   python sistem/araclar/topluluk_readme.py [--repo SAHIP/DEPO] [--haric kullanici,...] [--deneme]
 
 - Katkıcılar: GitHub API (`gh api repos/<depo>/contributors`); depo sahibi ve botlar listelenmez.
-- Sponsorlar: GitHub GraphQL; yalnızca herkese açık sponsorlar. `SPONSORS_TOKEN` (classic jeton, `read:user`) ortam değişkeni yoksa bu bölüme dokunulmaz.
+- Sponsorlar: GitHub GraphQL; yalnızca herkese açık sponsorlar. `SPONSORS_TOKEN` (classic jeton, `read:user` ve `read:org`) ortam değişkeni yoksa bu bölüme dokunulmaz.
 - Profil resimleri yuvarlatılıp `docs/topluluk/` altına yazılır (üçüncü taraf servis yok); README'de `<!-- katkicilar:basla -->` ... `<!-- katkicilar:bitis -->`
   ve `<!-- sponsorlar:basla -->` ... `<!-- sponsorlar:bitis -->` işaretleri arasındaki metin değişir.
 - Dosyaları yalnızca düzenler; commit'i çağıran yapar (.github/workflows/topluluk.yml).
@@ -134,10 +134,16 @@ def main() -> int:
         yeni = bolum_degistir(yeni, "katkicilar", isle("katkicilar", kat))
     token = os.environ.get("SPONSORS_TOKEN", "").strip()
     if token:
-        sp = sponsorlar(sahip, token)
-        print(f"sponsor: {len(sp)}")
-        if not a.deneme:
-            yeni = bolum_degistir(yeni, "sponsorlar", isle("sponsorlar", sp))
+        try:
+            sp = sponsorlar(sahip, token)
+        except RuntimeError as e:
+            if "required scopes" not in str(e):
+                raise
+            print("::warning::SPONSORS_TOKEN için read:user ve read:org gerekli. Sponsor bölümü korunuyor.")
+        else:
+            print(f"sponsor: {len(sp)}")
+            if not a.deneme:
+                yeni = bolum_degistir(yeni, "sponsorlar", isle("sponsorlar", sp))
     else:
         print("SPONSORS_TOKEN yok: sponsor bölümüne dokunulmadı")
     if yeni != metin and not a.deneme:

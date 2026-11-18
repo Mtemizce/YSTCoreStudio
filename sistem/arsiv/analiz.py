@@ -82,7 +82,7 @@ def _video_kare_olc(yol: str, sure: float | None):
         from PIL import Image
         t = max(0.0, (sure or 0) * 0.2)
         r = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.2f}", "-i", yol, "-frames:v", "1", "-vf", "scale=640:-2", "-f", "image2pipe", "-vcodec", "png", "-"],
-                           capture_output=True, timeout=25)
+                           capture_output=True, timeout=25, creationflags=A.NW, stdin=subprocess.DEVNULL)
         if r.returncode != 0 or not r.stdout:
             return None
         return _gri_ol(Image.open(io.BytesIO(r.stdout)))
@@ -188,6 +188,8 @@ def oto(limit: int | None = None, proje: str | None = None, yil: str | None = No
         gorulen.setdefault((r["kok_id"], r["klasor"]), []).append((r["dhash"], r["yol"]))
     sayac = {"islenen": 0, "kullanilabilir": 0, "kullanilamaz": 0, "hata": 0, "yinelenen": 0, "toplam_bekleyen": len(sat), "bulutta_atlanan": len(bulutta)}
     bas = time.time()
+    son_ilerleme = time.monotonic()
+    A.ilerleme_aktar(A.ilerleme_yaz, "analiz", "Dosyalar analiz ediliyor", bas, sayac)
     try:
         for i, r in enumerate(sat, 1):
             if durdur and durdur():
@@ -248,14 +250,22 @@ def oto(limit: int | None = None, proje: str | None = None, yil: str | None = No
             sayac["islenen"] += 1
             if i % 200 == 0:
                 c.commit()
-                A.ilerleme_yaz({"durum": "analiz", **sayac, "sn": int(time.time() - bas)})
                 yazdir(f"  analiz {i}/{len(sat)}")
+            if time.monotonic() - son_ilerleme >= 0.5:
+                A.ilerleme_aktar(A.ilerleme_yaz, "analiz", "Dosyalar analiz ediliyor", bas, sayac,
+                                 dosya=r["yol"].rsplit("/", 1)[-1])
+                son_ilerleme = time.monotonic()
     finally:
         c.commit()
+    if durdur and durdur():
+        sayac["sn"] = int(time.time() - bas)
+        A.ilerleme_aktar(A.ilerleme_yaz, "analiz", "Analiz durduruldu", bas, sayac)
+        return sayac
+    A.ilerleme_aktar(A.ilerleme_yaz, "analiz", "Son kalite kontrolleri yapılıyor", bas, sayac)
     sayac["bagil_bulanik"] = _bagil_bulaniklik(c, {(r["kok_id"], r["klasor"]) for r in sat[: sayac["islenen"]] if r["tur"] in ("foto", "video")})
     c.commit()
     sayac["sn"] = int(time.time() - bas)
-    A.ilerleme_yaz({"durum": "analiz bitti", **sayac})
+    A.ilerleme_aktar(A.ilerleme_yaz, "analiz", "Analiz tamamlandı", bas, sayac)
     return sayac
 
 

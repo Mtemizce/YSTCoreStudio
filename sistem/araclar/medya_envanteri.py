@@ -18,6 +18,8 @@ IMG = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff")
 VID = (".mp4", ".mov", ".mkv", ".m4v", ".webm", ".avi")
 
 
+NW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
 def ffprobe():
     from shutil import which
     p = which("ffprobe")
@@ -85,7 +87,7 @@ def inspect_video(path):
     if not fp:
         return {"tur": "video", "dosya": path, "hata": "ffprobe yok"}, None
     r = subprocess.run([fp, "-v", "error", "-show_entries", "format=duration:stream=codec_type,codec_name,width,height,r_frame_rate,channels",
-                        "-of", "json", path], capture_output=True, text=True, encoding="utf-8", errors="replace")
+                        "-of", "json", path], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30, creationflags=NW, stdin=subprocess.DEVNULL)
     j = json.loads(r.stdout or "{}")
     v = next((s for s in j.get("streams", []) if s.get("codec_type") == "video"), {})
     a = next((s for s in j.get("streams", []) if s.get("codec_type") == "audio"), None)
@@ -105,7 +107,7 @@ def inspect_video(path):
         if ff:
             fd, tmp = tempfile.mkstemp(suffix=".jpg")
             os.close(fd)
-            subprocess.run([ff, "-v", "error", "-y", "-ss", str(min(1.0, d["sure_sn"] / 3)), "-i", path, "-frames:v", "1", tmp], capture_output=True)
+            subprocess.run([ff, "-v", "error", "-y", "-ss", str(min(1.0, d["sure_sn"] / 3)), "-i", path, "-frames:v", "1", tmp], capture_output=True, timeout=30, creationflags=NW, stdin=subprocess.DEVNULL)
             if os.path.getsize(tmp) > 0:
                 thumb = Image.open(tmp).convert("RGB")
                 thumb.load()

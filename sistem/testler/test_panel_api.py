@@ -53,7 +53,11 @@ for _ in range(120):  # yavaş makinelerde (macOS runner) ilk açılış uzun s�
             break
         except Exception:
             B = None
-assert B, "panel başlamadı: " + PANEL_LOG.read_text(errors="replace")[-1500:]
+if B is None:
+    if srv.poll() is None:
+        srv.kill()
+        srv.wait(timeout=5)
+    raise AssertionError("panel başlamadı: " + PANEL_LOG.read_text(errors="replace")[-1500:])
 
 
 def call(m, u, b=None, hdr=True):
@@ -178,6 +182,13 @@ try:
     s, g = call("POST", "/api/konum/gozat", {"yol": str(tmp / "yok")}); ok(s == 400, "gözat: olmayan klasör hata")
     s, r = call("POST", "/api/arsiv/ayarla", {"ad": "arsiv", "yol": str(ark)}); ok(s == 200 and r["ayar"]["yol"] == str(ark), f"arşiv eklendi: {r}")
     s, d = call("GET", "/api/arsiv/durum"); ok(d["ayarli"] and d["bagli"] and len(d["arsivler"]) == 1, "arşiv durumu bağlı")
+    for _ in range(120):
+        _, progress = call("GET", "/api/arsiv/ilerleme")
+        if not progress["calisiyor"]:
+            break
+        time.sleep(0.25)
+    else:
+        raise AssertionError("Arşiv eklenince başlayan ilk tarama zamanında bitmedi")
     s, r = call("POST", "/api/arsiv/tara", {"derin": False, "analiz": True}); ok(s == 200 and r["ok"], "tarama + analiz başladı")
     for _ in range(60):
         time.sleep(1)

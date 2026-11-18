@@ -44,6 +44,9 @@ def yaz(proje: str, asama: str, not_: str = "") -> dict:
     p = yol(proje)
     if not p.parent.is_dir():
         raise ValueError("proje yok")
+    if asama in ("uretiliyor", "taslak-hazir", "final-render"):
+        from kurgu_plan import kontrol
+        kontrol(p.parent)
     d = {"asama": asama, "etiket": ETIKET[asama], "not": not_, "guncelleme": time.strftime("%Y-%m-%d %H:%M:%S")}
     p.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
     return d

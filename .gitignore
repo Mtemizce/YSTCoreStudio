@@ -47,3 +47,5 @@ __pycache__/
 # referans skill ciktilari (kullanicinin videolarindan cikarilan kareler ve istemler)
 /referanslar/*
 !/referanslar/.gitkeep
+
+/.claude/skills/motion-design/

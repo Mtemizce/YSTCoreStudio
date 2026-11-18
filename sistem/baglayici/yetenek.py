@@ -202,6 +202,12 @@ def _http_is(m: dict, yetenek: str, girdi: dict, ctx: dict, cikti: Path) -> dict
             if time.time() - t0 > en_cok:
                 raise ortak.AgHatasi(f"zaman aşımı ({int(en_cok)} sn): iş hâlâ '{d}'")
             time.sleep(aralik)
+    endpoint = uc.get("sonuc")
+    if endpoint:
+        path = doldur(endpoint["yol"], degerler)
+        if not isinstance(path, str) or not path.startswith("/") or path.startswith("//"):
+            raise GirdiHatasi("Sonuç yolu sağlayıcının taban adresine göreli olmalı")
+        sonuc = _http_json("GET", taban + path, bas, None, 60)
     tur = cikti_tanim.get("tur", "url")
     deger = yol_al(sonuc, cikti_tanim.get("yol"))
     if deger in (None, "", []):

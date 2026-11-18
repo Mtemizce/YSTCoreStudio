@@ -23,6 +23,9 @@ def ffmpeg(name="ffmpeg"):
     return media_tools.find(name)
 
 
+NW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
+
 def main():
     if len(sys.argv) < 2 or sys.argv[1].startswith("--"):
         sys.exit(__doc__)
@@ -32,9 +35,21 @@ def main():
     def arg(flag, default):
         return float(sys.argv[sys.argv.index(flag) + 1]) if flag in sys.argv else default
     noise, min_sil, pad = arg("--db", -30.0), arg("--min", 0.6), arg("--pad", 0.12)
+    dur, sils, keeps = oner(inp, noise, min_sil, pad)
+    kept = sum(e - s for s, e in keeps)
+    print(f"{len(sils)} sessiz aralık, {len(keeps)} parça: {dur:.1f} sn → {kept:.1f} sn")
+    if "--sadece-rapor" not in sys.argv and keeps:
+        from pathlib import Path
+        from kurgu_plan import REQUIRED
+        if any((parent / REQUIRED).exists() for parent in Path(inp).resolve().parents):
+            sys.exit("Panel projesinde önce montaj_olcum.py kesim-oner ile plan oluştur, onaydan sonra kesim-uygula kullan.")
+        uygula(inp, out, keeps)
+
+
+def oner(inp, noise=-30.0, min_sil=0.6, pad=0.12):
     ff, fp = ffmpeg("ffmpeg"), ffmpeg("ffprobe")
-    dur = float(subprocess.check_output([fp, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", inp]).decode().strip())
-    log = subprocess.run([ff, "-i", inp, "-af", f"silencedetect=noise={noise}dB:d={min_sil}", "-f", "null", "-"], stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace").stderr
+    dur = float(subprocess.check_output([fp, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", inp], creationflags=NW, timeout=30).decode().strip())
+    log = subprocess.run([ff, "-i", inp, "-af", f"silencedetect=noise={noise}dB:d={min_sil}", "-f", "null", "-"], stderr=subprocess.PIPE, text=True, encoding="utf-8", errors="replace", creationflags=NW, timeout=3600, check=True).stderr
     sils, cur = [], None
     for line in log.splitlines():
         m = re.search(r"silence_start:\s*([-\d.]+)", line)
@@ -44,6 +59,8 @@ def main():
         if m and cur is not None:
             sils.append((cur, float(m.group(1))))
             cur = None
+    if cur is not None:
+        sils.append((cur, dur))
     keeps, pos = [], 0.0
     for s, e in sils:
         if s - pos > 0.05:
@@ -58,10 +75,11 @@ def main():
         else:
             merged.append(k)
     keeps = [k for k in merged if k[1] - k[0] > 0.10]
-    kept = sum(k[1] - k[0] for k in keeps)
-    print(f"{len(sils)} sessiz aralık, {len(keeps)} parça: {dur:.1f} sn -> {kept:.1f} sn (%{100 * (1 - kept / dur):.0f} kesildi)")
-    if "--sadece-rapor" in sys.argv or not keeps:
-        return
+    return dur, sils, keeps
+
+
+def uygula(inp, out, keeps):
+    ff = ffmpeg()
     fc = []
     for i, (s, e) in enumerate(keeps):
         fc.append(f"[0:v]trim=start={s:.3f}:end={e:.3f},setpts=PTS-STARTPTS[v{i}];[0:a]atrim=start={s:.3f}:end={e:.3f},asetpts=PTS-STARTPTS[a{i}];")
@@ -70,11 +88,19 @@ def main():
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write("".join(fc))
     try:
-        r = subprocess.run([ff, "-y", "-v", "error", "-i", inp, "-filter_complex_script", script, "-map", "[v]", "-map", "[a]",
-                            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac", "-b:a", "192k", out])
+        head = [ff, "-nostdin", "-y", "-v", "error", "-i", inp]
+        tail = ["-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast",
+                "-crf", "18", "-c:a", "aac", "-b:a", "192k", out]
+        for option in ("-/filter_complex", "-filter_complex_script"):
+            result = subprocess.run([*head, option, script, *tail], creationflags=NW, timeout=7200,
+                                    capture_output=True, encoding="utf-8", errors="replace")
+            if result.returncode == 0:
+                return
+            if option != "-/filter_complex" or "Unrecognized option" not in result.stderr:
+                raise RuntimeError(result.stderr.strip()[-1200:] or f"FFmpeg: {result.returncode}")
     finally:
         os.remove(script)
-    print(("bitti: " + out) if r.returncode == 0 else f"HATA: ffmpeg {r.returncode}")
+
 
 
 if __name__ == "__main__":

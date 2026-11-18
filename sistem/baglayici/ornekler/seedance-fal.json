@@ -1,0 +1,49 @@
+{
+  "tur": "http-is",
+  "ad": "Seedance 1.0 Pro (fal)",
+  "yetenekler": [
+    "video-uret"
+  ],
+  "taban_url": "https://queue.fal.run",
+  "anahtar_adi": "FAL_KEY",
+  "model": "fal-ai/bytedance/seedance/v1/pro/text-to-video",
+  "kimlik": {
+    "baslik": "Authorization",
+    "sablon": "Key {anahtar}"
+  },
+  "uc": {
+    "video-uret": {
+      "gonder": {
+        "yontem": "POST",
+        "yol": "/fal-ai/bytedance/seedance/v1/pro/text-to-video",
+        "govde": {
+          "prompt": "{istem}",
+          "duration": "{sure_metin}",
+          "aspect_ratio": "{oran}",
+          "resolution": "480p"
+        },
+        "sonuc_id": "$.request_id"
+      },
+      "durum": {
+        "yol": "/fal-ai/bytedance/requests/{id}/status",
+        "durum_alani": "$.status",
+        "biten": [
+          "COMPLETED"
+        ],
+        "hatali": [
+          "FAILED",
+          "ERROR",
+          "CANCELLED"
+        ]
+      },
+      "sonuc": {
+        "yol": "/fal-ai/bytedance/requests/{id}"
+      },
+      "cikti": {
+        "yol": "$.video.url",
+        "tur": "url"
+      }
+    }
+  },
+  "gonderilen": "Üretim istemi, oran ve süre. fal üzerinden ücretli."
+}

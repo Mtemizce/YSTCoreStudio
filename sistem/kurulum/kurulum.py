@@ -45,7 +45,8 @@ def adim(no: int, toplam: int, ad: str) -> None:
 
 
 def calistir(cmd, cwd=None, env=None, kontrol=True):
-    r = subprocess.run([str(c) for c in cmd], cwd=str(cwd) if cwd else None, env=env)
+    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    r = subprocess.run([str(c) for c in cmd], cwd=str(cwd) if cwd else None, env=env, creationflags=flags)
     if kontrol and r.returncode != 0:
         raise SystemExit(f"HATA: komut başarısız ({r.returncode}): {' '.join(str(c) for c in cmd)}")
     return r.returncode
@@ -53,6 +54,7 @@ def calistir(cmd, cwd=None, env=None, kontrol=True):
 
 def cikti(cmd, **kw) -> str:
     try:
+        kw.setdefault("creationflags", subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
         return subprocess.run([str(c) for c in cmd], capture_output=True, text=True, timeout=60, **kw).stdout.strip()
     except (OSError, subprocess.TimeoutExpired):
         return ""
@@ -160,8 +162,42 @@ def a_npm() -> None:
     calistir(["node", ROOT / "node_modules" / "@remotion" / "cli" / "remotion-cli.js", "browser", "ensure"], cwd=ROOT)
 
 
+def motion_design_skill(kok):
+    """Import the MIT motion-design texts listed by Video Studio Kit, pinned to its reference."""
+    repo = "https://github.com/LottieFiles/motion-design-skill"
+    ref = "f9a8a041"
+    target = ROOT / ".claude" / "skills" / "motion-design"
+    if (target / "SKILL.md").is_file():
+        return
+    checkout = kok / "motion-design-skill"
+    try:
+        if not (checkout / ".git").is_dir():
+            checkout.parent.mkdir(parents=True, exist_ok=True)
+            calistir(["git", "clone", "--quiet", "--no-checkout", repo, checkout])
+        commit = cikti(["git", "-C", checkout, "rev-parse", "--verify", ref + "^{commit}"])
+        if len(commit) != 40 or not commit.startswith(ref):
+            raise ValueError("sabit sürüm bulunamadı")
+        calistir(["git", "checkout", "--quiet", "--detach", commit], cwd=checkout)
+        source = checkout / "skills" / "motion-design"
+        license_file = checkout / "LICENSE"
+        if not (source / "SKILL.md").is_file() or not license_file.is_file():
+            raise ValueError("skill veya MIT lisansı bulunamadı")
+        target.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(license_file, target / "LICENSE")
+        for file in sorted(source.rglob("*.md"), key=lambda p: p.name == "SKILL.md"):
+            if file.is_symlink() or not file.resolve().is_relative_to(source.resolve()):
+                continue
+            dest = target / file.relative_to(source)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(file, dest)
+        say("  Motion Design skill hazır")
+    except (OSError, ValueError, SystemExit) as exc:
+        say(f"  Motion Design skill alınamadı; yerleşik kurgu rehberi kullanılacak: {exc}")
+
+
 def a_skills(yenile: bool) -> None:
     kok = YEREL / "kaynak"
+    motion_design_skill(kok)
     kaynaklar = MANIFEST["kaynaklar"]
     for kid, m in kaynaklar.items():
         if m["tur"] == "git":

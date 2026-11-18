@@ -32,7 +32,11 @@ for _ in range(120):  # yavaş makinelerde (macOS runner) ilk açılış uzun s�
             break
         except Exception:
             B = None
-assert B, "panel başlamadı: " + PANEL_LOG.read_text(errors="replace")[-1500:]
+if B is None:
+    if srv.poll() is None:
+        srv.kill()
+        srv.wait(timeout=5)
+    raise AssertionError("panel başlamadı: " + PANEL_LOG.read_text(errors="replace")[-1500:])
 
 
 def call(m, u, b=None, hdr=True, raw=None, ek=None):

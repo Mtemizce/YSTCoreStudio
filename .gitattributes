@@ -1,2 +1,6 @@
 *.cmd text eol=crlf
 *.sh text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.ps1 text eol=lf
+.github/workflows/*.yml text eol=lf
