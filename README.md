@@ -1,249 +1,221 @@
-# YSTCoreStudio
+# YSTCore Studio
 
-**Bilgisayarında çalışan, Türkçe odaklı video stüdyosu: bir yapay zekâ ajanının (orkestratör) kullandığı araç takımı.** Sen isteği ve kaynakları verirsin; orkestratör planlar, bu araçlarla yerelde üretir. Stüdyonun kendisinde hesap ve telemetri yoktur; araçlar ve panel `127.0.0.1`'de, senin makinende çalışır.
+**Kendi arşivinden, Türkçe anlatımlı ve yayına hazır videolar üret.**
 
-![Lisans: MIT](https://img.shields.io/badge/lisans-MIT-2ea44f)
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-20%2B-5FA04E?logo=nodedotjs&logoColor=white)
-![Remotion](https://img.shields.io/badge/Remotion-4.0.543-0B84F3)
-![HyperFrames](https://img.shields.io/badge/HyperFrames-0.9.49-7C3AED)
-![React](https://img.shields.io/badge/React-19.3.1-61DAFB?logo=react&logoColor=black)
-![GSAP](https://img.shields.io/badge/GSAP-3.15.1-88CE02?logo=greensock&logoColor=black)
-![Paper.js](https://img.shields.io/badge/Paper.js-0.16.0-333333)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
-![faster-whisper](https://img.shields.io/badge/faster--whisper-1.2.1-0F766E)
-![Pocket TTS Turkish](https://img.shields.io/badge/Pocket%20TTS%20Turkish-0.1.0-B45309)
-![EMA Lightning](https://img.shields.io/badge/EMA%20Lightning-1.1.2-475569)
-![FFmpeg](https://img.shields.io/badge/FFmpeg-yerel-007808?logo=ffmpeg&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
-![Kurgu](https://img.shields.io/badge/Kurgu-f578b36-111827)
-![Claude Code](https://img.shields.io/badge/Claude%20Code-orkestrat%C3%B6r-D97757)
+Fotoğraf, video, ses ve belgelerini ekle. Yapay zekâ orkestratörü isteğini bir sahne planına dönüştürür ve onayından sonra uzman ajanlara görev dağıtır. Kurgu zaman çizelgesinde taslağı izle, saniyesine not bırak ve hazır olduğunda YouTube, Reels, TikTok veya Shorts sürümlerini al. Arşiv, proje dosyaları ve render bilgisayarında yönetilir.
 
-## Nedir?
+[![YSTCore Studio 1.2.0](https://img.shields.io/badge/YSTCore_Studio-1.2.0-243447)](sistem/surum.json)
+[![Lisans MIT](https://img.shields.io/badge/lisans-MIT-2ea44f)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](#sistem-gereksinimleri)
+[![Node.js 20+](https://img.shields.io/badge/Node.js-20%2B-5FA04E?logo=nodedotjs&logoColor=white)](#sistem-gereksinimleri)
+[![SQLite 3](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](#teknik-yapı)
+[![FFmpeg](https://img.shields.io/badge/FFmpeg-yerel-007808?logo=ffmpeg&logoColor=white)](.claude/skills/THIRD_PARTY_NOTICES.md#ffmpeg)
 
-YSTCoreStudio, fotoğraf, video, DWG, PDF, Word ve Excel dosyalarını verip serbestçe "şunu anlatan 40 saniyelik bir video yap" dediğin bir **video post-prodüksiyon stüdyosudur**. Tarayıcıda açılan bir panelden proje başlatırsın; Claude Code orkestratörü senarist, redaktör, ses yönetmeni ve eleştirmen gibi uzman ajanlara iş dağıtır. Seslendirme (kendi sesini klonlayarak bile), altyazı, müzik, geçişler, fotoğraf iyileştirme ve kalemle çizilen ara sahneler yerelde üretilir; sonucu [Kurgu](https://github.com/leodavincs/kurgu) zaman çizelgesinde izler, saniye saniye not yazar, beğenince YouTube, Reels, TikTok ve Shorts sürümlerini alırsın. Ücretli bulut servisleri (ElevenLabs, Gemini, OpenAI görsel) **isteğe bağlıdır ve varsayılan kapalıdır**.
+[![Remotion 4.0.543](https://img.shields.io/badge/Remotion-4.0.543-0B84F3)](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-eklentileri)
+[![HyperFrames 0.9.49](https://img.shields.io/badge/HyperFrames-0.9.49-7C3AED)](.claude/skills/THIRD_PARTY_NOTICES.md#heygen-hyperframes)
+[![React 19.3.1](https://img.shields.io/badge/React-19.3.1-61DAFB?logo=react&logoColor=black)](.claude/skills/THIRD_PARTY_NOTICES.md#kutuphaneler)
+[![GSAP 3.15.1](https://img.shields.io/badge/GSAP-3.15.1-88CE02?logo=gsap&logoColor=black)](.claude/skills/THIRD_PARTY_NOTICES.md#kutuphaneler)
+[![Paper.js 0.16.0](https://img.shields.io/badge/Paper.js-0.16.0-333333)](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kalem)
+[![Kurgu f578b36](https://img.shields.io/badge/Kurgu-f578b36-111827)](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kurgu)
 
-> **Orkestratör gerekir.** Claude Code, Ollama, LM Studio ve llama.cpp panelden seçilebilir. Claude bağlantısı mevcut sağlayıcı oturumunu kullanır; hesap girişi klasör güveninden ayrıdır. Yerel modellerde abonelik gerekmez, ancak sunucu açık ve araç çağırmayı destekleyen bir model yüklü olmalıdır. Codex CLI, Gemini CLI ve OpenCode başsız adaptörleri deneyseldir; araç bazında panel izin akışı Claude SDK ve doğrudan yerel model bağlantılarında desteklenir.
+[![faster-whisper 1.2.1](https://img.shields.io/badge/faster--whisper-1.2.1-0F766E)](.claude/skills/THIRD_PARTY_NOTICES.md#whisper-modelleri)
+[![EMA Lightning 1.1.2](https://img.shields.io/badge/EMA_Lightning-1.1.2-475569)](.claude/skills/THIRD_PARTY_NOTICES.md#ema-lightning)
+[![Pocket TTS Turkish 0.1.0](https://img.shields.io/badge/Pocket_TTS_Turkish-0.1.0-B45309)](.claude/skills/THIRD_PARTY_NOTICES.md#pocket-tts-turkish)
+[![Claude Code ve yerel modeller](https://img.shields.io/badge/Orkestratör-Claude_Code_%7C_Yerel-D97757)](.claude/skills/THIRD_PARTY_NOTICES.md#orkestrator-baglantilari)
 
-## Panel içinden çalışma
+**[Sürümü indir](https://github.com/Mtemizce/YSTCoreStudio/releases)** · [Kurulum](#kurulum) · [İlk video](#ilk-videonu-hazırla) · [Modeller ve sağlayıcılar](#modeller-ve-sağlayıcılar) · [Bileşenler ve atıflar](#bileşenler-ve-atıflar)
 
-- **Canlı üretim → Orkestratör sohbeti:** mesajlar, yanıtlar, klasör güveni, araç izinleri ve sorular paneldedir. Ajan için terminal penceresi açılmaz. Kurgu'nun mevcut **Gönder** düğmesi zaman kodu/kare/işaret içeren notları aynı orkestratörün kalıcı kuyruğuna verir; meşgul ajan bitince devam eder.
-- **Ayarlar → Yapay zekâ:** Ollama (`http://127.0.0.1:11434`), LM Studio (`http://127.0.0.1:1234/v1`) veya llama.cpp (`http://127.0.0.1:8080/v1`) seç; adresi kaydet, modelleri yenile, modeli seçip kaydet. Sunucu ve model kurulumu bu sağlayıcıların kendi uygulamasında yapılır. Yerel orkestratör alt ajanlara `delegate` aracıyla iş dağıtır. Yerel modele devredilen CLI alt görevleri proje dosyalarıyla sınırlıdır; program çalıştırma orkestratörde kalır.
-- **İptal / taslak / sil:** çalışan üretim ve alt süreçleri durdurulur. Taslak, brief ve kaynakları korur; daha sonra orkestratörle devam edilir. Silme projeyi `sistem/ortam/cop/` altına taşır; dış arşivdeki orijinalleri silmez. Geri alma için panel kapalıyken bu klasörü eski proje adıyla `projeler/` altına taşıyabilirsin.
-- **Arşiv:** yerel yol kaydedilince ilk tarama başlar. Dosya ve klasör adında parça araması, Türkçe karakterler ve boşluklar desteklenir. Kurgu içindeki **Arşivden ekle** görsel, video ve sesi zaman çizelgesine kopyalar; belgeleri proje kaynaklarına ekler. Harici disk bağlı ve arşiv taraması tamamlanmış olmalıdır.
-- **Dikte:** mikrofona izin ver, konuş, kaydı durdur. İndirilen Whisper modeli ortak stüdyo önbelleğinden CPU ile yüklenir; eksik model kayıt başlamadan bildirilir. Dikte sırasında yeni model indirilmez.
+### Stüdyoya göz at
 
-### Yeni Windows bilgisayar ve mevcut kurulumu güncelleme
+| YSTCore Studio paneli | Kurgu editörü |
+|:---:|:---:|
+| <a href="docs/gorseller/studio-panel-canli.jpg"><img src="docs/gorseller/studio-panel-canli.jpg" width="400" alt="YSTCore Studio’da örnek proje özeti ve kurgu stili"></a> | <a href="docs/gorseller/studio-kurgu-canli.jpg"><img src="docs/gorseller/studio-kurgu-canli.jpg" width="400" alt="Kurgu’da sahne önizlemesi ve katmanlı zaman çizelgesi"></a> |
+| Proje özeti, stil ve medya tercihleri | Kurgu’nun örnek projesinde sahne ve zaman çizelgesi |
 
-`Başlat.cmd` ile aç. Python yoksa ilk kurulum penceresindeki **Python kur** düğmesi resmi, imzalı yükleyiciyi çalıştırır. Ardından kurulum panelindeki **Eksikleri kur ve devam et**, eksik Git/Node.js ve seçili önkoşulları sırayla kurar, her araç için yeniden kontrol yapar. Komutlar elle kurulum alternatifi olarak kalır. Yönetici gerektiren sistem kurulumları için Başlat.cmd'yi yönetici olarak aç. Bu önkoşullar Windows'a kurulur; stüdyo modelleri ve paket önbellekleri stüdyo içinde kalır.
+Canlı uygulamalardan alınan görüntüleri büyütmek için üzerlerine tıkla.
 
-Mevcut kurulumda paneli kapatıp yeniden aç. Yeni `claude-agent-sdk` bağımlılığı arka plan bileşen kuyruğundadır. Kurgu eklentisi editör yeniden açılınca güncellenir. İndirme kuyruğunda başarısız kalan öğeyi yeniden dene: model dosyaları boyut ve mevcut SHA256 bilgisiyle doğrulanır, yarım indirme tamamlanmış sayılmaz. Sağlık raporu zorunlu eksikleri ve kurulmamış isteğe bağlı modelleri ayrı gösterir.
+## Bu stüdyoyla ne yapabilirsin?
 
-### İsteğe bağlı yerel video: Wan 2.2
+| Elindeki malzeme | Alabileceğin çıktı |
+|---|---|
+| Şantiye fotoğrafları, DWG/SVG çizimleri, mekân videoları ve proje notları | Kalemle başlayan ara sahneler ve Türkçe anlatımla bir mimari proje tanıtımı. |
+| Röportaj veya konuşma kaydı, B-roll ve müzik | Kelime zamanlı altyazı, onaylı sessizlik kesimleri ve vuruşlara göre kurgulanmış kısa klipler. |
+| Ürün görselleri, ekran kayıtları veya bir sunum brief’i | Kinetik tipografi ve hareketli grafiklerle bir ürün tanıtımı, arayüz turu veya eğitim videosu. |
+| Karakter, nesne ve mekân görselleri | Onaylı görselleri bölümler arasında yeniden kullanan bir video dizisi. |
 
-**Ayarlar → Servisler ve modeller → Yerel video: Wan 2.2 → İndir ve kur.** [alexturkey/wan22-pascal-4gb](https://github.com/alexturkey/wan22-pascal-4gb) v0.1.0 tarifini kullanır. Paketler ve üç model dosyası SHA256 ile doğrulanır; kesilen indirme yeniden denemede devam eder. Kendiliğinden indirilmez.
-
-Windows x64, CUDA 12.8 uyumlu NVIDIA sürücüsü, en az 4 GB VRAM, yaklaşık 12 GB indirme alanı ve en az 8 GB boş RAM gerekir. Hazır paket Pascal için hazırlanmıştır; diğer kartlarda uyumluluk ayrıca denenmelidir. Kurgu sayfasındaki **Yerel video üret** bölümünden 17, 49 veya 121 kare seçilir; çıktı proje kaynaklarına ve yanında atıf dosyasına yazılır. Üretim aynı bölümden iptal edilebilir. Bu entegrasyon metinden video akışını sunar.
-
-Kaynak projenin GTX 1050 Ti ölçümü: 49 kare yaklaşık 26 dakika, 121 kare yaklaşık 158 dakika; kendi kartındaki süre farklı olabilir. Motor/modellerin lisansları ayrıdır: [atıflar](.claude/skills/THIRD_PARTY_NOTICES.md#yerel-video-uretim).
-
-## Nasıl çalışır?
-
-**Kısaca:** sen *isteği ve kaynaklarını* verirsin; orkestratör *planlar ve işleri dağıtır*; üretimi *senin bilgisayarındaki araçlar* yapar. Orkestratör internette materyal arayıp getirmez.
-
-```mermaid
-flowchart LR
-    A["1. Sen<br/>istek + kaynaklar<br/>(panel: Yeni proje)"] --> B["2. Panel<br/>proje klasörü, brief,<br/>kaynak envanteri"]
-    B --> C["3. Orkestratör AI<br/>plan, senaryo,<br/>ajanlara görev"]
-    C --> D["4. Yerel araçlar<br/>sahne kodu, ses,<br/>çizim, render"]
-    D --> E["5. Taslak<br/>Kurgu'da izle,<br/>saniye saniye not"]
-    E --> F["6. Onay<br/>final + platform<br/>sürümleri"]
-    E -- "not: düzelt" --> C
-```
-
-| Aşama (panelde adım) | Kim yapar | Ne olur |
-|---|---|---|
-| **Hazırlık** | Panel (yerel) | Proje klasörü açılır; isteğin `brief.md` ve `uretim.json` olur; yüklediğin dosyalar `kaynak/` altına konur, envanteri çıkarılır (DWG/PDF/Word/Excel dönüşümleri dahil) |
-| **Plan** | Orkestratör AI | Brief, kimlik dosyaların ve kaynaklar okunur; senaryo ve hikâye tahtası yazılır, redaktör denetler |
-| **Plan onayı** | Sen | İstersen planı onaylarsın |
-| **Üretim** | Orkestratör + yerel araçlar | Ajanlar sahne kodunu (Remotion/HyperFrames), seslendirmeyi, müzik/ses efektini, kalemle çizimi, fotoğraf iyileştirmeyi **bu bilgisayarda** üretir; her teslimi orkestratör kareye ve ölçüme bakarak doğrular |
-| **Taslak** | Sen | Kurgu editöründe izler, saniye saniye not yazarsın; notlar uygulanır |
-| **Onay → Final → Sürümler → Teslim** | Orkestratör + yerel araçlar | Final render ve seçtiğin platformların (YouTube, Reels, TikTok, Shorts) sürümleri çıkar |
-
-Bu adımlar panelde her projenin kartında bir **süreç zaman çizelgesi** olarak (Hazırlık → Plan → Plan onayı → Üretim → Taslak → Onay → Final → Sürümler → Teslim) görünür; "Pano → Şu an üretilenler".
-
-### Materyal nereden gelir? (internet var mı?)
-
-Stüdyo **üretim sırasında internetten foto, video, ses, müzik ya da başka materyal aramaz ve indirmez**. Girdiler yalnızca şunlardır:
-
-1. **Senin verdiğin kaynaklar:** panelde *Yeni proje → Kaynaklar* ile yüklediğin foto, video, ses, metin, DWG/PDF/Word/Excel.
-2. **Senin arşivin:** yerel/harici disk, ağ ya da Drive/OneDrive/Dropbox klasörün (salt okunur), **Resim, Video, Müzik ve Dosya** kategorileriyle. "Arşivden bul" yıl, konu ve aşamaya göre seçer; müzik klasörünü ayrı bir arşiv olarak ekleyip isteğinde müziğin **adını** yazman yeter (örn. *arka planda "Tarkan - Şımarık" çalsın*), orkestratör arşivinde bulup kullanır.
-3. **Stüdyonun yerelde ürettikleri:** kodla çizilen sahneler, yerel Türkçe seslendirme (EMA Lightning, Pocket TTS Turkish), kalemle çizim, Real-ESRGAN ile fotoğraf iyileştirme ve isteğe bağlı olarak panelden indirilen CC0 müzik ve ses efektleri.
-4. **İsteğe bağlı, varsayılan kapalı:** ücretli bulut servisleri (ElevenLabs, Gemini, OpenAI görsel). Ayarlardan açıp projede ayrıca izin vermedikçe hiç çağrılmaz.
-
-**Kaynak vermezsen** orkestratör sana sorar ya da yalnızca kodla/yerel araçlarla üretir; "internetten bulurum" demez. Bu kural ajan talimatlarında (`.claude/CLAUDE.md`) yazılıdır ve Claude Code'da `WebSearch`/`WebFetch` araçları bu klasörde engellidir (`.claude/settings.json`). Bunu bir ağ güvenlik duvarı sanma: ajan kod çalıştırabildiği için kesin garanti istiyorsan stüdyoyu çevrimdışı çalıştır. Kurulum sırasında (paket ve model indirme) ve güncellemede internet gerekir.
-
-### Neler dışarı çıkar?
-
-- **Orkestratör bulutta çalışan bir yapay zekâysa** (Claude, Codex, Gemini): yazdığın istek, brief, senaryo, ajan çıktıları ve ajanın okuduğu metinler ile baktığı kare görüntüleri **o sağlayıcıya gider** (sağlayıcının kendi gizlilik koşulları geçerlidir). Stüdyo kaynak medya dosyalarını kendiliğinden buluta yüklemez; ama bir ajan bir kareye ya da fotoğrafa "bakarsa" o görüntü modele gönderilmiş olur.
-- **Hiçbir zaman dışarı çıkmayanlar:** dikte (konuşarak yazma, yerel faster-whisper), seslendirme, ses klonlama ve örnek sesin kendisi, render, fotoğraf iyileştirme, kalemle çizim, arşiv veritabanı.
-- Bunu istemiyorsan orkestratörü yerel bir modele bağla (yukarıdaki deneysel yol).
-
-### Örnek akış
-
-Bu belgenin [örnek videosu](#örnek-kara-kalemle-çizilen-portre-gerçeğe-dönüşen-bayrak) tam olarak bu şekilde yapıldı: portre, bayrak SVG'si, hitabe metni ve 1933 ses kaydı panelde **Kaynaklar'a yüklendi**, istek yazıldı; orkestratör kaynaklardan videoyu üretti (aşağıdaki ekran görüntüleri).
-
-
-## Örnek: kara kalemle çizilen portre, gerçeğe dönüşen bayrak
-
-Aşağıdaki video, yukarıdaki akışla **yalnızca projeye yüklenen kaynaklardan** yapıldı: bir portre ve Türk bayrağı **kara kalemle çizilir**, 2 saniye sonra çizim **bulanıklaşıp aynı yerde gerçek görüntüye dönüşür**, bayrak dalgalanır, Gençliğe Hitabe okunur (yerel yapay Türkçe ses), **özgün 1933 kaydındaki "Türk milleti çalışkandır, Türk milleti zekidir…" bölümüyle** görüntü kararır.
-
-![Kalemle çizim, gerçeğe dönüşüm ve dalgalanan bayrak](docs/gorseller/ornek-ataturk.gif)
-
-<sub>Önizleme (sessiz, hızlandırılmış). **Tam video (2 dk, sesli, altyazılı):** [Releases](https://github.com/Mtemizce/YSTCoreStudio/releases) sayfasında `ornek-ataturk-kalem.mp4` (altyazı ayrıca `.srt`). **Girdiler:** panelde Kaynaklar'a yüklenen dört dosya (portre, SVG bayrak, hitabe metni, 1933 ses kaydı; aşağıdaki "Yeni proje" görüntüsü); bu dosyaları örneği hazırlayan kişi önceden Wikimedia Commons'tan indirdi, stüdyo üretim sırasında internete çıkmadı. Videoyu orkestratörün bu kaynaklardan yazdığı kod üretir: [docs/ornek/uret_ataturk.py](docs/ornek/uret_ataturk.py) (stüdyoda yerleşik olmayan tek araç, portrenin arka planını ayıran `rembg`'dir; hazır bir kesim PNG verilirse gerekmez). Kaynaklar ve lisanslar: [docs/ornek/ATIF.md](docs/ornek/ATIF.md). Gençliğe Hitabe'nin özgün bir ses kaydı olmadığı için anlatım yapay sesle verilmiştir; bu, videoda da yazar.</sub>
-
-Sırasıyla: kalem çiziyor, çizim bitti, bulanıklaşıp dönüşüyor, gerçek görüntü.
-
-![Kalemle çizim, bulanıklaşma ve gerçek görüntü](docs/gorseller/kalemle-cizim.jpg)
-
-### Bu örneğin stüdyodaki adımları
-
-**1. Yeni proje:** isteği yazarsın ve kaynaklarını yüklersin (burada portre, SVG bayrak, hitabe metni ve 1933 ses kaydı).
-
-![Yeni proje: istek ve yüklenen kaynaklar](docs/gorseller/panel-yeni-proje.png)
-
-**2. Pano:** her projenin kartında süreç zaman çizelgesi (Hazırlık → Plan → … → Teslim) ve hangi adımda olduğu görünür. Burada taslak hazır, senin önizlemeni ve onayını bekliyor.
-
-![Pano: süreç zaman çizelgesi](docs/gorseller/panel-pano.png)
-
-**3. Kurgu'da izle ve not yaz:** aynı video zaman çizelgesinde; altyazı videoya gömülüdür (ayrıca `.srt`).
-
-![Kurgu editörü](docs/gorseller/kurgu-editor.png)
-
-**4. Teslim:** onaydan sonra video Pano'da "Üretilen videolar"a, kapak kareleriyle girer.
-
-![Pano: üretilen videolar](docs/gorseller/panel-pano-teslim.png)
-
-**Ara sahne eklemek:** proje kartından bir çizim, resim ya da videoyu seçip stil, zemin rengi ve kalem sesiyle kalemle çizilen bir ara sahneye çevirirsin.
-
-![Ara sahne: kaynak, zemin rengi ve kalem sesi](docs/gorseller/panel-ara-sahne.png)
-
-## Öne çıkanlar
-
-- **Görsel üret (yerel):** Z-Image-Turbo kuruluysa kenar çubuğunda ve Pano'da "Görsel üret" çıkar: istemini yaz, anime dahil 14 stilden birini seç, üretilenleri **kontrol et** (kalite ölçütü + gözün), beğenmediğini yeniden üret, beğendiğini **kütüphaneye** ekle. Onaylanan görseller arşivine girer ve yeni projede *Kaynaklar → Üretilen görseller*'den, Kurgu'nun içindeki **Görsel** düğmesiyle (kütüphaneden ekle ya da orada yeni üret) kullanılır. "Görseli üret" listesinde yerel model her zaman görünür: kurulu değilse seçince "kurmak için tıkla" penceresi seni Ayarlar'daki Kur düğmesine götürür; kuruluysa varsayılan olarak o seçilir.
-- **Diziler:** yeni dizi projesi kur, mevcut diziye yeni bölüm ekle ya da mevcut bölümü düzenle. Her dizinin **model seti** vardır: karakter, nesne ve mekânların onaylı görselleri ve sabit istem ekleri; hangi modelin hangi bölümde göründüğünü işaretlersin, o bölümün projesine görseller ve tarifler kopyalanır. Dizi için anime stilleri (aksiyon, duygusal, 90'lar retro, karanlık, fantastik, bilim kurgu, günlük yaşam, chibi), bölüm bölüm senaryo ve önceki bölüm özetleriyle süreklilik vardır; her bölüm Pano'da hangi diziye ait olduğuyla görünür. Z-Image yalnızca metinden görsel üretir: aynı kişinin tutarlılığı, onaylı görselleri doğrudan kullanmak ve sabit istem ekini her istemde eklemekle sağlanır.
-- **Marka kiti:** birden çok logo (ana, simge, yatay, koyu/açık zemin), metinler (slogan, çağrı, yasal uyarı), renk rolleri, yazı tipleri ve **serbest kullanım kuralları**: hangi öğenin videoda nerede, ne zaman, nasıl kullanılacağını (ve nelerin yasak olduğunu) kendi cümlelerinle yazarsın; ajanlar bu kılavuzu (`marka_kullanimi.md`) aynen uygular.
-- **Kalemle çizim ara sahnesi:** DWG/SVG, herhangi bir resim ya da videonun ilk karesi kalemle çizilir (ton taramalı, kalem sesiyle), zemin rengi seçilir, çizim bitince gerçeğe dönüşür.
+Üretim sırasında panelde sahne planı, taslak, istenen revizyonlar ve teslim durumu izlenebilir. **Marka kiti** logoları, renkleri ve kullanım kurallarını projelere taşır. **Arşiv** ise disk, ağ klasörü veya bağlı bulut arşivindeki mevcut medyayı projeye eklemeyi sağlar.
 
 ## Kurulum
 
-1. [Releases](https://github.com/Mtemizce/YSTCoreStudio/releases) sayfasından son sürümün `YSTCoreStudio-<sürüm>.zip` dosyasını indir (ya da `git clone https://github.com/Mtemizce/YSTCoreStudio.git`).
-2. Kısa bir klasöre çıkar (ör. `C:\YST`). İndirilen zip'e sağ tık → Özellikler → *Engellemeyi kaldır* de.
-3. **Windows:** `Başlat.cmd`'yi çift tıkla. **Linux:** `bash baslat.sh`. **macOS:** `Başlat.command`'ı çift tıkla.
-4. Eksik bir şey varsa açılan kurulum sihirbazı ne yapacağını (kopyalanabilir komut ve indirme adresi) gösterir; gerisini kurulum kendisi yapar. Kurulum yalnızca paneli açmaya yetecek kadarını indirir ve bitince panel açılır. PyTorch, yapay zekâ paketleri ve modeller panel açıkken **arka planda** iner; panel neyin indiğini, neyin sırada olduğunu ve her parçanın ne işe yaradığını gösterir.
+1. [GitHub Releases](https://github.com/Mtemizce/YSTCoreStudio/releases) sayfasından `YSTCoreStudio-<sürüm>.zip` dosyasını indir. Paket özetini aynı sürümdeki `.sha256` dosyasıyla karşılaştırabilirsin.
+2. ZIP’i kalıcı bir klasöre çıkar. Windows’ta `C:\YST` gibi kısa bir klasör yolu kullanabilirsin.
+3. İşletim sistemine uygun başlatıcıyı aç ve sihirbazı izle.
 
-Sonraki açılışlar doğrudan paneli açar. Durdurmak için `Başlat.cmd durdur`. Sorun olursa panelde **Sağlık kontrolü**.
+   | Sistem | Başlatıcı |
+   |---|---|
+   | Windows 10/11 x64 | `Başlat.cmd` |
+   | Linux | `bash baslat.sh` |
+   | macOS | `Başlat.command` |
 
-Paket imzasızdır; Windows SmartScreen ya da antivirüs ilk açılışta uyarabilir. Zip'in yanındaki `.sha256` dosyasıyla doğrulayabilirsin.
+4. Panel açılınca **Ayarlar → Yapay zekâ** bölümünde [orkestratörü seç](#modeller-ve-sağlayıcılar). Ardından **Yeni proje** üzerinden tek video veya dizi başlat.
 
-## Neler indirilir?
+Windows sihirbazı eksik Python, Node.js ve Git için otomatik kurulum başlatabilir. İlk açılıştan sonra temel modeller arka planda hazırlanır. İndirme ilerlemesini ve varsa hataları panelden görebilirsin.
 
-Boyutlar diskte kaplanan yerdir. Kurulum sihirbazı toplamı ve bu bilgisayarda yeterli boş yer olup olmadığını önceden gösterir.
+Geliştirme için kaynak kodu klonlayıp aynı başlatıcıyı kullanabilirsin.
 
-**Kurulumda (panel açılmadan önce, ~1,4 GB):**
+```bash
+git clone https://github.com/Mtemizce/YSTCoreStudio.git
+cd YSTCoreStudio
+```
 
-| Bileşen | Boyut | Kaynak |
+### Sistem gereksinimleri
+
+| Bileşen | Temel kurulum |
+|---|---|
+| Python, Node.js, Git | Python 3.10+, Node.js 20+ ve Git. Python 3.12 önerilir. |
+| Bellek ve disk | 8 GB RAM ve CPU kurulumu için yaklaşık 8 GB boş disk. Projeler, önbellek ve isteğe bağlı modeller ek alan kullanır. |
+| Ekran kartı | Temel panel ve render için ayrık GPU gerekmez. Yerel üretim modellerinin donanım koşulları aşağıda ayrı verilmiştir. |
+| İnternet | İlk kurulum, model indirmeleri, güncellemeler ve seçtiğin uzak sağlayıcılar için gerekir. |
+| DWG | DWG dönüştürme Windows’ta desteklenir. |
+
+| Ne zaman? | Neler hazırlanır? |
+|---|---|
+| İlk kurulum | Python ortamı, Kurgu editörü, Remotion ve HyperFrames araçları. FFmpeg sistemde yoksa kurulum sağlanan ikiliyi kullanır. |
+| Panel açıkken | Yerel konuşma tanıma, Türkçe seslendirme, fotoğraf iyileştirme ve derinlik haritası bileşenleri. |
+| İsteğe bağlı | Z-Image, Wan, ACE-Step, daha büyük Whisper modelleri, GPU hızlandırma ve müzik/efekt arşivi. Boyut ve kurulum durumu panelde bileşene göre gösterilir. |
+
+## İlk videonu hazırla
+
+1. **Yeni proje → Tek video** ekranına gir. Kaynakları yükle veya arşivden seç. İstemi yaz, hedef platformu, varsa marka kitini ve kurgu stilini belirle. Hazır stili menüden seçebilir ya da istemde adıyla isteyebilirsin.
+2. **Hikâye tahtasını incele.** Orkestratör anlatımı ve sahnelerin akışını önerir. Varsa sessizlik kesimleri de panelde görünür. Onayla veya değişiklik iste. Plan değişirse yeniden onay gerekir.
+3. **Taslağı Kurgu’da izle.** Uzman ajanlar onaylı planı sahnelere, ses ve altyazıya dönüştürür. Zaman çizelgesindeki bir kareye veya saniyeye not bırakıp **Gönder** ile revizyon iste.
+4. **Teslim al.** Taslağı onayla. Stüdyo final çıktıyı ve seçtiğin platform sürümlerini oluşturur.
+
+Şu istemle arşivindeki bir projeyi deneyebilirsin.
+
+> Yüklediğim salon fotoğrafları ve proje notlarından 35 saniyelik dikey bir mimari tanıtım hazırla. İlk iki saniyede bitmiş mekânı göster. Ardından önce ve sonra görüntülerini karşılaştır. Sade Türkçe anlatım ve kelime zamanlı altyazı kullan. Finalden önce hikâye tahtasını incelemek istiyorum.
+
+### Örnek çıktı
+
+Kalemle çizilen portre ve bayrak gerçek görüntüye dönüşüyor. Örnek, projeye yüklenen portre, SVG bayrak, metin ve arşiv ses kaydıyla üretildi. Sesli tam sürüm ve altyazı [Releases](https://github.com/Mtemizce/YSTCoreStudio/releases) sayfasında. Girdiler ve kaynak hakları [örnek video atıflarında](docs/ornek/ATIF.md).
+
+[![Kalemle çizimden gerçek görüntüye geçen örnek montaj](docs/gorseller/kalemle-cizim.jpg)](docs/gorseller/ornek-ataturk.gif)
+
+*Hareketli önizlemeyi açmak için görsele tıkla.*
+
+## Modeller ve sağlayıcılar
+
+### Orkestratör
+
+Orkestratör brief’i okur, sahne planını kurar ve görevleri dağıtır. **Ayarlar → Yapay zekâ** bölümünden çalışma ortamı ve model seçilir.
+
+| Çalışma ortamı | Başlamak için |
+|---|---|
+| Claude Code | Claude Code kurulumu ve mevcut sağlayıcı oturumu. Klasör güveni ve araç onayları panelden yönetilir. |
+| Ollama, LM Studio veya llama.cpp | Çalışan yerel sunucu ve araç çağırmayı destekleyen bir model. Panelde adresi kaydet, model listesini yenile ve modeli seç. |
+| Codex CLI, Gemini CLI veya OpenCode | Deneysel adaptörler. Oturum ve yetenekler seçilen istemciye bağlıdır. |
+
+### Görsel, video, müzik ve ses
+
+Medya tercihleri **proje bazında** seçilir. Arşivdeki kaynakları kullanabilir, sahneyi Kurgu ajanına bırakabilir, isteğe bağlı yerel bir model kurabilir veya bir API bağlayabilirsin.
+
+| İş | Yerel seçenek | Kullanım notu |
 |---|---|---|
-| Python paketleri (çekirdek: faster-whisper, scipy, PDF araçları…) | ~0,45 GB | PyPI |
-| Remotion + HyperFrames + Chromium (npm) | ~0,7 GB | npm |
-| Kurgu editörü, ffmpeg (sistemde yoksa) | ~0,2 GB | GitHub, resmî siteler |
+| Görsel üretim | [Z-Image-Turbo](.claude/skills/THIRD_PARTY_NOTICES.md#z-image-modelleri) | Metinden görsel üretir. Onaylı çıktılar görsel kütüphanesinde başka projelere de eklenebilir. |
+| Video üretim | [Wan 2.2 TI2V-5B](.claude/skills/THIRD_PARTY_NOTICES.md#wan-modeli) | Hazır paket Windows x64, CUDA 12.8 uyumlu NVIDIA sürücüsü ve en az 4 GB VRAM ister. Yaklaşık 12 GB disk ve 8 GB boş RAM ayır. |
+| Müzik üretimi | [ACE-Step 1.5 Turbo](.claude/skills/THIRD_PARTY_NOTICES.md#ace-step) | Bu entegrasyon sözsüz fon müziği üretir. |
+| Türkçe seslendirme | [EMA Lightning](.claude/skills/THIRD_PARTY_NOTICES.md#ema-lightning) · [Pocket TTS Turkish](.claude/skills/THIRD_PARTY_NOTICES.md#pocket-tts-turkish) | Türkçe anlatım, hazır sesler ve Pocket TTS ile izinli ses klonlama. |
+| Dikte ve altyazı | [faster-whisper](.claude/skills/THIRD_PARTY_NOTICES.md#whisper-modelleri) | Dikte, konuşma transkripti ve altyazı zamanlama. Varsayılan model `small`. |
 
-**Panel açıldıktan sonra arka planda (~2,5 GB; sırayla, panel ilerlemeyi gösterir):**
+İsteğe bağlı modelleri paneldeki **İsteğe bağlı kurulumlar** bölümünden kur. Proje sohbetinde `/görsel`, `/video` ve `/müzik` komutları dil modelini çağırmadan projenin seçili sağlayıcısını kullanır. Bulut seçeneğinde servis kotası, ücret ve proje izni geçerlidir. Gemini, OpenAI görsel, ElevenLabs ve fal / Seedance örnekleri için [bağlayıcı tablosuna](.claude/skills/THIRD_PARTY_NOTICES.md#medya-baglayicilari) bak.
 
-| Bileşen | Boyut | Ne işe yarar | Kaynak |
-|---|---|---|---|
-| Temel dosyalar (Real-ESRGAN modeli, DWG aracı, referans belgeleri) | ~0,1 GB | Foto iyileştirme, DWG içe aktarma | GitHub, Hugging Face |
-| rclone | ~0,06 GB | Drive/OneDrive/Dropbox arşivini bağlar | rclone.org |
-| PyTorch (işlemci sürümü) | ~0,5 GB | Yapay zekâ modellerinin altyapısı | pytorch.org |
-| Yapay zekâ paketleri (EMA, Real-ESRGAN çalıştırıcı, Pocket TTS, derinlik) | ~0,3 GB | Seslendirme, foto iyileştirme, ses klonlama, mekân gezisi | PyPI |
-| Türkçe seslendirme modeli (EMA Lightning) | ~0,45 GB | Varsayılan Türkçe ses | Hugging Face |
-| Konuşma tanıma modeli (faster-whisper small) | ~0,5 GB | Dikte, altyazı zamanlaması | Hugging Face |
-| Ses klonlama ve hazır sesler (Pocket TTS Turkish) | ~0,5 GB | Kendi sesinle seslendirme | Hugging Face |
-| Depth Anything V2 Small | ~0,1 GB | Mekân gezisi videosu | Hugging Face |
+## Arşiv, gizlilik ve bakım
 
-**İsteğe bağlı (panelden tek tıkla, kendiliğinden inmez):**
+- **Arşiv ve proje dosyaları.** Arşiv dizini dosya ve klasör adlarında arama yapar. Seçilen medya projeye kopyalanır. Orijinal arşiv dosyaları yerinde kalır. Proje ayarları ve çıktılar `projeler/` altında saklanır.
+- **Yerel ve uzak işlemler.** Panel yerel makinede çalışır. Dikte, render ve yerel modellerin işlenmesi bilgisayarda gerçekleşir. Bulut orkestratörü kullanırsan modele gönderilen istem, metin ve incelenen kareler sağlayıcıya iletilir. Uzak arşiv veya medya API’si işlemleri seçtiğin hizmetin bağlantısını kullanır.
+- **Taslak ve iptal.** Üretimi durdurup brief ve kaynakları taslak olarak koruyabilirsin. Panel, devam eden işi ve senden onay bekleyen aşamayı gösterir.
+- **Güncelleme ve onarım.** **Ayarlar → Sistem ve güncelleme** bölümünde sürümü kontrol et. Kurulum sen başlattığında çalışır. İndirme yarım kaldıysa, bir bileşen görünmüyorsa veya editör açılmıyorsa önce **Sağlık kontrolü** sonucuna bak.
 
-| Bileşen | Boyut | Ne işe yarar |
-|---|---|---|
-| GPU hızlandırma (PyTorch CUDA) | ~2,7 GB | NVIDIA ekran kartında foto iyileştirme ve modeller çok daha hızlı çalışır. NVIDIA kartı olanlara panel önerir; CPU destekli bileşenler işlemcide çalışır; Wan hazır paketi NVIDIA gerektirir. |
-| Müzik ve ses efektleri (atıfsız: CC0 / kamu malı) | ~0,13 GB | Videolara müzik ve ses efekti eklemek için. Kaynaklar: GitHub, Internet Archive (Musopen, CC0), Wikimedia Commons. Kendi müzik arşivini de Arşiv'den ekleyebilirsin. |
-| Z-Image-Turbo (yerel görsel üretim) | ~6-8 GB | Metinden görsel üretir. |
-| Wan 2.2 TI2V-5B (isteğe bağlı) | ~12 GB | Pascal/CUDA tarifiyle kısa video üretir; yalnızca kullanıcı isteğiyle indirilir. |
-| Daha büyük konuşma tanıma modelleri | 1,5-3 GB | Daha doğru yazıya çevirme. |
+Arşivi başka bilgisayara taşıma, yedekleme ve marka kiti ayarlarının adımları [kullanım kılavuzunda](docs/KULLANIM.md) yer alıyor.
 
-Panel → Ayarlar → Sistem'den bileşen bazında kurulur ve kaldırılır; her biri için disk, RAM ve ekran kartı gereksinimi bu bilgisayara göre "yeterli / sınırda / yetersiz" diye gösterilir.
+## Teknik yapı
 
-**Stüdyo modelleri, önbellekleri, Python ve Node paketleri stüdyo klasöründe kalır.** Python, Node.js, Git ve Visual C++ gibi sistem önkoşulları kendi Windows kurulum konumlarına yüklenir; sağlayıcıların hesap oturumları da kendi konumlarındadır. Kaldırmak için paneli kapatıp klasörü silmen yeter ([ayrıntı](docs/KULLANIM.md#tek-klasör-kuralı-ve-kaldırma)).
+| Konum | İçerik |
+|---|---|
+| [`sistem/panel/`](sistem/panel) | Yerel Python HTTP sunucusu ve tarayıcı arayüzü. |
+| [`sistem/araclar/`](sistem/araclar) ve [`sistem/arsiv/`](sistem/arsiv) | Orkestrasyon, medya araçları ve SQLite arşiv dizini. |
+| [`sistem/kit/`](sistem/kit) | Remotion, HyperFrames ve kalem animasyonu için üretim bileşenleri. |
+| [`.claude/`](.claude) | Uzman ajanlar, iş akışları ve skill belgeleri. |
+| [`sistem/yama/kurgu/`](sistem/yama/kurgu) | Kurgu editörüne stüdyo özelliklerini ekleyen yerel yama. |
 
-## Teknik detaylar
+JavaScript bağımlılıkları [package.json](package.json), Python paketleri [gereksinim dosyaları](sistem/kurulum) ve dış kaynak revizyonları [kurulum manifesti](sistem/kurulum/dis_kaynaklar.json) üzerinden izlenir. Geliştirme testlerini `python sistem/testler/calistir.py` komutuyla çalıştırabilirsin. GitHub Actions test matrisi Windows, Linux ve macOS’u kapsar. [İş akışı](.github/workflows/test.yml)
 
-- **Panel:** yalnızca standart kütüphaneyle yazılmış yerel HTTP sunucusu (`sistem/panel/`) ve tek dosyalı arayüz; `127.0.0.1`'e bağlanır, Host denetimi, CSRF başlığı ve güvenlik başlıkları vardır. Açık/koyu tema, Türkçe arayüz.
-- **Üretim hattı:** Claude Code (ya da Codex, Gemini CLI, OpenCode) orkestratör, `.claude/` altındaki ajanlar ve skill'lerle çalışır; her ajan için ayrı model/effort ve çalışma ortamı seçilir, model listeleri ortamın kendisinden okunur.
-- **Video:** her proje bir Kurgu `project.json` zaman çizelgesidir; sahneler Remotion (React) ya da HyperFrames (HTML+GSAP) ile üretilir, ffmpeg render eder. Kalemle çizim ara sahnesi Paper.js ve başsız Chromium ile kare kare yakalanır.
-- **Ses:** yerel Türkçe seslendirme (EMA Lightning, Pocket TTS Turkish), ses klonlama (örnek ses `kimlik/ses/` altında kalır, kalite ölçütleri gösterilir), faster-whisper ile dikte ve altyazı, ffmpeg ile ses temizleme ve −16 LUFS ayarı.
-- **Veri:** SQLite arşiv veritabanı (kök + göreli yol, taşınabilir), dosya arşivi taraması (yerel disk, ağ, Google Drive/OneDrive/Dropbox salt okunur), kimlik dosyaları (`kimlik/`) git'e girmez.
-- **Güncelleme:** saatte bir kontrol, tek tıkla yedek alarak güncelleme (sağlama toplamı doğrulanır, kullanıcı verisi korunur).
-- **Testler:** `python sistem/testler/calistir.py` hızlı testleri çalıştırır (ağ ve model gerekmez); GitHub Actions'ta Windows, Linux ve macOS'ta sıfırdan kurulup test edilir.
-- **Ayrıntılı kullanım kılavuzu:** [docs/KULLANIM.md](docs/KULLANIM.md) (kimlik, arşiv, ayarlar, B planı, ara sahne, klasör yapısı…).
+## Bileşenler ve atıflar
 
-## Kullanılan açık kaynaklar ve lisanslar
+Her bağlantı [THIRD_PARTY_NOTICES.md](.claude/skills/THIRD_PARTY_NOTICES.md) içindeki ilgili açıklamaya gider. Orada kaynak, sürüm veya revizyon, lisans ve yerel uyarlama bilgisi yer alır.
 
-YSTCoreStudio'nun kendi kodu **MIT** lisanslıdır ([LICENSE](LICENSE)). Skill aldığımız depolar aşağıdadır; bir depoya tıklayınca [THIRD_PARTY_NOTICES.md](.claude/skills/THIRD_PARTY_NOTICES.md) dosyasında ilgili bölüme gidersin, orada o depodan **hangi skill'lerin** alındığı, lisansı ve yerel değişiklikler tek tek yazar.
+### Teşekkürler
 
-| Depo | Skill sayısı | Lisans |
-|---|---|---|
-| [remotion-dev/skills](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-dev-skills) | 1 | Remotion Lisansı |
-| [HeyGen hyperframes](.claude/skills/THIRD_PARTY_NOTICES.md#heygen-hyperframes) | 2 | Apache-2.0 |
-| [echris6/motion-video-kit](.claude/skills/THIRD_PARTY_NOTICES.md#echris6-motion-video-kit) | 1 | MIT |
-| [artificialguybr/hyperframes-video-director](.claude/skills/THIRD_PARTY_NOTICES.md#artificialguybr-hyperframes-video-director) | 1 | MIT |
-| [anthropics/skills](.claude/skills/THIRD_PARTY_NOTICES.md#anthropics-skills) | 1 | Apache-2.0 |
-| [greensock/gsap-skills](.claude/skills/THIRD_PARTY_NOTICES.md#greensock-gsap-skills) | 5 | MIT |
-| [gl-transitions/gl-transitions](.claude/skills/THIRD_PARTY_NOTICES.md#gl-transitions) | 1 | MIT |
-| [avenoxai/avenoxskills](.claude/skills/THIRD_PARTY_NOTICES.md#avenoxai-avenoxskills) | 3 (+1 ilham) | MIT |
-| [leodavincs/kalem](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kalem) | 2 | MIT |
-| [leodavincs/kurgu](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kurgu) | editör | MIT |
+Skill’lerini, modellerini, eklentilerini ve üretim tekniklerini açıkça paylaşan geliştiricilere teşekkür ederiz. Özellikle Avenox ekibinin kaba kurgu, marka grafikleri ve kapak tasarımı rehberleri stüdyodaki üç uyarlamaya ve sosyal sürüm akışına yön verdi. Leodavincs’in Kurgu ve Kalem projeleri, Remotion ve HeyGen ekiplerinin üretim araçları ile LottieFiles, GreenSock ve diğer kaynak sahiplerinin paylaşımları bu iş akışının kurulmasını mümkün kıldı.
 
-Skill olmayan bileşenler (kütüphaneler, modeller, müzik ve ses efektleri, araçlar, yazı tipleri) de aynı dosyadadır: [kütüphaneler](.claude/skills/THIRD_PARTY_NOTICES.md#kutuphaneler) · [ses ve konuşma modelleri](.claude/skills/THIRD_PARTY_NOTICES.md#ses-modelleri) · [görüntü modelleri](.claude/skills/THIRD_PARTY_NOTICES.md#goruntu-modelleri) · [yerel görsel üretim](.claude/skills/THIRD_PARTY_NOTICES.md#yerel-gorsel-uretim) · [müzik ve ses efektleri](.claude/skills/THIRD_PARTY_NOTICES.md#muzik-ve-ses-efektleri) · [araçlar](.claude/skills/THIRD_PARTY_NOTICES.md#araclar) · [yazı tipleri](.claude/skills/THIRD_PARTY_NOTICES.md#yazi-tipleri) · [örnek videonun kaynakları](docs/ornek/ATIF.md).
+### Skill’ler
 
-**Bilmen gerekenler:** [Remotion](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-dev-skills) 3'ten fazla çalışanı olan kâr amaçlı şirketlerde lisans ister. [Pocket TTS Turkish](.claude/skills/THIRD_PARTY_NOTICES.md#ses-modelleri) CC-BY-4.0'dır: bu motorla üretilen her seslendirmenin yanına `ATIF.txt` yazılır, yayında atfı koru.
+| Skill | Kullanım |
+|---|---|
+| [`video-yonetmen`, `kisilik-ve-ton`, `kurgu-video-studio`](.claude/skills/THIRD_PARTY_NOTICES.md#yerlesik-skiller) | Proje yönetimi, üslup ve sahne üretimi için stüdyonun kendi rehberleri. |
+| [`kaba-kurgu`](.claude/skills/THIRD_PARTY_NOTICES.md#avenox-roughcut) | `avenoxai/avenoxskills` içindeki `avenox-roughcut` rehberinden uyarlanan kaba kurgu ve sessizlik kesimi. |
+| [`marka-kilidi`](.claude/skills/THIRD_PARTY_NOTICES.md#avenox-graphics) | `avenox-graphics` içindeki marka çerçevesinden uyarlanan görsel tutarlılık kuralları. |
+| [`hook-ve-kapak`](.claude/skills/THIRD_PARTY_NOTICES.md#avenox-thumbnail) | `avenox-thumbnail` içindeki açılış ve kapak fikirlerinden uyarlanan rehber. |
+| [`sosyal-surumler`](.claude/skills/THIRD_PARTY_NOTICES.md#avenox-video) | `avenox-video` yönlendiricisinden esinlenen platforma özel teslim akışı. |
+| [`kalem-cizim`, `referans`](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kalem) | Çizim ara sahnesi ve referans videonun sahne analizi. |
+| [`kurgu`](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kurgu) | Kurgu editörü ve üretim akışı. |
+| [`remotion-best-practices`](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-dev-skills) | React tabanlı sahne, altyazı ve render. |
+| [`hyperframes`, `hyperframes-cli`](.claude/skills/THIRD_PARTY_NOTICES.md#heygen-hyperframes) | HTML tabanlı sahne ve komut satırı araçları. |
+| [`business-motion-film`](.claude/skills/THIRD_PARTY_NOTICES.md#echris6-motion-video-kit) | Hareketli grafikler ve çıktı denetimi. |
+| [`hyperframes-video-director`](.claude/skills/THIRD_PARTY_NOTICES.md#artificialguybr-hyperframes-video-director) | Sahne yönetimi ve değerlendirme ölçütleri. |
+| [`frontend-design`](.claude/skills/THIRD_PARTY_NOTICES.md#anthropics-skills) | Görsel tasarım ilkeleri. |
+| [`gsap-core`, `gsap-timeline`, `gsap-plugins`, `gsap-performance`, `gsap-utils`](.claude/skills/THIRD_PARTY_NOTICES.md#greensock-gsap-skills) | Animasyon, zamanlama, eklenti kullanımı ve performans. |
+| [`gl-transitions`](.claude/skills/THIRD_PARTY_NOTICES.md#gl-transitions) | Shader tabanlı geçişler. |
+| [`motion-design`](.claude/skills/THIRD_PARTY_NOTICES.md#lottiefiles-motion-design) | LottieFiles hareket tasarımı rehberi. |
 
-## Önemli: sorumluluk
+### Modeller, eklentiler ve araçlar
 
-Bu projelerin çoğu **bu depodan değil, kurulum sırasında kendi resmî kaynaklarından indirilir** (npm, PyPI, Hugging Face, GitHub). Depoda yalnızca lisansı izin veren küçük parçalar bulunur (kalem'den uyarlanan sahne şablonları, yazı tipleri, uyarlanan skill'ler) ve atıfları yukarıdadır. **Depoyu klonlayan ve kurulumu yapan kişi**, indirilen bileşenlerin lisanslarına uymaktan (özellikle Remotion'un şirket lisansı ve Pocket TTS Turkish'in atıf şartı) ve ürettiği videolardaki görsel, ses ve metnin haklarından, platform kurallarından (yapay zekâ etiketi, müşteri bilgilendirmesi) kendisi sorumludur. Ses klonlamayı yalnızca kendi sesin ya da sahibinin izniyle kullan.
+| Bileşen | Kullanım |
+|---|---|
+| [EMA Lightning](.claude/skills/THIRD_PARTY_NOTICES.md#ema-lightning) · [Pocket TTS Turkish](.claude/skills/THIRD_PARTY_NOTICES.md#pocket-tts-turkish) | Türkçe seslendirme, hazır sesler ve ses klonlama. |
+| [Whisper: tiny, base, small, medium, large-v3-turbo ve large-v3](.claude/skills/THIRD_PARTY_NOTICES.md#whisper-modelleri) | Dikte, transkript ve altyazı zamanlama. |
+| [Real-ESRGAN x4plus](.claude/skills/THIRD_PARTY_NOTICES.md#real-esrgan) · [Depth Anything V2 Small](.claude/skills/THIRD_PARTY_NOTICES.md#depth-anything) | Fotoğraf iyileştirme ve derinlik haritası. |
+| [Z-Image-Turbo ve GGUF](.claude/skills/THIRD_PARTY_NOTICES.md#z-image-modelleri) · [Qwen3 metin kodlayıcısı](.claude/skills/THIRD_PARTY_NOTICES.md#z-image-qwen) · [FLUX VAE](.claude/skills/THIRD_PARTY_NOTICES.md#z-image-vae) | İsteğe bağlı yerel görsel üretimi. |
+| [Wan 2.2 TI2V-5B ve VAE](.claude/skills/THIRD_PARTY_NOTICES.md#wan-modeli) · [UMT5 XXL](.claude/skills/THIRD_PARTY_NOTICES.md#wan-umt5) | İsteğe bağlı yerel video üretimi. |
+| [ACE-Step 1.5 Turbo](.claude/skills/THIRD_PARTY_NOTICES.md#ace-step) | İsteğe bağlı yerel enstrümantal müzik üretimi. |
+| [Kurgu editörü ve yerel yama](.claude/skills/THIRD_PARTY_NOTICES.md#leodavincs-kurgu) | Zaman çizelgesi, proje aktarımı ve Türkçe konuşma entegrasyonu. |
+| [Remotion ve sahne eklentileri](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-eklentileri) · [HyperFrames](.claude/skills/THIRD_PARTY_NOTICES.md#heygen-hyperframes) · [GL Transitions](.claude/skills/THIRD_PARTY_NOTICES.md#gl-transitions) | Video sahneleri, animasyon ve geçişler. |
+| [React, GSAP, Paper.js, PyTorch ve diğer kütüphaneler](.claude/skills/THIRD_PARTY_NOTICES.md#kutuphaneler) | Sahne çizimi, animasyon ve yerel işleme. |
+| [stable-diffusion.cpp](.claude/skills/THIRD_PARTY_NOTICES.md#stable-diffusion-cpp) · [Z-Image Pascal tarifi](.claude/skills/THIRD_PARTY_NOTICES.md#z-image-pascal) · [Wan Pascal paketi ve çalışma zamanları](.claude/skills/THIRD_PARTY_NOTICES.md#yerel-video-uretim) | Yerel görsel ve video modellerinin çalıştırılması. |
+| [Claude Agent SDK ve orkestratör bağlantıları](.claude/skills/THIRD_PARTY_NOTICES.md#orkestrator-baglantilari) · [Medya API bağlayıcıları](.claude/skills/THIRD_PARTY_NOTICES.md#medya-baglayicilari) | Yerel veya bulut orkestratörü ve isteğe bağlı servis entegrasyonları. |
+| [FFmpeg](.claude/skills/THIRD_PARTY_NOTICES.md#ffmpeg) · [LibreDWG ve rclone](.claude/skills/THIRD_PARTY_NOTICES.md#araclar) | Kodlama, DWG dönüştürme ve bulut arşivine erişim. |
+| [Müzik ve ses efektleri](.claude/skills/THIRD_PARTY_NOTICES.md#muzik-ve-ses-efektleri) · [Yazı tipleri](.claude/skills/THIRD_PARTY_NOTICES.md#yazi-tipleri) | Projelerde kullanılabilen hazır varlıklar. |
 
-## Sistem gereksinimleri
+### Tasarım ve montaj referansları
 
-| | Asgari | Önerilen |
-|---|---|---|
-| İşletim sistemi | Windows 10/11 (64 bit), Linux, macOS | Windows 11 |
-| Python | 3.10 | 3.12 |
-| Node.js | 20 | güncel LTS |
-| Git | gerekli | |
-| **Orkestratör yapay zekâ** | Bir sağlayıcı seçilir: Claude Code, Ollama, LM Studio veya llama.cpp. Codex CLI, Gemini CLI ve OpenCode deneysel seçeneklerdir. | |
-| RAM | 8 GB | 16 GB |
-| Boş disk | ~8 GB (işlemci) / ~11 GB (NVIDIA) | 20 GB ve üstü (projeler için) |
-| Ekran kartı | gerekmez | NVIDIA, 6 GB VRAM (fotoğraf iyileştirme ve Z-Image'ı hızlandırır) |
-| İnternet | yalnızca kurulum ve güncelleme için | |
+Bu kaynaklardan yararlanılan teknikler atıf dosyasında açıklanır.
 
-ffmpeg sistemde yoksa kurulum kendisi indirir (yönetici izni gerekmez). Windows kurulum sihirbazı eksik Python, Git ve Node.js için otomatik kurulumu başlatabilir. Elle kurulum komutları da sihirbazda bulunur. DWG okuma yalnızca Windows'ta çalışır.
+| Kaynak | Referans alınan konu |
+|---|---|
+| [Video Studio Kit](.claude/skills/THIRD_PARTY_NOTICES.md#video-studio-kit) | Stil ve araç kataloğu. |
+| [Claude Remotion Skill](.claude/skills/THIRD_PARTY_NOTICES.md#haidrrrry-claude-remotion-skill) | Remotion sahne tasarımına ilişkin uygulama notları. |
+| [Opus Video Skills](.claude/skills/THIRD_PARTY_NOTICES.md#opus-video-skills) | Kinetik tipografi. |
+| [Brag](.claude/skills/THIRD_PARTY_NOTICES.md#brag) | Render’ın ilk karesini denetleme. |
+| [Claude Motion Design](.claude/skills/THIRD_PARTY_NOTICES.md#claude-motion-design) | Müzikten vuruş adayları çıkarma. |
+| [Herk Edit Kit](.claude/skills/THIRD_PARTY_NOTICES.md#herk-edit-kit) | Kelime zamanları ve kesim doğrulama. |
+| [SaaS Motion Kit](.claude/skills/THIRD_PARTY_NOTICES.md#saas-motion-kit) | Tanıtım sahneleri ve hareket düzenleri. |
+| [Snapcn](.claude/skills/THIRD_PARTY_NOTICES.md#snapcn) | Modüler düzen ve hareket stilleri. |
 
-## Destek ol
+YSTCoreStudio’nun kendi kodu [MIT lisanslıdır](LICENSE). Kullanılan bileşenlerin kendi koşulları geçerlidir. Özellikle [Remotion koşullarını](.claude/skills/THIRD_PARTY_NOTICES.md#remotion-dev-skills) ve [Pocket TTS Turkish atıf bilgilerini](.claude/skills/THIRD_PARTY_NOTICES.md#pocket-tts-turkish) incele.
 
-YSTCoreStudio ücretsiz ve açık kaynaktır. İşine yaradıysa [GitHub Sponsors](https://github.com/sponsors/Mtemizce) üzerinden destek olabilir ya da projeye yıldız verebilirsin.
+## Katkı ve destek
 
-## İletişim ve katkı
-
-Soru, hata ve öneriler için [Issues](https://github.com/Mtemizce/YSTCoreStudio/issues) sayfasını kullan; ya da GitHub'da [@Mtemizce](https://github.com/Mtemizce) ile iletişime geç. Katkıya açığız: hata düzeltmesi, yeni skill, çeviri, belge ya da test için bir **pull request** aç ([CONTRIBUTING.md](CONTRIBUTING.md)). Güvenlik açığını herkese açık issue yerine [SECURITY.md](SECURITY.md)'deki yöntemle bildir. Davranış kuralları: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Hata ve önerileri [Issues](https://github.com/Mtemizce/YSTCoreStudio/issues) üzerinden iletebilirsin. Geliştirme için [katkı kılavuzuna](CONTRIBUTING.md), güvenlik bildirimi için [bildirim politikasına](SECURITY.md) bak.
 
 ## Katkıda bulunanlar
 
@@ -256,36 +228,3 @@ Henüz kimse yok: ilk katkıyı sen yap! ([CONTRIBUTING.md](CONTRIBUTING.md))
 <!-- sponsorlar:basla -->
 Henüz sponsor yok. Sponsor olursan profil resmin burada görünür ([GitHub Sponsors](https://github.com/sponsors/Mtemizce)).
 <!-- sponsorlar:bitis -->
-
-
-### Public depodan güvenli güncelleme
-
-Varsayılan depo `Mtemizce/YSTCoreStudio`; jeton yalnızca özel depo veya API kotası için isteğe bağlıdır. Arka plan kontrolü dosya kurmaz. Güncelle düğmesi üretim/indirme sürerken çalışmaz; açık Kurgu editörünü kaydedip stüdyoyu kapatıp yeniden açmak gerekir. Kurulum sırasında yeni işler bekletilir.
-
-Sürüm ZIP dosyası SHA256 ile doğrulanır. Release yoksa varsayılan dalın belirli commit paketi GitHub dosya ağacındaki Git blob özetleriyle doğrulanır. Git klonunda yerel değişiklikler varsa işlem durur; yalnızca seçili deponun kontrol edilen commitine ileri sarma yapılır. ZIP değişiklikleri ve kullanıcı verileri `sistem/ortam/yedek/guncelleme-*` altında saklanır. ZIP yerleştirme hatasında kod geri alınır; bağımlılık/veritabanı hatası başarı sayılmaz ve onarım gerektiği raporlanır. Pip/npm ve veritabanı değişiklikleri otomatik geri alınmaz. Güncelleme bitince **Paneli yeniden başlat** düğmesine kullanıcı basar.
-
-
-### Yerel medya üretimi
-
-Panelin sağındaki **İsteğe bağlı kurulumlar** cebinden Z-Image-Turbo, Wan 2.2 ve ACE-Step 1.5 kurulabilir. ACE-Step, 2B Turbo ile bir seferde tek sözsüz parça üretir. Bellek kullanımını azaltmak için desteklenen NVIDIA çalıştırmalarında CPU offload kullanılır, ayrı müzik dil modeli yüklenmez. CPU üretimi daha uzun sürebilir.
-
-Proje sohbetine `/görsel gün batımında modern bir villa`, `/video yavaş kamera hareketiyle salon` veya `/müzik sakin enstrümantal piyano` yaz. Bu komutlar orkestratör dil modelini çağırmadan çalışır. Projede API seçiliyse ilgili sağlayıcının ücreti ve proje izinleri geçerlidir. Normal mesajlarda Claude ve araç çağrısı destekleyen yerel orkestratör modelleri, proje için seçili motoru görev olarak çağırabilir. Çıktılar aktif projenin kaynaklarına kaydedilir.
-
-Yerel medya görevleri aktif biçimin Kurgu ayarını, hikâye tahtasını ve ilgili ton, marka veya ses planını okur. Orkestratör kısa görev ve sahne etiketi gönderir. Motor çıktısı `medya_gorevleri.jsonl` dosyasına yazılır ve kurguya yerleştirmek üzere ilgili uzmana iletilir.
-
-### 1.2.0 · Kurgu stilleri, medya seçimi ve arşiv ilerlemesi
-
-- **Yeni video:** proje özeti, hazır kurgu stili ve görsel, video, müzik tercihleri ayrı alanlarda. Mevcut kaynakları kullan, işi Kurgu ajanına bırak, kurulu yerel modeli seç veya kendi API sağlayıcını bağla. Yeni projede varsayılan seçim mevcut kaynaklardır. Kurgu ajanı, örneğin Claude Code, Remotion/HyperFrames ile sahne ve video üretebilir. Kurgu sohbetinden **Bu projenin medya tercihleri** ile aynı seçimler video ve dizi bölümlerinde değiştirilebilir.
-- **Sağlayıcılar:** Gemini görsel bağlayıcısı ve Seedance için fal manifest örneği var. Ayarlar → Bağlayıcılar'da manifesti ekle, anahtarı ve modeli ayarla, etkinleştir. Higgsfield veya başka hizmetler için kendi hesabının API alanlarıyla uygun video/müzik manifesti tanımlanabilir. Proje izni ve bütçe kontrolleri geçerli. Seçili sağlayıcı hata verirse otomatik yedek sağlayıcı çalışmaz.
-- **Yerel medya:** Z-Image-Turbo, Wan 2.2 ve ACE-Step 1.5, sağdaki **İsteğe bağlı kurulumlar** cebinden kurulabilir. Proje bağlamı ve açık Kurgu biçimi uzman işine aktarılır. ACE-Step ile mevcut üretim akışı sözsüz fon müziğidir.
-- **Hazır stiller:** doğal montaj, kalem ve eskiz, teknik sunum, kinetik tipografi, kâğıt kolaj, suluboya ve sinematik portfolyo. Bunlar mevcut render motorlarına verilen sahne planlarıdır. Efektli stillerde uzman, uygulandığı katmanı, süreyi ve render kontrol karelerini teslim raporuna yazar.
-- **Kurgu ve arşiv:** Windows arşiv taraması, medya analizi ve bölüm hazırlığı konsol açmadan çalışır. Arşivde görülen, işlenen ve analiz edilen dosya sayıları canlı görünür. Durdurulan analiz yeniden başlatıldığında kalan işlerden sürer.
-- **Skill atfı:** [Video Studio Kit](https://github.com/owlinthebarnai/video-studio-kit) kataloğu incelendi. Daha önce kullanılan Remotion, HyperFrames ve GSAP yeniden eklenmedi. Kurulum, kitin atıf verdiği [LottieFiles Motion Design](https://github.com/LottieFiles/motion-design-skill) rehberini MIT lisansıyla ve belirtilen revizyondan alır. Hazır stil planları bu depo için yazılmıştır. [Diğer atıflar](.claude/skills/THIRD_PARTY_NOTICES.md).
-
-### Storyboard ve montaj denetimi
-
-Yeni video ve dizi bölümü önce storyboard hazırlar. Panelde sahne akışını ve varsa sessizlik kesimlerini incele, ardından onayla. Plan veya kesim önerisi değişirse yeniden onay gerekir.
-
-Hazır stiller arasında ürün lansmanı, arayüz turu, modüler vitrin, ritmik kolaj ve konuşma klibi bulunur. Stil menüsünden seçebilir veya istemde adını yazabilirsin. Örneğin “Modüler vitrin stilinde kısa bir tanıtım öner”. Panel istemden stil adaylarını gösterir ve orkestratör sahne görevlerinde şablonları kullanabilir.
-
-Efektli sahnelerde kelime zamanlı kinetik yazı, ses dosyasından vuruş adayları ve taslak MP4’ten ilk kare kontrolü kullanılabilir. Sessizlikler yalnızca gösterilen plan onaylandıktan sonra kesilir. Düzeltilen kelime zamanları kesilmiş video ile birlikte çıkar. [Teknik kaynak ve lisanslar](.claude/skills/THIRD_PARTY_NOTICES.md).

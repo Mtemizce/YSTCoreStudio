@@ -17,11 +17,21 @@ Skill dosyalarının çoğu depoya **konmaz**: `sistem/kurulum/dis_kaynaklar.jso
 | gl-transitions/gl-transitions | 1 | MIT | [aç](#gl-transitions) |
 | avenoxai/avenoxskills | 3 (+1 ilham) | MIT | [aç](#avenoxai-avenoxskills) |
 | leodavincs/kalem | 2 | MIT | [aç](#leodavincs-kalem) |
-| leodavincs/kurgu | editör (skill değil) | MIT | [aç](#leodavincs-kurgu) |
+| leodavincs/kurgu | editör ve yerel rehber | MIT | [aç](#leodavincs-kurgu) |
 
 Skill olmayan bileşenler: [kütüphaneler](#kutuphaneler) · [ses ve konuşma modelleri](#ses-modelleri) · [görüntü modelleri](#goruntu-modelleri) · [yerel görsel üretim](#yerel-gorsel-uretim) · [müzik ve ses efektleri](#muzik-ve-ses-efektleri) · [araçlar](#araclar) · [yazı tipleri](#yazi-tipleri) · [örnek videonun kaynakları](#ornek-video)
 
-Bu stüdyonun kendi yazdığı skill'ler (üçüncü taraf değil): `video-yonetmen`, `kisilik-ve-ton`, `kurgu-video-studio`, `sosyal-surumler`.
+<a id="yerlesik-skiller"></a>
+## Yerleşik skill’ler
+
+Bu rehberler YSTCoreStudio’nun parçasıdır. Üçüncü taraf esin ve uyarlamalar ilgili kaynak bölümlerinde ayrıca belirtilir.
+
+| Skill | Görevi |
+|---|---|
+| [`video-yonetmen`](video-yonetmen/SKILL.md) | Brief’ten sahne planına, üretimden teslim denetimine kadar video projesini yönetir. |
+| [`kisilik-ve-ton`](kisilik-ve-ton/SKILL.md) | Anlatım üslubunu ve kişi kimliğini proje metinlerine taşır. |
+| [`kurgu-video-studio`](kurgu-video-studio/SKILL.md) | Sahne motoru seçimi, geçişler, efektler ve render için teknik rehber. |
+| [`sosyal-surumler`](sosyal-surumler/SKILL.md) | Platforma uygun çıktı düzenlerini tarif eder. [Esin kaynağı](#avenoxai-avenoxskills). |
 
 ---
 
@@ -68,7 +78,15 @@ Bu stüdyonun kendi yazdığı skill'ler (üçüncü taraf değil): `video-yonet
 <a id="avenoxai-avenoxskills"></a>
 ### avenoxai/avenoxskills
 - Kaynak: https://github.com/avenoxai/avenoxskills. Lisans: MIT. Depoda **uyarlama** olarak bulunur; `.claude/skills/LICENSES/avenoxskills-MIT.txt` lisans metnidir.
-- **Uyarlanan skill'ler (3):** `kaba-kurgu` (`avenox-roughcut`), `marka-kilidi` (`avenox-graphics`, `brand/frame.template.md`), `hook-ve-kapak` (`avenox-thumbnail`, `hook-patterns`). `sosyal-surumler` skill'i `avenox-video` yönlendirici fikrinden esinlenilmiştir (ilham).
+- Açık olarak paylaştığı rehberler ve şablonlar için Avenox ekibine teşekkür ederiz.
+
+| Kaynak | Stüdyodaki karşılığı | Yararlanılan bölüm |
+|---|---|---|
+| <a id="avenox-roughcut"></a>`avenox-roughcut` | [`kaba-kurgu`](kaba-kurgu/SKILL.md) | Kaba kurgu yaklaşımı ve sessizlik kesimi. |
+| <a id="avenox-graphics"></a>`avenox-graphics` | [`marka-kilidi`](marka-kilidi/SKILL.md) | `brand/frame.template.md` içindeki marka çerçevesi yaklaşımı. |
+| <a id="avenox-thumbnail"></a>`avenox-thumbnail` | [`hook-ve-kapak`](hook-ve-kapak/SKILL.md) | `hook-patterns` içindeki açılış ve kapak fikirleri. |
+| <a id="avenox-video"></a>`avenox-video` | [`sosyal-surumler`](sosyal-surumler/SKILL.md) | Platforma göre yönlendirme fikri. |
+
 - Yerel değişiklik: Türkçeye ve bu stüdyonun yerel yığınına yeniden yazıldı (MLT/Kdenlive/auto-editor/mlx-whisper ve bulut görsel modeli çıkarıldı). `sistem/araclar/sessizlik_kes.py`, `remove-silence.py`'den uyarlanmıştır.
 
 <a id="leodavincs-kalem"></a>
@@ -82,7 +100,7 @@ Bu stüdyonun kendi yazdığı skill'ler (üçüncü taraf değil): `video-yonet
 
 <a id="leodavincs-kurgu"></a>
 ### leodavincs/kurgu
-- Kaynak: https://github.com/leodavincs/kurgu (sabit commit). Lisans: MIT. Zaman çizelgeli yerel video editörüdür (skill değil); kurulumda çekilir, `sistem/yama/kurgu/` altındaki yamayla Türkçe konuşma entegrasyonu eklenir.
+- Kaynak: https://github.com/leodavincs/kurgu (sabit commit). Lisans: MIT. Zaman çizelgeli yerel video editörüdür; kurulumda çekilir, `sistem/yama/kurgu/` altındaki yamayla Türkçe konuşma entegrasyonu eklenir. [`kurgu` skill’i](../../sistem/yama/kurgu/skills/kurgu/SKILL.md) editörün proje ve zaman çizelgesi iş akışını tarif eder.
 
 <a id="haidrrrry-claude-remotion-skill"></a>
 ### haidrrrry/claude-remotion-skill (esin)
@@ -101,33 +119,48 @@ Bu stüdyonun kendi yazdığı skill'ler (üçüncü taraf değil): `video-yonet
 | Paper.js 0.16.0 | paperjs.org | MIT | Kalemle çizim şablon sahnesi |
 | gl-transitions 3.3.0, `@gl-transitions/remotion` 2.0.0 | gl-transitions | MIT | Shader geçişleri |
 | PyTorch, NumPy, SciPy, Pillow, spandrel, safetensors, transformers, pypdf, pypdfium2, praat-parselmouth | ilgili projeler | BSD / MIT / Apache-2.0 (parselmouth: GPL-3 sarmalayıcı) | Yerel işleme |
-| ffmpeg | ffmpeg.org | LGPL/GPL (kurulum yayın ikilisini indirir) | Kodlama ve ses/video işleme |
+| <a id="ffmpeg"></a>ffmpeg | ffmpeg.org | LGPL/GPL (kurulum yayın ikilisini indirir) | Kodlama ve ses/video işleme |
+
+<a id="remotion-eklentileri"></a>
+### Remotion sahne eklentileri
+
+Doğrudan bağımlılıklar [package.json](../../package.json) dosyasında Remotion ile aynı sürüme sabitlenir. Paketler için [Remotion lisans koşulları](#remotion-dev-skills) geçerlidir.
+
+| Paket | Kullanım |
+|---|---|
+| `@remotion/effects`, `@remotion/transitions` | Görsel efektler ve sahne geçişleri. |
+| `@remotion/motion-blur`, `@remotion/noise` | Hareket bulanıklığı ve gürültü tabanlı animasyon. |
+| `@remotion/shapes`, `@remotion/rough-notation` | Vektör şekiller ve çizgiyle görsel vurgu. |
+| `@remotion/lottie` | Lottie animasyonlarının sahnelerde oynatılması. |
+| `@remotion/cli` | Yerel önizleme ve render komutları. |
 
 <a id="ses-modelleri"></a>
 ## Ses ve konuşma modelleri (yerel)
 | Bileşen | Kaynak | Lisans | Kullanım |
 |---|---|---|---|
-| EMA Lightning | huggingface.co/canberkkkkkk/ema-lightning, PyPI `ema-lightning` | Apache-2.0 | Varsayılan Türkçe seslendirme (`sistem/tts/ema.py`) |
-| **Pocket TTS Turkish** (wite-tech; Kyutai Pocket TTS'ten türetilmiştir) | huggingface.co/wite-tech/pocket-tts-turkish | **CC-BY-4.0, atıf gerekir** | 6 hazır ses, duygu etiketi ve ses klonlama. Atıf: *Pocket TTS Turkish by wite-tech, CC-BY-4.0, derived from Kyutai's Pocket TTS (CC-BY-4.0) with Turkish fine-tuning and six-layer distillation.* Bu motorla üretilen her seslendirmenin yanına `ATIF.txt` yazılır |
-| faster-whisper, CTranslate2 (SYSTRAN) | github.com/SYSTRAN/faster-whisper | MIT | Yerel konuşma → yazı (dikte, altyazı) |
+| <a id="ema-lightning"></a>EMA Lightning | huggingface.co/canberkkkkkk/ema-lightning, PyPI `ema-lightning` | Apache-2.0 | Varsayılan Türkçe seslendirme (`sistem/tts/ema.py`) |
+| <a id="pocket-tts-turkish"></a>**Pocket TTS Turkish** (wite-tech; Kyutai Pocket TTS'ten türetilmiştir) | huggingface.co/wite-tech/pocket-tts-turkish | **CC-BY-4.0, atıf gerekir** | 6 hazır ses, duygu etiketi ve ses klonlama. Atıf: *Pocket TTS Turkish by wite-tech, CC-BY-4.0, derived from Kyutai's Pocket TTS (CC-BY-4.0) with Turkish fine-tuning and six-layer distillation.* Bu motorla üretilen her seslendirmenin yanına `ATIF.txt` yazılır |
+| <a id="whisper-modelleri"></a>faster-whisper, CTranslate2 (SYSTRAN) | github.com/SYSTRAN/faster-whisper | MIT | Yerel konuşma → yazı (dikte, altyazı) |
+
+Whisper ağırlıkları [`bilesen.py`](../../sistem/araclar/bilesen.py) üzerinden seçilir. Varsayılan model [small](https://huggingface.co/Systran/faster-whisper-small). Diğer seçenekler [tiny](https://huggingface.co/Systran/faster-whisper-tiny), [base](https://huggingface.co/Systran/faster-whisper-base), [medium](https://huggingface.co/Systran/faster-whisper-medium), [large-v3](https://huggingface.co/Systran/faster-whisper-large-v3) ve [Mobius Labs large-v3-turbo](https://huggingface.co/mobiuslabsgmbh/faster-whisper-large-v3-turbo). Ağırlıklarla ilgili koşullar için ilgili model kartına bak.
 
 <a id="goruntu-modelleri"></a>
 ## Görüntü modelleri (yerel)
 | Bileşen | Kaynak | Lisans | Kullanım |
 |---|---|---|---|
-| Real-ESRGAN x4plus | github.com/xinntao/Real-ESRGAN; ağırlıklar Comfy-Org/Real-ESRGAN_repackaged | BSD-3-Clause | Fotoğraf iyileştirme (sha256'ya sabit) |
-| Depth Anything V2 Small | huggingface.co/depth-anything/Depth-Anything-V2-Small-hf | Apache-2.0 | Mekân gezisi derinlik haritası |
+| <a id="real-esrgan"></a>Real-ESRGAN x4plus | github.com/xinntao/Real-ESRGAN; ağırlıklar Comfy-Org/Real-ESRGAN_repackaged | BSD-3-Clause | Fotoğraf iyileştirme (sha256'ya sabit) |
+| <a id="depth-anything"></a>Depth Anything V2 Small | huggingface.co/depth-anything/Depth-Anything-V2-Small-hf | Apache-2.0 | Mekân gezisi derinlik haritası |
 
 <a id="yerel-gorsel-uretim"></a>
 ## Yerel görsel üretim (isteğe bağlı; kullanıcı isterse kendi kaynaklarından indirilir, depoda dosya yok)
 | Bileşen | Kaynak | Lisans | Kullanım |
 |---|---|---|---|
-| Z-Image-Turbo (model) | github.com/Tongyi-MAI/Z-Image, huggingface.co/Tongyi-MAI/Z-Image-Turbo (Alibaba Tongyi-MAI) | Apache-2.0 | Metinden görsel üretim modeli |
+| <a id="z-image-modelleri"></a>Z-Image-Turbo (model) | github.com/Tongyi-MAI/Z-Image, huggingface.co/Tongyi-MAI/Z-Image-Turbo (Alibaba Tongyi-MAI) | Apache-2.0 | Metinden görsel üretim modeli |
 | Z-Image-Turbo GGUF | huggingface.co/leejet/Z-Image-Turbo-GGUF (leejet) | Apache-2.0 | Q3_K ... Q6_K nicemlenmiş ağırlıklar; indirilen dosya Hugging Face'in yayımladığı SHA256 ile doğrulanır |
-| stable-diffusion.cpp | github.com/leejet/stable-diffusion.cpp (leejet) | MIT | Vulkan çalıştırıcısı (`sd-cli`); resmî sürümü kendi GitHub yayınından indirilir |
-| Qwen3-4B-Instruct-2507 (GGUF) | huggingface.co/Qwen/Qwen3-4B-Instruct-2507 (Alibaba Qwen); nicemlenmiş: huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF (Unsloth) | Apache-2.0 | Z-Image'ın metin kodlayıcısı |
-| FLUX.1-schnell VAE (`ae.safetensors`) | huggingface.co/Comfy-Org/Z-Image-Turbo, `split_files/vae/ae.safetensors` (Black Forest Labs VAE, Comfy-Org dağıtımı) | Apache-2.0 | Z-Image'ın görüntü çözücüsü |
-| **Z-Image-Turbo Pascal 4GB** | github.com/alexturkey/z-image-turbo-pascal-4gb (alexturkey) | Apache-2.0 | **Esin kaynağı:** 4 GB'lık eski ekran kartlarında Z-Image-Turbo'yu çalıştırma yöntemi (`--offload-to-cpu --mmap --flash-attn`, 8 adım / cfg 1.0 / euler, VAE'yi karolu çalıştırma) ve model dosyalarını sabit adres + sha256 ile indiren **kilit dosyası** deseni. Betikler ve kod kopyalanmadı; fikirler `sistem/araclar/yerel_gorsel.py` içinde kendi kodumuzla yazıldı |
+| <a id="stable-diffusion-cpp"></a>stable-diffusion.cpp | github.com/leejet/stable-diffusion.cpp (leejet) | MIT | Vulkan çalıştırıcısı (`sd-cli`); resmî sürümü kendi GitHub yayınından indirilir |
+| <a id="z-image-qwen"></a>Qwen3-4B-Instruct-2507 (GGUF) | huggingface.co/Qwen/Qwen3-4B-Instruct-2507 (Alibaba Qwen); nicemlenmiş: huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF (Unsloth) | Apache-2.0 | Z-Image'ın metin kodlayıcısı |
+| <a id="z-image-vae"></a>FLUX.1-schnell VAE (`ae.safetensors`) | huggingface.co/Comfy-Org/Z-Image-Turbo, `split_files/vae/ae.safetensors` (Black Forest Labs VAE, Comfy-Org dağıtımı) | Apache-2.0 | Z-Image'ın görüntü çözücüsü |
+| <a id="z-image-pascal"></a>**Z-Image-Turbo Pascal 4GB** | github.com/alexturkey/z-image-turbo-pascal-4gb (alexturkey) | Apache-2.0 | **Esin kaynağı:** 4 GB'lık eski ekran kartlarında Z-Image-Turbo'yu çalıştırma yöntemi (`--offload-to-cpu --mmap --flash-attn`, 8 adım / cfg 1.0 / euler, VAE'yi karolu çalıştırma) ve model dosyalarını sabit adres + sha256 ile indiren **kilit dosyası** deseni. Betikler ve kod kopyalanmadı; fikirler `sistem/araclar/yerel_gorsel.py` içinde kendi kodumuzla yazıldı |
 
 <a id="muzik-ve-ses-efektleri"></a>
 ## Müzik ve ses efektleri (`sistem/varlik/varliklar.db`; kurulum indirir, depoda dosya yok)
@@ -162,30 +195,56 @@ Portre, bayrak, 1933 ses kaydı ve diğer örnek girdiler: [docs/ornek/ATIF.md](
 |---|---|---|
 | wan22-pascal-4gb | https://github.com/alexturkey/wan22-pascal-4gb, v0.1.0 | MIT, Copyright (c) 2026 alexturkey. Kurulum/üretim tarifi, Pascal yamaları ve hazır motor. Yalnızca kullanıcı isteğiyle indirilir; betikler ve lisans dosyaları kaynak paketinde korunur. |
 | stable-diffusion.cpp / ggml | leejet; yukarıdaki v0.1.0 paketinde sabit motor | MIT; motor paketindeki `licenses/` ve `THIRD_PARTY.md` dosyaları korunur. |
-| Wan 2.2 TI2V-5B Q8_0 ve VAE | https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF, revision `57437632ddd08bdcbd1508c866aa22e126ed51d2` | Apache-2.0; Wan-AI model kartındaki kullanım koşulları da incelenmelidir. |
-| UMT5 XXL Q5_K_M | https://huggingface.co/city96/umt5-xxl-encoder-gguf, revision `b535255bee98c2b0a59ea7c0ae2dcd0c6657b3b7` | Apache-2.0; metin kodlayıcı. |
+| <a id="wan-modeli"></a>Wan 2.2 TI2V-5B Q8_0 ve VAE | https://huggingface.co/QuantStack/Wan2.2-TI2V-5B-GGUF, revision `57437632ddd08bdcbd1508c866aa22e126ed51d2` | Apache-2.0; Wan-AI model kartındaki kullanım koşulları da incelenmelidir. |
+| <a id="wan-umt5"></a>UMT5 XXL Q5_K_M | https://huggingface.co/city96/umt5-xxl-encoder-gguf, revision `b535255bee98c2b0a59ea7c0ae2dcd0c6657b3b7` | Apache-2.0; metin kodlayıcı. |
 | CUDA 12.8 runtime | v0.1.0 ayrı `cudart-cuda12.8-win-x64.zip` paketi | NVIDIA CUDA Toolkit EULA; MIT değildir. Orijinal runtime DLL'leri değiştirilmez. |
 | Visual C++ runtime | Microsoft resmi yükleyicisi | Microsoft koşulları; depoya dahil edilmez. |
 
 Entegrasyon: `sistem/araclar/yerel_video.py`. Motor/runtime SHA256 değerleri upstream sürüm duyurusundan, üç modelin boyut ve SHA256 değerleri upstream `models.lock.json` dosyasından alınmıştır. Yarım indirmeler `.part` olarak tutulur. Üretilen videonun yanında kaynağı ve AI üretimini belirten `*-ATIF.txt` yazılır. Bu entegrasyon Alibaba/Wan-AI, NVIDIA veya alexturkey tarafından verilmiş bir uyumluluk onayı değildir.
 
+<a id="orkestrator-baglantilari"></a>
 ## Panel orkestratör bağlantısı
 
 - Claude Agent SDK Python: https://github.com/anthropics/claude-agent-sdk-python. SDK ve birlikte kullanılan Claude Code çalışma zamanının kendi lisans/hesap koşulları geçerlidir. Panel SDK üzerinden yanıt ve izin olaylarını işler; hesap kimlik bilgilerini kopyalamaz.
 - Ollama, LM Studio ve llama.cpp paketleri veya model ağırlıkları depoya dahil edilmez. Panel onların yerel HTTP API'lerine bağlanır. Seçilen modelin ve sunucu yazılımının kendi lisansı geçerlidir.
 
-- **ACE-Step 1.5** — isteğe bağlı sözsüz müzik motoru. [Kaynak ve MIT lisansı](https://github.com/ace-step/ACE-Step-1.5/tree/v0.1.8), [model kartı ve ağırlıklar](https://huggingface.co/ACE-Step/Ace-Step1.5). Kod ve ağırlıklar dağıtım ZIP’ine eklenmez; kullanıcı kurulum isteğiyle indirilir.
+- Codex CLI, Gemini CLI ve OpenCode deneysel çalışma ortamlarıdır. Kurulu istemci ile seçilen sağlayıcı ve modelin kendi koşulları geçerlidir.
 
-- **Video Studio Kit (owlinthebarnai)** — stil ve araç kataloğu referansı. Uygulaması, örnek görüntüleri ve toplu skill arşivi paketlenmez. [Kaynak](https://github.com/owlinthebarnai/video-studio-kit) · [Upstream atıfları](https://github.com/owlinthebarnai/video-studio-kit/blob/main/THIRD_PARTY.md).
-- **LottieFiles Motion Design Skill** — MIT, Copyright (c) 2025 LottieFiles. Kurulum Video Studio Kit’in işaret ettiği `f9a8a041` commit’indeki Markdown rehberlerini lisansla birlikte doğrudan yazardan çeker. [Kaynak ve lisans](https://github.com/LottieFiles/motion-design-skill).
+<a id="medya-baglayicilari"></a>
+## Medya API bağlayıcıları
 
+| Bağlayıcı | Kullanım |
+|---|---|
+| Gemini | İsteğe bağlı görsel üretimi. |
+| OpenAI görsel | İsteğe bağlı görsel üretimi. |
+| ElevenLabs | İsteğe bağlı seslendirme. |
+| fal / Seedance | [Seedance manifest örneği](../../sistem/baglayici/ornekler/seedance-fal.json) ile asenkron video üretimi. |
+| Özel servis | [Asenkron HTTP](../../sistem/baglayici/ornekler/http-is-asenkron.json) ve [OpenAI uyumlu](../../sistem/baglayici/ornekler/openai-uyumlu.json) manifest örnekleri. |
+
+API ve model kendi sağlayıcısında çalışır. Kota, ücret ve çıktı koşulları seçilen hizmete bağlıdır.
+
+<a id="ace-step"></a>
+## Yerel müzik üretimi
+
+**ACE-Step 1.5 Turbo**, isteğe bağlı sözsüz müzik motorudur. [Kaynak ve MIT lisansı](https://github.com/ace-step/ACE-Step-1.5/tree/v0.1.8), [model kartı ve ağırlıklar](https://huggingface.co/ACE-Step/Ace-Step1.5). Kod ve ağırlıklar dağıtım ZIP’ine eklenmez; kullanıcı kurulum isteğiyle indirilir.
+
+<a id="video-studio-kit"></a>
+## Video Studio Kit
+
+**Video Studio Kit (owlinthebarnai)**, stil ve araç kataloğu referansıdır. Uygulaması, örnek görüntüleri ve toplu skill arşivi paketlenmez. [Kaynak](https://github.com/owlinthebarnai/video-studio-kit) · [Upstream atıfları](https://github.com/owlinthebarnai/video-studio-kit/blob/main/THIRD_PARTY.md).
+<a id="lottiefiles-motion-design"></a>
+## LottieFiles Motion Design Skill
+
+`motion-design` rehberi MIT lisanslıdır. Copyright (c) 2025 LottieFiles. Kurulum Video Studio Kit’in işaret ettiği `f9a8a041` commit’indeki Markdown rehberlerini lisansla birlikte doğrudan yazardan çeker. [Kaynak ve lisans](https://github.com/LottieFiles/motion-design-skill).
+
+<a id="montaj-referanslari"></a>
 ## Montaj teknikleri referansları
 
 | Bileşen | Kaynak / sürüm | Lisans ve kullanım |
 |---|---|---|
-| Opus Video Skills | https://github.com/tuzhechen2005/opus-video-skills | MIT. Kinetik tipografi teknik referansı. Örnekler ve render şablonları paketlenmez. |
-| Brag | https://github.com/latent-spaces/brag | MIT. Kod ve örnekler paketlenmez. Render ilk karesinin denetimi için teknik referans. |
-| Claude Motion Design | https://github.com/howseen-ai/claude-motion-design | MIT. Vuruş eşleme referansı. Kendi kodumuz ses dosyasından vuruş adaylarını çıkarır. |
-| Herk Edit Kit | https://github.com/nateherkai/herk-edit-kit | MIT, Copyright (c) 2026 Nate Herk. Kelime zamanları ve kesim doğrulaması için teknik referans. Kit dosyaları paketlenmez. |
-| SaaS Motion Kit | https://github.com/tugrawork-creator/saas-motion-kit | MIT (kod ve belgeler). Tanıtım sahnesi ve hareket düzenleri için referans. Örnekler, fontlar ve harici materyal paketlenmez. |
-| Snapcn | https://github.com/shadcn-labs/snapcn | MIT. Modüler düzen ve hareket stili için referans. Registry kodu ve tasarım varlıkları paketlenmez. |
+| <a id="opus-video-skills"></a>Opus Video Skills | https://github.com/tuzhechen2005/opus-video-skills | MIT. Kinetik tipografi teknik referansı. Örnekler ve render şablonları paketlenmez. |
+| <a id="brag"></a>Brag | https://github.com/latent-spaces/brag | MIT. Kod ve örnekler paketlenmez. Render ilk karesinin denetimi için teknik referans. |
+| <a id="claude-motion-design"></a>Claude Motion Design | https://github.com/howseen-ai/claude-motion-design | MIT. Vuruş eşleme referansı. Kendi kodumuz ses dosyasından vuruş adaylarını çıkarır. |
+| <a id="herk-edit-kit"></a>Herk Edit Kit | https://github.com/nateherkai/herk-edit-kit | MIT, Copyright (c) 2026 Nate Herk. Kelime zamanları ve kesim doğrulaması için teknik referans. Kit dosyaları paketlenmez. |
+| <a id="saas-motion-kit"></a>SaaS Motion Kit | https://github.com/tugrawork-creator/saas-motion-kit | MIT (kod ve belgeler). Tanıtım sahnesi ve hareket düzenleri için referans. Örnekler, fontlar ve harici materyal paketlenmez. |
+| <a id="snapcn"></a>Snapcn | https://github.com/shadcn-labs/snapcn | MIT. Modüler düzen ve hareket stili için referans. Registry kodu ve tasarım varlıkları paketlenmez. |

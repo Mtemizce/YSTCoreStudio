@@ -362,7 +362,7 @@ class MediaDispatch(unittest.TestCase):
             with patch.object(yerel_gorsel, 'uret') as image:
                 result = yerel_medya.uret('demo', 'image', 'sunset')
                 self.assertTrue(result.startswith('kaynak/foto/z-image-'))
-                self.assertEqual(Path(image.call_args.args[1]), Path(temp) / result)
+                self.assertEqual(Path(image.call_args.args[1]), Path(temp).resolve() / result)
             with patch.object(yerel_video, 'baslat') as video, patch.object(yerel_video, 'THREAD', Mock()), \
                  patch.object(yerel_video, 'GEN', {'dosya': 'kaynak/video/wan.mp4'}):
                 self.assertEqual(yerel_medya.uret('demo', 'video', 'camera', 5), 'kaynak/video/wan.mp4')
