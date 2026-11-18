@@ -156,7 +156,14 @@ Her bağlantı [THIRD_PARTY_NOTICES.md](.claude/skills/THIRD_PARTY_NOTICES.md) i
 
 ### Teşekkürler
 
-Skill’lerini, modellerini, eklentilerini ve üretim tekniklerini açıkça paylaşan geliştiricilere teşekkür ederiz. Özellikle Avenox ekibinin kaba kurgu, marka grafikleri ve kapak tasarımı rehberleri stüdyodaki üç uyarlamaya ve sosyal sürüm akışına yön verdi. Leodavincs’in Kurgu ve Kalem projeleri, Remotion ve HeyGen ekiplerinin üretim araçları ile LottieFiles, GreenSock ve diğer kaynak sahiplerinin paylaşımları bu iş akışının kurulmasını mümkün kıldı.
+Dosyalarını, skill’lerini, modellerini, eklentilerini ve üretim tekniklerini paylaşan tüm geliştiricilere, ekiplere ve katkıcılara teşekkür ederiz.
+
+| Katkı alanı | Kaynak sahipleri ve ekipler |
+|---|---|
+| Skill’ler, editörler ve animasyon | Anthropic, artificialguybr, Avenox, echris6, GL Transitions, GreenSock, HeyGen, leodavincs, LottieFiles, Paper.js, React ve Remotion |
+| Modeller ve çalışma araçları | ACE-Step, alexturkey, Black Forest Labs, canberkkkkkk, city96, Comfy-Org, Depth Anything, FFmpeg, Kyutai, leejet, LibreDWG, Mobius Labs, OpenAI Whisper, PyTorch, QuantStack, Qwen, rclone, SYSTRAN, Tongyi-MAI, Unsloth, Wan-AI, wite-tech ve xinntao |
+| Tasarım ve montaj referansları | haidrrrry, howseen-ai, latent-spaces, Nate Herk, owlinthebarnai, shadcn-labs, tugrawork-creator ve tuzhechen2005 |
+| Müzik, efektler ve yazı tipleri | Musopen, Pixabay ve Wikimedia Commons katkıcıları, Wyzowl ve kullanılan yazı tiplerinin tasarımcıları |
 
 ### Skill’ler
 

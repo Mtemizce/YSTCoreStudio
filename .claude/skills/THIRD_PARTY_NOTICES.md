@@ -78,8 +78,6 @@ Bu rehberler YSTCoreStudio’nun parçasıdır. Üçüncü taraf esin ve uyarlam
 <a id="avenoxai-avenoxskills"></a>
 ### avenoxai/avenoxskills
 - Kaynak: https://github.com/avenoxai/avenoxskills. Lisans: MIT. Depoda **uyarlama** olarak bulunur; `.claude/skills/LICENSES/avenoxskills-MIT.txt` lisans metnidir.
-- Açık olarak paylaştığı rehberler ve şablonlar için Avenox ekibine teşekkür ederiz.
-
 | Kaynak | Stüdyodaki karşılığı | Yararlanılan bölüm |
 |---|---|---|
 | <a id="avenox-roughcut"></a>`avenox-roughcut` | [`kaba-kurgu`](kaba-kurgu/SKILL.md) | Kaba kurgu yaklaşımı ve sessizlik kesimi. |
